@@ -35,7 +35,7 @@ class Parameter
             return ['string', 'number'];
         }
 
-        $type = BindingResolver::resolveType($model, $this->key);
+        [$type, $this->key] = BindingResolver::resolveTypeAndKey($model, $this->key);
 
         if (! $type) {
             return ['string', 'number'];

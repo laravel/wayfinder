@@ -8,7 +8,7 @@ class BindingResolver
 
     protected static $columns = [];
 
-    public static function resolveType(string $model, $key): ?string
+    public static function resolveTypeAndKey(string $model, $key): array
     {
         $booted = self::$models[$model] ??= app($model);
 
@@ -16,8 +16,11 @@ class BindingResolver
 
         self::$columns[$model] ??= $booted->getConnection()->getSchemaBuilder()->getColumns($booted->getTable());
 
-        return collect(self::$columns[$model])->first(
-            fn ($column) => $column['name'] === $key,
-        )['type_name'] ?? null;
+        return [
+            collect(self::$columns[$model])->first(
+                fn ($column) => $column['name'] === $key,
+            )['type_name'] ?? null,
+            $key,
+        ];
     }
 }
