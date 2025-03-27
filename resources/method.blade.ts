@@ -1,19 +1,11 @@
 @use('Illuminate\Support\HtmlString')
-/** {!! when(!str_contains($controller, '\\Closure'), "\n * @see {$controller}::{$method}") !!}
- * @see {!! $path !!}:{!! $line !!}
-@foreach ($parameters as $parameter)
-@if ($parameter->default !== null)
- * @param {!! $parameter->name !!} - Default: @js($parameter->default)
-
-@endif
-@endforeach
- * @route {!! $uri !!}
- */
+@include('wayfinder::docblock')
 {!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
     uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}),
     method: @js($verbs->first()->actual),
 })
 
+@include('wayfinder::docblock')
 {!! $method !!}.form = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
     method: @js($verbs->first()->formSafe),
@@ -24,6 +16,7 @@
     uri: @js($uri),
 }
 
+@include('wayfinder::docblock')
 {!! $method !!}.url = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => {
 @if ($parameters->count() === 1)
     if (typeof args === 'string' || typeof args === 'number') {
@@ -79,19 +72,13 @@
 }
 
 @foreach ($verbs as $verb)
-/** {!! when(!str_contains($controller, '\\Closure'), "\n * @see {$controller}::{$method}") !!}
- * @see {!! $path !!}:{!! $line !!}
- * @route {!! $uri !!}
- */
+@include('wayfinder::docblock')
 {!! $method !!}.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
     uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}),
     method: @js($verb->actual),
 })
 
-/** {!! when(!str_contains($controller, '\\Closure'), "\n * @see {$controller}::{$method}") !!}
- * @see {!! $path !!}:{!! $line !!}
- * @route {!! $uri !!}
- */
+@include('wayfinder::docblock')
 // @ts-ignore
 {!! $method !!}.form.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
