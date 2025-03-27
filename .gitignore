@@ -1,0 +1,5 @@
+/vendor
+/node_modules
+/composer.lock
+/.phpunit.cache
+/workbench/resources/js

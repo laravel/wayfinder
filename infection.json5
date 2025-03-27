@@ -1,0 +1,13 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "mutators": {
+        "@default": true,
+        "@function_signature": false
+    },
+    "minMsi": 100
+}

@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "happy-dom": "^15.11.7",
+    "vitest": "^2.1.3"
+  },
+  "dependencies": {
+    "@types/node": "^22.7.5",
+    "react": "^19.0.0"
+  }
+}
