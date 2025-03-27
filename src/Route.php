@@ -44,14 +44,16 @@ class Route
 
     public function jsMethod(): string
     {
-        return $this->hasInvokableController()
-            ? Str::afterLast($this->controller(), '\\')
-            : $this->base->getActionMethod();
+        return $this->finalJsMethod(
+            $this->hasInvokableController()
+                ? Str::afterLast($this->controller(), '\\')
+                : $this->base->getActionMethod()
+        );
     }
 
     public function namedMethod(): string
     {
-        return Str::afterLast($this->name(), '.');
+        return $this->finalJsMethod(Str::afterLast($this->name(), '.'));
     }
 
     public function controller(): string
@@ -142,6 +144,14 @@ class Route
         }
 
         return 0;
+    }
+
+    private function finalJsMethod(string $method): string
+    {
+        return match ($method) {
+            'delete' => 'deleteMethod',
+            default => $method,
+        };
     }
 
     private function relativePath(string $path)
