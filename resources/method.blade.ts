@@ -83,7 +83,7 @@ const {!! $method !!}Form = (@includeWhen($parameters->isNotEmpty(), 'wayfinder:
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
 {!! $method !!}Form.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
+    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verb->formSafe !== $verb->actual, " + '?_method=" . strtoupper($verb->actual) . "'") !!},
     method: @js($verb->formSafe),
 })
 

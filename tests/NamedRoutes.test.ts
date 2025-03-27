@@ -1,11 +1,10 @@
 import { expect, it } from "vitest";
-import { edit } from "../workbench/resources/js/named/posts";
+import { edit } from "../workbench/resources/js/routes/posts";
 
-it('exports default and methods for invokable controllers', () => {
-    expect(edit.url(1)).toBe('/posts/1/edit')
+it("exports default and methods for invokable controllers", () => {
+    expect(edit.url(1)).toBe("/posts/1/edit");
     expect(edit(1)).toEqual({
-        action: '/posts/1/edit',
-        method: 'get',
-        _method: 'get'
-    })
-})
+        uri: "/posts/1/edit",
+        method: "get",
+    });
+});
