@@ -19,7 +19,7 @@ npm i -D vite-plugin-run
 Then in your `vite.config.js`:
 
 ```ts
-import { run } from 'vite-plugin-run'
+import { run } from "vite-plugin-run";
 
 export default defineConfig({
     plugins: [
@@ -42,10 +42,10 @@ export default defineConfig({
     // ...
     resolve: {
         alias: {
-            '@actions/': './resources/js/actions',
-            '@routes/': './resources/js/routes',
-        }
-    }
+            "@actions/": "./resources/js/actions",
+            "@routes/": "./resources/js/routes",
+        },
+    },
 });
 ```
 
@@ -80,7 +80,7 @@ php artisan wayfinder:generate --skip-routes
 Wayfinder functions returns an object that contains the resolved url and default method:
 
 ```ts
-import { show } from '@actions/App/Http/Controllers/PostController';
+import { show } from "@actions/App/Http/Controllers/PostController";
 
 show(1); // { uri: "/posts/1", method: "get" }
 ```
@@ -88,7 +88,7 @@ show(1); // { uri: "/posts/1", method: "get" }
 If you just need the URL, or would like to choose a method from the verbs defined on the server, you can chain off of the import:
 
 ```ts
-import { show } from '@actions/App/Http/Controllers/PostController';
+import { show } from "@actions/App/Http/Controllers/PostController";
 
 show.url(1); // "/posts/1"
 show.head(1); // { uri: "/posts/1", method: "head" }
@@ -97,7 +97,7 @@ show.head(1); // { uri: "/posts/1", method: "head" }
 Wayfinder accepts a variety of shapes for the argument:
 
 ```ts
-import { show, update } from '@actions/App/Http/Controllers/PostController';
+import { show, update } from "@actions/App/Http/Controllers/PostController";
 
 // Single param action
 show(1);
@@ -105,24 +105,26 @@ show({ id: 1 });
 
 // Multiple param action
 update([1, 2]);
-update({ post: 1, author: 2 })
-update({ post: { id: 1 }, author: { id: 2 } })
+update({ post: 1, author: 2 });
+update({ post: { id: 1 }, author: { id: 2 } });
 ```
+
+Of note: If you have a method called `delete`, Wayfinder will re-name it `deleteMethod` when generating as `delete` is not allowed as a variable declaration n
 
 If you've specified a key for the param binding, Wayfinder will detect that and you can pass that in as an object:
 
 ```ts
-import { show } from '@actions/App/Http/Controllers/PostController';
+import { show } from "@actions/App/Http/Controllers/PostController";
 
 // Route is /posts/{post:slug}
-show('my-new-post');
-show({ slug: 'my-new-post' });
+show("my-new-post");
+show({ slug: "my-new-post" });
 ```
 
-Invokable controller? No problem, just call it directly:
+Invokable controller? Just call it directly:
 
 ```ts
-import StorePostController from '@actions/App/Http/Controllers/StorePostController';
+import StorePostController from "@actions/App/Http/Controllers/StorePostController";
 
 StorePostController();
 ```
@@ -130,7 +132,7 @@ StorePostController();
 You can import any part of the namespace as well:
 
 ```ts
-import PostController from '@actions/App/Http/Controllers/PostController';
+import PostController from "@actions/App/Http/Controllers/PostController";
 
 PostController.show(1);
 ```
@@ -140,7 +142,7 @@ Note: importing this way prevents the `PostController` from being tree-shaken, s
 Wayfinder can generate methods for your named routes as well:
 
 ```ts
-import { show } from '@routes/post';
+import { show } from "@routes/post";
 
 // Named route is `post.show`
 show(1); // { uri: "/posts/1", method: "get" }
@@ -149,19 +151,23 @@ show(1); // { uri: "/posts/1", method: "get" }
 If you're using a conventional form submission, Wayfinder can help you out there as well:
 
 ```tsx
-import { store, update } from '@actions/App/Http/Controllers/PostController';
+import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
-    <form {...store.form(1)}> {/* { action: "/posts", method: "post" } */}
+    <form {...store.form(1)}>
+        {" "}
+        {/* { action: "/posts", method: "post" } */}
         {/* ... */}
     </form>
-)
+);
 
 const Page = () => (
-    <form {...update.form.patch(1)}> {/* { action: "/posts/1?_method=PATCH", method: "post" } */}
+    <form {...update.form.patch(1)}>
+        {" "}
+        {/* { action: "/posts/1?_method=PATCH", method: "post" } */}
         {/* ... */}
     </form>
-)
+);
 ```
 
 ## Wayfinder + Inertia
@@ -169,23 +175,21 @@ const Page = () => (
 You can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URI and method:
 
 ```ts
-import { useForm } from '@inertiajs/react'
-import { store } from '@actions/App/Http/Controllers/PostController';
+import { useForm } from "@inertiajs/react";
+import { store } from "@actions/App/Http/Controllers/PostController";
 
 const form = useForm({
-    name: 'My Big Post',
+    name: "My Big Post",
 });
 
-form.submit(store()) // Will POST to `/posts`
+form.submit(store()); // Will POST to `/posts`
 ```
 
 Wayfinder also pairs well with the `Link` component:
 
 ```tsx
-import { Link } from '@inertiajs/react'
-import { show } from '@actions/App/Http/Controllers/PostController';
+import { Link } from "@inertiajs/react";
+import { show } from "@actions/App/Http/Controllers/PostController";
 
-const Nav = () => (
-    <Link href={show(1)}>Show me the first post</Link>
-)
+const Nav = () => <Link href={show(1)}>Show me the first post</Link>;
 ```
