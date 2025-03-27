@@ -5,14 +5,6 @@
     method: @js($verbs->first()->actual),
 })
 
-@if ($withForm)
-@include('wayfinder::docblock')
-{!! $method !!}.form = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
-    method: @js($verbs->first()->formSafe),
-})
-@endif
-
 {!! $method !!}.definition = {
     methods: [@foreach ($verbs as $verb)@js($verb->actual){!! when(! $loop->last, ',') !!}@endforeach],
     uri: @js($uri),
@@ -80,13 +72,22 @@
     method: @js($verb->actual),
 })
 
+@endforeach
 @if ($withForm)
 @include('wayfinder::docblock')
-// @ts-ignore
-{!! $method !!}.form.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
+const {!! $method !!}Form = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
+    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
+    method: @js($verbs->first()->formSafe),
+})
+
+@foreach ($verbs as $verb)
+@include('wayfinder::docblock')
+{!! $method !!}Form.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
     method: @js($verb->formSafe),
 })
 
-@endif
 @endforeach
+{!! $method !!}.form = {!! $method !!}Form
+
+@endif
