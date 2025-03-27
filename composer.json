@@ -1,15 +1,28 @@
 {
-    "name": "timacdonald/wayfinder",
-    "description": "...",
+    "name": "laravel/wayfinder",
+    "description": "Generate TypeScript representations of your Laravel actions and routes.",
     "keywords": [
-        "..."
+        "php",
+        "laravel",
+        "typescript",
+        "routes"
     ],
+    "homepage": "https://laravel.com",
     "license": "MIT",
+    "support": {
+        "issues": "https://github.com/laravel/wayfinder/issues",
+        "source": "https://github.com/laravel/wayfinder"
+    },
     "authors": [
         {
             "name": "Tim MacDonald",
             "email": "hello@timacdonald.me",
             "homepage": "https://timacdonald.me"
+        },
+        {
+            "name": "Joe Tannenbaum",
+            "email": "joe@joe.codes",
+            "homepage": "https://joe.codes"
         }
     ],
     "require": {
@@ -56,6 +69,9 @@
         ],
         "lint": [
             "@php vendor/bin/phpstan analyse --verbose --ansi"
+        ],
+        "format": [
+            "@php vendor/bin/pint --dirty"
         ],
         "test": [
             "@php vendor/bin/phpunit"
