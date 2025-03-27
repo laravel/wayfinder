@@ -53,7 +53,7 @@ class Route
 
     public function namedMethod(): string
     {
-        return $this->finalJsMethod(Str::afterLast($this->name(), '.'));
+        return $this->finalJsMethod(Str::of($this->name())->afterLast('.')->camel()->toString());
     }
 
     public function controller(): string

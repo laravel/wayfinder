@@ -178,7 +178,11 @@ class GenerateCommand extends Command
 
         $imports = $routes->map(fn (Route $route) => $route->namedMethod())->implode(', ');
 
-        $base = basename($path, '.ts');
+        $basename = basename($path, '.ts');
+        $base = Str::of($basename)->when(
+            str_contains($basename, '-'),
+            fn ($s) => $s->camel()
+        )->toString();
 
         if ($base !== $imports) {
             $this->files->append($path, <<<JAVASCRIPT
