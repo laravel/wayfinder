@@ -18,7 +18,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--base=} {--skip-actions} {--skip-routes}';
+    protected $signature = 'wayfinder:generate {--base=} {--skip-actions} {--skip-routes} {--with-form}';
 
     private ?string $forcedScheme;
 
@@ -136,6 +136,7 @@ class GenerateCommand extends Command
             'line' => $routes->first()->controllerMethodLineNumber(),
             'controller' => $routes->first()->controller(),
             'isInvokable' => $routes->first()->hasInvokableController(),
+            'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
                 'tempMethod' => $r->jsMethod().md5($r->uri()),
                 'parameters' => $r->parameters(),
@@ -156,6 +157,7 @@ class GenerateCommand extends Command
             'parameters' => $route->parameters(),
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
+            'withForm' => $this->option('with-form') ?? false,
         ]));
     }
 
@@ -198,6 +200,7 @@ class GenerateCommand extends Command
             'parameters' => $route->parameters(),
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
+            'withForm' => $this->option('with-form') ?? false,
         ]));
     }
 

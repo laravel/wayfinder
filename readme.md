@@ -148,7 +148,17 @@ import { show } from "@routes/post";
 show(1); // { uri: "/posts/1", method: "get" }
 ```
 
-If you're using a conventional form submission, Wayfinder can help you out there as well:
+### Convential Form Variants
+
+If you're using a conventional form submission, Wayfinder can help you out there as well.
+
+First, opt into form variants when generating your TypeScript:
+
+```
+php artisan wayfinder:generate --with-form
+```
+
+Then, you can use the `.form` variant to generate `<form>` object attributes automatically:
 
 ```tsx
 import { store, update } from "@actions/App/Http/Controllers/PostController";
