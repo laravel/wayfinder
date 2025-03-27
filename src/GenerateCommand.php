@@ -14,6 +14,7 @@ use Illuminate\View\Factory;
 use ReflectionProperty;
 
 use function Illuminate\Filesystem\join_paths;
+use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
@@ -68,6 +69,8 @@ class GenerateCommand extends Command
 
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
+
+            info('[Wayfinder] Generated actions in '.$this->base());
         }
 
         $this->pathDirectory = 'routes';
@@ -80,6 +83,8 @@ class GenerateCommand extends Command
             $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
             $named->undot()->each($this->writeBarrelFiles(...));
             $named->each($this->writeNamedFile(...));
+
+            info('[Wayfinder] Generated routes in '.$this->base());
         }
     }
 
