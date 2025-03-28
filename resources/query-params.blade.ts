@@ -1,18 +1,24 @@
-const queryParams = (
-    query?: Record<
-        string,
-        | string
-        | number
-        | boolean
-        | string[]
-        | null
-        | undefined
-        | Record<string, string | number | boolean>
-    >,
-) => {
-    if (!query) {
+type QueryParams = Record<
+    string,
+    | string
+    | number
+    | boolean
+    | string[]
+    | null
+    | undefined
+    | Record<string, string | number | boolean>
+>;
+
+const queryParams = (options?: {
+    query?: QueryParams;
+    mergeQuery?: QueryParams;
+}) => {
+    if (!options || (!options.query && !options.mergeQuery)) {
         return "";
     }
+
+    const query = options.query ?? options.mergeQuery;
+    const includeExisting = options.mergeQuery !== undefined;
 
     const getValue = (value: string | number | boolean) => {
         if (value === true) {
@@ -25,9 +31,6 @@ const queryParams = (
 
         return value.toString();
     };
-
-    const includeExisting = query["*"] ?? false;
-    delete query["*"];
 
     const params = new URLSearchParams(
         includeExisting && typeof window !== "undefined"

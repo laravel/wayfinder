@@ -1,7 +1,7 @@
 @use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
 {!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')) => ({
-    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verbs->first()->actual),
 })
 
@@ -62,13 +62,13 @@
 @if ($loop->last)
             .replace(/\/+$/, '')
 @endif
-@endforeach + queryParams(query)
+@endforeach + queryParams(options)
 }
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
 {!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
-    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verb->actual),
 })
 
@@ -78,13 +78,14 @@
 const {!! $method !!}Form = (@include('wayfinder::function-arguments')) => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verbs->first()->formSafe !== $verbs->first()->actual)
 {
-    _method: @js(strtoupper($verbs->first()->actual)),
-    ...(query ?? {}),
+    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+        _method: @js(strtoupper($verbs->first()->actual)),
+        ...(options?.query ?? options?.mergeQuery ?? {}),
+    }
 }
 @else
-query
+options
 @endif),
-
     method: @js($verbs->first()->formSafe),
 })
 
@@ -93,11 +94,13 @@ query
 {!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verb->formSafe !== $verb->actual)
 {
-    _method: @js(strtoupper($verb->actual)),
-    ...(query ?? {}),
+    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+        _method: @js(strtoupper($verb->actual)),
+        ...(options?.query ?? options?.mergeQuery ?? {}),
+    }
 }
 @else
-query
+options
 @endif),
     method: @js($verb->formSafe),
 })

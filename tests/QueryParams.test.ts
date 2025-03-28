@@ -4,8 +4,10 @@ import { index } from "../workbench/resources/js/actions/App/Http/Controllers/Po
 it("can convert basic params", () => {
     expect(
         index({
-            foo: "bar",
-            bar: "baz",
+            query: {
+                foo: "bar",
+                bar: "baz",
+            },
         }),
     ).toEqual({
         url: "/posts?foo=bar&bar=baz",
@@ -16,8 +18,10 @@ it("can convert basic params", () => {
 it("can convert array params", () => {
     expect(
         index({
-            foo: ["bar", "baz"],
-            bar: "qux",
+            query: {
+                foo: ["bar", "baz"],
+                bar: "qux",
+            },
         }),
     ).toEqual({
         url: "/posts?foo%5B%5D=bar&foo%5B%5D=baz&bar=qux",
@@ -28,11 +32,13 @@ it("can convert array params", () => {
 it("can convert object params", () => {
     expect(
         index({
-            foo: {
-                a: "baz",
-                b: "qux",
+            query: {
+                foo: {
+                    a: "baz",
+                    b: "qux",
+                },
+                bar: "something",
             },
-            bar: "something",
         }),
     ).toEqual({
         url: "/posts?foo%5Ba%5D=baz&foo%5Bb%5D=qux&bar=something",
@@ -43,8 +49,10 @@ it("can convert object params", () => {
 it("can convert boolean params", () => {
     expect(
         index({
-            foo: true,
-            bar: false,
+            query: {
+                foo: true,
+                bar: false,
+            },
         }),
     ).toEqual({
         url: "/posts?foo=1&bar=0",
@@ -57,8 +65,10 @@ it("will ignore existing params without star", () => {
 
     expect(
         index({
-            also: "yes",
-            bar: "no",
+            query: {
+                also: "yes",
+                bar: "no",
+            },
         }),
     ).toEqual({
         url: "/posts?also=yes&bar=no",
@@ -71,9 +81,10 @@ it("can integrate basic params with existing window params", () => {
 
     expect(
         index({
-            "*": true,
-            also: "yes",
-            bar: "no",
+            mergeQuery: {
+                also: "yes",
+                bar: "no",
+            },
         }),
     ).toEqual({
         url: "/posts?foo=bar&bar=no&also=yes",
@@ -86,9 +97,10 @@ it("can integrate array params with existing window params", () => {
 
     expect(
         index({
-            "*": true,
-            foo: ["qux", "baz"],
-            also: "yes",
+            mergeQuery: {
+                foo: ["qux", "baz"],
+                also: "yes",
+            },
         }),
     ).toEqual({
         url: "/posts?bar=baz&foo%5B%5D=qux&foo%5B%5D=baz&also=yes",
@@ -101,9 +113,10 @@ it("can integrate object params with existing window params", () => {
 
     expect(
         index({
-            "*": true,
-            foo: { qux: "baz" },
-            also: "yes",
+            mergeQuery: {
+                foo: { qux: "baz" },
+                also: "yes",
+            },
         }),
     ).toEqual({
         url: "/posts?something=else&foo%5Bqux%5D=baz&also=yes",
@@ -116,8 +129,9 @@ it("can delete existing params via null", () => {
 
     expect(
         index({
-            "*": true,
-            foo: null,
+            mergeQuery: {
+                foo: null,
+            },
         }),
     ).toEqual({
         url: "/posts?bar=baz",
@@ -130,8 +144,9 @@ it("can delete existing params via undefined", () => {
 
     expect(
         index({
-            "*": true,
-            foo: undefined,
+            mergeQuery: {
+                foo: undefined,
+            },
         }),
     ).toEqual({
         url: "/posts?bar=baz",
@@ -144,8 +159,9 @@ it("can merge with the form method", () => {
 
     expect(
         index.form.head({
-            "*": true,
-            foo: "sure",
+            mergeQuery: {
+                foo: "sure",
+            },
         }),
     ).toEqual({
         action: "/posts?foo=sure&bar=baz&_method=HEAD",
