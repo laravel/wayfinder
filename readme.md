@@ -180,6 +180,56 @@ const Page = () => (
 );
 ```
 
+## Query Params
+
+All Wayfinder methods accept an optional final argument to append query params onto the resulting URL:
+
+```ts
+import { show } from "@actions/App/Http/Controllers/PostController";
+
+const queryParams = {
+    page: 1,
+    sort_by: "name",
+};
+
+show(1, queryParams); // { url: "/posts/1?page=1&sort_by=name", method: "get" }
+show.get(1, queryParams); // { url: "/posts/1?page=1&sort_by=name", method: "get" }
+show.url(1, queryParams); // "/posts/1?page=1&sort_by=name"
+show.form.head(1, queryParams); // { action: "/posts/1?page=1&sort_by=name&_method=HEAD", method: "get" }
+```
+
+You can also merge with the existing URL params by including `*` in your params object:
+
+```ts
+import { show } from "@actions/App/Http/Controllers/PostController";
+
+// window.location.search = "?page=1&sort_by=category&q=shirt
+
+const queryParams = {
+    "*": true,
+    page: 2,
+    sort_by: "name",
+};
+
+show.url(1, queryParams); // "/posts/1?page=2&sort_by=name&q=shirt
+```
+
+If you would like to remove a param from the resulting URL, make the value `null` or `undefined`:
+
+```ts
+import { show } from "@actions/App/Http/Controllers/PostController";
+
+// window.location.search = "?page=1&sort_by=category&q=shirt
+
+const queryParams = {
+    "*": true,
+    page: 2,
+    sort_by: null,
+};
+
+show.url(1, queryParams); // "/posts/1?page=2q=shirt
+```
+
 ## Wayfinder + Inertia
 
 You can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URI and method:
