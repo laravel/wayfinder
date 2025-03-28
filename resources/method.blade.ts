@@ -1,7 +1,7 @@
 @use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
-{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}),
+{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')) => ({
+    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
     method: @js($verbs->first()->actual),
 })
 
@@ -11,7 +11,7 @@
 }
 
 @include('wayfinder::docblock')
-{!! $method !!}.url = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => {
+{!! $method !!}.url = (@include('wayfinder::function-arguments')) => {
 @if ($parameters->count() === 1)
     if (typeof args === 'string' || typeof args === 'number') {
         args = { {!! $parameters->first()->name !!}: args }
@@ -62,28 +62,43 @@
 @if ($loop->last)
             .replace(/\/+$/, '')
 @endif
-@endforeach
+@endforeach + queryParams(query)
 }
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}),
+{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
+    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
     method: @js($verb->actual),
 })
 
 @endforeach
 @if ($withForm)
 @include('wayfinder::docblock')
-const {!! $method !!}Form = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verbs->first()->formSafe !== $verbs->first()->actual, " + '?_method=" . strtoupper($verbs->first()->actual) . "'") !!},
+const {!! $method !!}Form = (@include('wayfinder::function-arguments')) => ({
+    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verbs->first()->formSafe !== $verbs->first()->actual)
+{
+    _method: @js(strtoupper($verbs->first()->actual)),
+    ...(query ?? {}),
+}
+@else
+query
+@endif),
+
     method: @js($verbs->first()->formSafe),
 })
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}Form.{!! $verb->actual !!} = (@includeWhen($parameters->isNotEmpty(), 'wayfinder::function-arguments', $parameters)) => ({
-    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args') !!}){!! when($verb->formSafe !== $verb->actual, " + '?_method=" . strtoupper($verb->actual) . "'") !!},
+{!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
+    action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verb->formSafe !== $verb->actual)
+{
+    _method: @js(strtoupper($verb->actual)),
+    ...(query ?? {}),
+}
+@else
+query
+@endif),
     method: @js($verb->formSafe),
 })
 

@@ -28,6 +28,8 @@ class GenerateCommand extends Command
 
     private $pathDirectory = 'actions';
 
+    private $content = [];
+
     public function __construct(
         private Filesystem $files,
         private Router $router,
@@ -70,6 +72,8 @@ class GenerateCommand extends Command
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
+            $this->writeContent();
+
             info('[Wayfinder] Generated actions in '.$this->base());
         }
 
@@ -78,28 +82,44 @@ class GenerateCommand extends Command
         $this->files->deleteDirectory($this->base());
 
         if (! $this->option('skip-routes')) {
-            $this->files->ensureDirectoryExists($this->base());
-
             $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
             $named->undot()->each($this->writeBarrelFiles(...));
             $named->each($this->writeNamedFile(...));
 
+            $this->writeContent();
+
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+    }
+
+    private function appendContent($path, $content): void
+    {
+        $this->content[$path] ??= [];
+
+        $this->content[$path][] = $content;
+    }
+
+    private function writeContent(): void
+    {
+        foreach ($this->content as $path => $content) {
+            $this->files->ensureDirectoryExists(dirname($path));
+
+            $this->files->put($path, implode(PHP_EOL, $content));
+        }
+
+        $this->content = [];
     }
 
     private function writeControllerFile(Collection $routes, string $namespace): void
     {
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
-        $this->files->ensureDirectoryExists(dirname($path));
-
         // do not add this unless any method needs it.
         if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
-            $content = $this->view->make('wayfinder::validate-parameters')->render();
-
-            $this->files->append($path, $content);
+            $this->appendContent($path, $this->view->make('wayfinder::validate-parameters')->render());
         }
+
+        $this->appendContent($path, $this->view->make('wayfinder::query-params')->render());
 
         $routes->groupBy(fn (Route $route) => $route->method())->each(function ($methodRoutes) use ($path) {
             if ($methodRoutes->count() === 1) {
@@ -121,7 +141,7 @@ class GenerateCommand extends Command
             $methodProps = $methods->map(fn (Route $route) => $defaultExport.'.'.$route->jsMethod().' = '.$route->jsMethod())->unique()->implode(PHP_EOL);
         }
 
-        $this->files->append($path, <<<JAVASCRIPT
+        $this->appendContent($path, <<<JAVASCRIPT
         {$methodProps}
 
         export default {$defaultExport}
@@ -130,7 +150,7 @@ class GenerateCommand extends Command
 
     private function writeMultiRouteControllerMethodExport(Collection $routes, string $path): void
     {
-        $this->files->append($path, $this->view->make('wayfinder::multi-method', [
+        $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $routes->first()->jsMethod(),
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
@@ -148,7 +168,7 @@ class GenerateCommand extends Command
 
     private function writeControllerMethodExport(Route $route, string $path): void
     {
-        $this->files->append($path, $this->view->make('wayfinder::method', [
+        $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
             'method' => $route->jsMethod(),
             'isInvokable' => $route->hasInvokableController(),
@@ -165,14 +185,12 @@ class GenerateCommand extends Command
     {
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
-        $this->files->ensureDirectoryExists(dirname($path));
-
         // do not add this unless any method needs it.
         if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
-            $content = $this->view->make('wayfinder::validate-parameters')->render();
-
-            $this->files->append($path, $content);
+            $this->appendContent($path, $this->view->make('wayfinder::validate-parameters')->render());
         }
+
+        $this->appendContent($path, $this->view->make('wayfinder::query-params')->render());
 
         $routes->each(fn (Route $route) => $this->writeNamedMethodExport($route, $path));
 
@@ -185,7 +203,7 @@ class GenerateCommand extends Command
         )->toString();
 
         if ($base !== $imports) {
-            $this->files->append($path, <<<JAVASCRIPT
+            $this->appendContent($path, <<<JAVASCRIPT
                 const {$base} = { {$imports} }
 
                 export default {$base}
@@ -195,7 +213,7 @@ class GenerateCommand extends Command
 
     private function writeNamedMethodExport(Route $route, string $path): void
     {
-        $this->files->append($path, $this->view->make('wayfinder::method', [
+        $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
             'method' => $route->namedMethod(),
             'isInvokable' => false,
@@ -223,15 +241,15 @@ class GenerateCommand extends Command
                 return;
             }
 
-            $this->files->ensureDirectoryExists($directory = join_paths($this->base(), $parent, $child));
+            $directory = join_paths($this->base(), $parent, $child);
 
             $imports = $grandkids->keys()->map(fn ($grandkid) => "import * as {$grandkid} from './{$grandkid}'")->implode(PHP_EOL);
 
-            $this->files->append(join_paths($directory, 'index.ts'), $imports);
+            $this->appendContent(join_paths($directory, 'index.ts'), $imports);
 
             $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$k)->implode(', '.PHP_EOL);
 
-            $this->files->append(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
+            $this->appendContent(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
 
 
                 const {$child} = {
