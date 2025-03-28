@@ -82,7 +82,8 @@ class GenerateCommand extends Command
         $this->files->deleteDirectory($this->base());
 
         if (! $this->option('skip-routes')) {
-            $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
+            $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
+
             $named->undot()->each($this->writeBarrelFiles(...));
             $named->each($this->writeNamedFile(...));
 
@@ -249,14 +250,20 @@ class GenerateCommand extends Command
 
             $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$k)->implode(', '.PHP_EOL);
 
+            $varExport = $child;
+
+            if (str_contains($varExport, '-')) {
+                $varExport = Str::camel($varExport);
+            }
+
             $this->appendContent(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
 
 
-                const {$child} = {
+                const {$varExport} = {
                 {$keys},
                 }
 
-                export default {$child}
+                export default {$varExport}
                 JAVASCRIPT);
 
             $this->writeBarrelFiles($grandkids, join_paths($parent, $child));

@@ -153,10 +153,16 @@ class Route
 
     private function finalJsMethod(string $method): string
     {
-        return match ($method) {
+        $method = match ($method) {
             'delete' => 'deleteMethod',
             default => $method,
         };
+
+        if (is_numeric($method)) {
+            return 'method'.$method;
+        }
+
+        return $method;
     }
 
     private function relativePath(string $path)
