@@ -182,7 +182,7 @@ const Page = () => (
 
 ## Query Params
 
-All Wayfinder methods accept an optional final argument to append query params onto the resulting URL:
+All Wayfinder methods accept an optional final `options` argument, you can pass a `query` object to append query params onto the resulting URL:
 
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
