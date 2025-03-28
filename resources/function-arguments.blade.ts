@@ -24,5 +24,5 @@ args{!! when($parameters->every->optional, '?') !!}: {
 @endif
 ,
 @endif
-query?: Record<string, string | number | boolean | string[] | null | undefined | Record<string, string | number | boolean | null | undefined>>,
+query?: Record<string, string | number | boolean | string[] | null | undefined | Record<string, string | number | boolean>>,
 @endtrimDeadspace

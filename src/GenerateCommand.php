@@ -48,7 +48,7 @@ class GenerateCommand extends Command
             return '<?php ob_start(); ?>';
         });
         $this->bladeCompiler->directive('endtrimDeadspace', function () {
-            return '<?php echo \TiMacDonald\Wayfinder\TypeScript::clean(ob_get_clean()); ?>';
+            return '<?php echo \TiMacDonald\Wayfinder\TypeScript::trimDeadspace(ob_get_clean()); ?>';
         });
 
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
@@ -104,7 +104,7 @@ class GenerateCommand extends Command
         foreach ($this->content as $path => $content) {
             $this->files->ensureDirectoryExists(dirname($path));
 
-            $this->files->put($path, implode(PHP_EOL, $content));
+            $this->files->put($path, TypeScript::cleanUp(implode(PHP_EOL, $content)));
         }
 
         $this->content = [];
