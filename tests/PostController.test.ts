@@ -26,21 +26,21 @@ describe("index", async () => {
 
     test("default method", () => {
         expect(index()).toEqual({
-            uri: "/posts",
+            url: "/posts",
             method: "get",
         });
     });
 
     test("get", () => {
         expect(index.get()).toEqual({
-            uri: "/posts",
+            url: "/posts",
             method: "get",
         });
     });
 
     test("head", () => {
         expect(index.head()).toEqual({
-            uri: "/posts",
+            url: "/posts",
             method: "head",
         });
     });
@@ -67,9 +67,9 @@ describe("index", async () => {
     });
 
     test("definition", () => {
-        expect(Object.keys(index.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(index.definition)).toEqual(["methods", "url"]);
         expect(index.definition.methods).toEqual(["get", "head"]);
-        expect(index.definition.uri).toBe("/posts");
+        expect(index.definition.url).toBe("/posts");
     });
 });
 
@@ -90,29 +90,29 @@ describe("create", async () => {
 
     test("default method", () => {
         expect(create()).toEqual({
-            uri: "/posts/create",
+            url: "/posts/create",
             method: "get",
         });
     });
 
     test("get", () => {
         expect(create.get()).toEqual({
-            uri: "/posts/create",
+            url: "/posts/create",
             method: "get",
         });
     });
 
     test("head", () => {
         expect(create.head()).toEqual({
-            uri: "/posts/create",
+            url: "/posts/create",
             method: "head",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(create.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(create.definition)).toEqual(["methods", "url"]);
         expect(create.definition.methods).toEqual(["get", "head"]);
-        expect(create.definition.uri).toBe("/posts/create");
+        expect(create.definition.url).toBe("/posts/create");
     });
 });
 
@@ -132,22 +132,22 @@ describe("store", async () => {
 
     test("default method", () => {
         expect(store()).toEqual({
-            uri: "/posts",
+            url: "/posts",
             method: "post",
         });
     });
 
     test("post", () => {
         expect(store.post()).toEqual({
-            uri: "/posts",
+            url: "/posts",
             method: "post",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(store.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(store.definition)).toEqual(["methods", "url"]);
         expect(store.definition.methods).toEqual(["post"]);
-        expect(store.definition.uri).toBe("/posts");
+        expect(store.definition.url).toBe("/posts");
     });
 });
 
@@ -168,29 +168,29 @@ describe("show", async () => {
 
     test("default method", () => {
         expect(show({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "get",
         });
     });
 
     test("get", () => {
         expect(show.get({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "get",
         });
     });
 
     test("head", () => {
         expect(show.head({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "head",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(show.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(show.definition)).toEqual(["methods", "url"]);
         expect(show.definition.methods).toEqual(["get", "head"]);
-        expect(show.definition.uri).toBe("/posts/{post}");
+        expect(show.definition.url).toBe("/posts/{post}");
     });
 });
 
@@ -211,29 +211,29 @@ describe("edit", async () => {
 
     test("default method", () => {
         expect(edit({ post: 1 })).toEqual({
-            uri: "/posts/1/edit",
+            url: "/posts/1/edit",
             method: "get",
         });
     });
 
     test("get", () => {
         expect(edit.get({ post: 1 })).toEqual({
-            uri: "/posts/1/edit",
+            url: "/posts/1/edit",
             method: "get",
         });
     });
 
     test("head", () => {
         expect(edit.head({ post: 1 })).toEqual({
-            uri: "/posts/1/edit",
+            url: "/posts/1/edit",
             method: "head",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(edit.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(edit.definition)).toEqual(["methods", "url"]);
         expect(edit.definition.methods).toEqual(["get", "head"]);
-        expect(edit.definition.uri).toBe("/posts/{post}/edit");
+        expect(edit.definition.url).toBe("/posts/{post}/edit");
     });
 });
 
@@ -253,22 +253,22 @@ describe("update", async () => {
 
     test("default method", () => {
         expect(update({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "patch",
         });
     });
 
     test("patch", () => {
         expect(update.patch({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "patch",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(update.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(update.definition)).toEqual(["methods", "url"]);
         expect(update.definition.methods).toEqual(["patch"]);
-        expect(update.definition.uri).toBe("/posts/{post}");
+        expect(update.definition.url).toBe("/posts/{post}");
     });
 });
 
@@ -288,21 +288,21 @@ describe("destroy", async () => {
 
     test("default method", () => {
         expect(destroy({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "delete",
         });
     });
 
     test("delete", () => {
         expect(destroy.delete({ post: 1 })).toEqual({
-            uri: "/posts/1",
+            url: "/posts/1",
             method: "delete",
         });
     });
 
     test("definition", () => {
-        expect(Object.keys(destroy.definition)).toEqual(["methods", "uri"]);
+        expect(Object.keys(destroy.definition)).toEqual(["methods", "url"]);
         expect(destroy.definition.methods).toEqual(["delete"]);
-        expect(destroy.definition.uri).toBe("/posts/{post}");
+        expect(destroy.definition.url).toBe("/posts/{post}");
     });
 });

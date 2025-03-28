@@ -8,7 +8,7 @@ it("can convert basic params", () => {
             bar: "baz",
         }),
     ).toEqual({
-        uri: "/posts?foo=bar&bar=baz",
+        url: "/posts?foo=bar&bar=baz",
         method: "get",
     });
 });
@@ -20,7 +20,7 @@ it("can convert array params", () => {
             bar: "qux",
         }),
     ).toEqual({
-        uri: "/posts?foo%5B%5D=bar&foo%5B%5D=baz&bar=qux",
+        url: "/posts?foo%5B%5D=bar&foo%5B%5D=baz&bar=qux",
         method: "get",
     });
 });
@@ -35,7 +35,7 @@ it("can convert object params", () => {
             bar: "something",
         }),
     ).toEqual({
-        uri: "/posts?foo%5Ba%5D=baz&foo%5Bb%5D=qux&bar=something",
+        url: "/posts?foo%5Ba%5D=baz&foo%5Bb%5D=qux&bar=something",
         method: "get",
     });
 });
@@ -47,7 +47,7 @@ it("can convert boolean params", () => {
             bar: false,
         }),
     ).toEqual({
-        uri: "/posts?foo=1&bar=0",
+        url: "/posts?foo=1&bar=0",
         method: "get",
     });
 });
@@ -61,7 +61,7 @@ it("will ignore existing params without star", () => {
             bar: "no",
         }),
     ).toEqual({
-        uri: "/posts?also=yes&bar=no",
+        url: "/posts?also=yes&bar=no",
         method: "get",
     });
 });
@@ -76,7 +76,7 @@ it("can integrate basic params with existing window params", () => {
             bar: "no",
         }),
     ).toEqual({
-        uri: "/posts?foo=bar&bar=no&also=yes",
+        url: "/posts?foo=bar&bar=no&also=yes",
         method: "get",
     });
 });
@@ -91,7 +91,7 @@ it("can integrate array params with existing window params", () => {
             also: "yes",
         }),
     ).toEqual({
-        uri: "/posts?bar=baz&foo%5B%5D=qux&foo%5B%5D=baz&also=yes",
+        url: "/posts?bar=baz&foo%5B%5D=qux&foo%5B%5D=baz&also=yes",
         method: "get",
     });
 });
@@ -106,7 +106,7 @@ it("can integrate object params with existing window params", () => {
             also: "yes",
         }),
     ).toEqual({
-        uri: "/posts?something=else&foo%5Bqux%5D=baz&also=yes",
+        url: "/posts?something=else&foo%5Bqux%5D=baz&also=yes",
         method: "get",
     });
 });
@@ -120,7 +120,7 @@ it("can delete existing params via null", () => {
             foo: null,
         }),
     ).toEqual({
-        uri: "/posts?bar=baz",
+        url: "/posts?bar=baz",
         method: "get",
     });
 });
@@ -134,7 +134,7 @@ it("can delete existing params via undefined", () => {
             foo: undefined,
         }),
     ).toEqual({
-        uri: "/posts?bar=baz",
+        url: "/posts?bar=baz",
         method: "get",
     });
 });

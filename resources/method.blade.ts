@@ -1,13 +1,13 @@
 @use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
 {!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')) => ({
-    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
     method: @js($verbs->first()->actual),
 })
 
 {!! $method !!}.definition = {
     methods: [@foreach ($verbs as $verb)@js($verb->actual){!! when(! $loop->last, ',') !!}@endforeach],
-    uri: @js($uri),
+    url: @js($uri),
 }
 
 @include('wayfinder::docblock')
@@ -56,7 +56,7 @@
     }
 
 @endif
-    return {!! $method !!}.definition.uri
+    return {!! $method !!}.definition.url
 @foreach ($parameters as $parameter)
             .replace(@js($parameter->placeholder), parsedArgs.{!! $parameter->name !!}{!! when($parameter->optional, '?') !!}.toString(){!! when($parameter->optional, " ?? ''") !!})
 @if ($loop->last)
@@ -68,7 +68,7 @@
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
 {!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
-    uri: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}query),
     method: @js($verb->actual),
 })
 
