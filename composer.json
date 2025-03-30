@@ -7,7 +7,7 @@
         "typescript",
         "routes"
     ],
-    "homepage": "https://laravel.com",
+    "homepage": "https://github.com/laravel/wayfinder",
     "license": "MIT",
     "support": {
         "issues": "https://github.com/laravel/wayfinder/issues",
@@ -15,14 +15,8 @@
     },
     "authors": [
         {
-            "name": "Tim MacDonald",
-            "email": "hello@timacdonald.me",
-            "homepage": "https://timacdonald.me"
-        },
-        {
-            "name": "Joe Tannenbaum",
-            "email": "joe@joe.codes",
-            "homepage": "https://joe.codes"
+            "name": "Taylor Otwell",
+            "email": "taylor@laravel.com"
         }
     ],
     "require": {
@@ -34,17 +28,15 @@
     },
     "require-dev": {
         "laravel/pint": "^1.21",
-        "orchestra/testbench": "^10.1",
-        "phpunit/phpunit": "^11.4"
+        "orchestra/testbench": "^10.1"
     },
     "autoload": {
         "psr-4": {
-            "TiMacDonald\\Wayfinder\\": "src"
+            "Laravel\\Wayfinder\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/",
             "App\\": "workbench/app/"
         }
     },
@@ -67,20 +59,14 @@
             "@build",
             "@php vendor/bin/testbench serve --ansi"
         ],
-        "lint": [
-            "@php vendor/bin/phpstan analyse --verbose --ansi"
-        ],
         "format": [
             "@php vendor/bin/pint --dirty"
-        ],
-        "test": [
-            "@php vendor/bin/phpunit"
         ]
     },
     "extra": {
         "laravel": {
             "providers": [
-                "TiMacDonald\\Wayfinder\\WayfinderServiceProvider"
+                "Laravel\\Wayfinder\\WayfinderServiceProvider"
             ]
         }
     }

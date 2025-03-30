@@ -1,6 +1,6 @@
 <?php
 
-namespace TiMacDonald\Wayfinder;
+namespace Laravel\Wayfinder;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -48,7 +48,7 @@ class GenerateCommand extends Command
             return '<?php ob_start(); ?>';
         });
         $this->bladeCompiler->directive('endtrimDeadspace', function () {
-            return '<?php echo \TiMacDonald\Wayfinder\TypeScript::trimDeadspace(ob_get_clean()); ?>';
+            return '<?php echo \Laravel\Wayfinder\TypeScript::trimDeadspace(ob_get_clean()); ?>';
         });
 
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
