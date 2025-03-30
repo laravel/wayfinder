@@ -57,7 +57,7 @@ To generate TypeScript:
 php artisan wayfinder:generate
 ```
 
-By default, Wayfinder generates files in two directories (`actions` and `routes`) within `resources/js`, but you can configure the base path:
+By default, Wayfinder generates files in three directories (`wayfinder`, `actions`, and `routes`) within `resources/js`, but you can configure the base path:
 
 ```
 php artisan wayfinder:generate --base=resources/js/wayfinder
@@ -74,6 +74,8 @@ Skip `routes` generation:
 ```
 php artisan wayfinder:generate --skip-routes
 ```
+
+You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated fresh on every build.
 
 ## Usage
 

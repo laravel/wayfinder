@@ -91,6 +91,11 @@ class GenerateCommand extends Command
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+
+        $this->pathDirectory = 'wayfinder';
+
+        $this->files->ensureDirectoryExists($this->base());
+        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
     }
 
     private function appendContent($path, $content): void
@@ -115,12 +120,7 @@ class GenerateCommand extends Command
     {
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
-        // do not add this unless any method needs it.
-        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
-            $this->appendContent($path, $this->view->make('wayfinder::validate-parameters')->render());
-        }
-
-        $this->appendContent($path, $this->view->make('wayfinder::query-params')->render());
+        $this->appendCommonImports($routes, $path, $namespace);
 
         $routes->groupBy(fn (Route $route) => $route->method())->each(function ($methodRoutes) use ($path) {
             if ($methodRoutes->count() === 1) {
@@ -186,12 +186,7 @@ class GenerateCommand extends Command
     {
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
-        // do not add this unless any method needs it.
-        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
-            $this->appendContent($path, $this->view->make('wayfinder::validate-parameters')->render());
-        }
-
-        $this->appendContent($path, $this->view->make('wayfinder::query-params')->render());
+        $this->appendCommonImports($routes, $path, $namespace);
 
         $routes->each(fn (Route $route) => $this->writeNamedMethodExport($route, $path));
 
@@ -210,6 +205,19 @@ class GenerateCommand extends Command
                 export default {$base}
                 JAVASCRIPT);
         }
+    }
+
+    private function appendCommonImports(Collection $routes, string $path, string $namespace): void
+    {
+        $imports = ['queryParams', 'type QueryParams'];
+
+        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
+            $imports[] = 'validateParameters';
+        }
+
+        $importBase = str_repeat('/..', substr_count($namespace, '.') + 1);
+
+        $this->appendContent($path, 'import { '.implode(', ', $imports)." } from '.{$importBase}/wayfinder'\n");
     }
 
     private function writeNamedMethodExport(Route $route, string $path): void
