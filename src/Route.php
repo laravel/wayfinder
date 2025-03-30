@@ -1,6 +1,6 @@
 <?php
 
-namespace TiMacDonald\Wayfinder;
+namespace Laravel\Wayfinder;
 
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Routing\Route as BaseRoute;

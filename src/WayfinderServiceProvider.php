@@ -1,6 +1,6 @@
 <?php
 
-namespace TiMacDonald\Wayfinder;
+namespace Laravel\Wayfinder;
 
 use Illuminate\Support\ServiceProvider;
 

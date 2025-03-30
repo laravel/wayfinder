@@ -1,5 +1,6 @@
-/vendor
-/node_modules
-/composer.lock
 /.phpunit.cache
+/composer.lock
+/node_modules
+/package-lock.json
+/vendor
 /workbench/resources/js
