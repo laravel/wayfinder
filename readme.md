@@ -206,7 +206,7 @@ You can also merge with the URL's existing parameters by passing a `mergeQuery` 
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
 
-// window.location.search = "?page=1&sort_by=category&q=shirt
+// window.location.search = "?page=1&sort_by=category&q=shirt"
 
 const options = {
     mergeQuery: {
@@ -215,7 +215,7 @@ const options = {
     },
 };
 
-show.url(1, options); // "/posts/1?page=2&sort_by=name&q=shirt
+show.url(1, options); // "/posts/1?page=2&sort_by=name&q=shirt"
 ```
 
 If you would like to remove a parameter from the resulting URL, define the value as `null` or `undefined`:
@@ -223,7 +223,7 @@ If you would like to remove a parameter from the resulting URL, define the value
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
 
-// window.location.search = "?page=1&sort_by=category&q=shirt
+// window.location.search = "?page=1&sort_by=category&q=shirt"
 
 const options = {
     mergeQuery: {
@@ -232,7 +232,7 @@ const options = {
     },
 };
 
-show.url(1, options); // "/posts/1?page=2q=shirt
+show.url(1, options); // "/posts/1?page=2&q=shirt"
 ```
 
 ## Wayfinder and Inertia
