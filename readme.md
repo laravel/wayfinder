@@ -173,7 +173,7 @@ const Page = () => (
 );
 
 const Page = () => (
-    <form {...update.form.patch(1)}>
+    <form {...update.form(1)}>
         {" "}
         {/* { action: "/posts/1?_method=PATCH", method: "post" } */}
         {/* ... */}
