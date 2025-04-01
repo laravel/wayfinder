@@ -201,7 +201,7 @@ show.url(1, options); // "/posts/1?page=1&sort_by=name"
 show.form.head(1, options); // { action: "/posts/1?page=1&sort_by=name&_method=HEAD", method: "get" }
 ```
 
-You can also merge with the URL's existing parameters by including `*` in your parameters object:
+You can also merge with the URL's existing parameters by passing a `mergeQuery` object instead:
 
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
@@ -237,7 +237,7 @@ show.url(1, options); // "/posts/1?page=2q=shirt
 
 ## Wayfinder and Inertia
 
-When using Inertia, you can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URL and method:
+When using [Inertia](https://inertiajs.com), you can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URL and method:
 
 ```ts
 import { useForm } from "@inertiajs/react";
