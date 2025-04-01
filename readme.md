@@ -165,17 +165,25 @@ Then, you can use the `.form` variant to generate `<form>` object attributes aut
 import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
-    <form {...store.form(1)}>
-        {" "}
-        {/* { action: "/posts", method: "post" } */}
+    <form {...store.form(1)}> {/* <form action="/posts" method="post"> */}
         {/* ... */}
     </form>
 );
 
 const Page = () => (
-    <form {...update.form(1)}>
-        {" "}
-        {/* { action: "/posts/1?_method=PATCH", method: "post" } */}
+    <form {...update.form(1)}> {/* <form action="/posts/1?_method=PATCH" method="post"> */}
+        {/* ... */}
+    </form>
+);
+```
+
+If your form action supports multiple methods and would like to specify a method, you can invoke additional methods on the `form`:
+
+```tsx
+import { store, update } from "@actions/App/Http/Controllers/PostController";
+
+const Page = () => (
+    <form {...store.form.put(1)}> {/* <form action="/posts?_method=PUT" method="post"> */}
         {/* ... */}
     </form>
 );
