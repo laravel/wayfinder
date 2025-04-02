@@ -168,7 +168,6 @@ import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
     <form {...store.form()}>
-        {" "}
         {/* <form action="/posts" method="post"> */}
         {/* ... */}
     </form>
@@ -176,7 +175,6 @@ const Page = () => (
 
 const Page = () => (
     <form {...update.form(1)}>
-        {" "}
         {/* <form action="/posts/1?_method=PATCH" method="post"> */}
         {/* ... */}
     </form>
@@ -190,7 +188,6 @@ import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
     <form {...update.form.put(1)}>
-        {" "}
         {/* <form action="/posts/1?_method=PUT" method="post"> */}
         {/* ... */}
     </form>
