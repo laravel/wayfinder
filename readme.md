@@ -14,7 +14,7 @@ To get started, install Wayfinder via the Composer package manager:
 composer require laravel/wayfinder
 ```
 
-If you would like to automatically watch your files for changes, you may use `vite-plugin-run`:
+If you would like to automatically watch your files for changes, you should also install the `vite-plugin-run` npm package:
 
 ```
 npm i -D vite-plugin-run
