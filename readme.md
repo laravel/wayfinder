@@ -83,7 +83,7 @@ Wayfinder functions return an object that contains the resolved URL and default 
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
 
-show(1); // { uri: "/posts/1", method: "get" }
+show(1); // { url: "/posts/1", method: "get" }
 ```
 
 If you just need the URL, or would like to choose a method from the HTTP methods defined on the server, you can invoke additional methods on the Wayfinder generated function:
@@ -92,7 +92,7 @@ If you just need the URL, or would like to choose a method from the HTTP methods
 import { show } from "@actions/App/Http/Controllers/PostController";
 
 show.url(1); // "/posts/1"
-show.head(1); // { uri: "/posts/1", method: "head" }
+show.head(1); // { url: "/posts/1", method: "head" }
 ```
 
 Wayfinder functions accept a variety of shapes for their arguments:
@@ -152,7 +152,7 @@ Wayfinder can also generate methods for your application's named routes as well:
 import { show } from "@routes/post";
 
 // Named route is `post.show`...
-show(1); // { uri: "/posts/1", method: "get" }
+show(1); // { url: "/posts/1", method: "get" }
 ```
 
 ### Conventional Forms
