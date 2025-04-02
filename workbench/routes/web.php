@@ -51,3 +51,6 @@ Route::domain('{domain}.au')->get('/dynamic-domain/{param}', [DomainController::
 
 Route::get('/two-routes-one-action-1', [TwoRoutesSameActionController::class, 'same']);
 Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 'same']);
+
+Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
+Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404']);

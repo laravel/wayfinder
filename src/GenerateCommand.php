@@ -153,6 +153,7 @@ class GenerateCommand extends Command
     {
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $routes->first()->jsMethod(),
+            'original_method' => $routes->first()->originalJsMethod(),
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
             'controller' => $routes->first()->controller(),
@@ -172,6 +173,7 @@ class GenerateCommand extends Command
         $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
             'method' => $route->jsMethod(),
+            'original_method' => $route->originalJsMethod(),
             'isInvokable' => $route->hasInvokableController(),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
@@ -225,6 +227,7 @@ class GenerateCommand extends Command
         $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
             'method' => $route->namedMethod(),
+            'original_method' => $route->originalJsMethod(),
             'isInvokable' => false,
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),

@@ -44,11 +44,14 @@ class Route
 
     public function jsMethod(): string
     {
-        return $this->finalJsMethod(
-            $this->hasInvokableController()
-                ? Str::afterLast($this->controller(), '\\')
-                : $this->base->getActionMethod()
-        );
+        return $this->finalJsMethod($this->originalJsMethod());
+    }
+
+    public function originalJsMethod()
+    {
+        return $this->hasInvokableController()
+            ? Str::afterLast($this->controller(), '\\')
+            : $this->base->getActionMethod();
     }
 
     public function namedMethod(): string
@@ -131,6 +134,10 @@ class Route
             return $this->relativePath((new ReflectionClosure($this->base->getAction()['uses']))->getFileName());
         }
 
+        if (! class_exists($controller)) {
+            return '[unknown]';
+        }
+
         return $this->relativePath((new ReflectionClass($controller))->getFileName());
     }
 
@@ -140,6 +147,10 @@ class Route
 
         if ($controller === '\\Closure') {
             return (new ReflectionClosure($this->base->getAction()['uses']))->getStartLine();
+        }
+
+        if (! class_exists($controller)) {
+            return 0;
         }
 
         $reflection = (new ReflectionClass($controller));
