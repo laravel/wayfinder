@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.0...HEAD)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.1...HEAD)
 
 -   Nothing yet
+
+## [v0.1.1](https://github.com/laravel/wayfinder/compare/v0.1.0...v0.1.1)
+
+-   Fix middleware closure crash ([#5](https://github.com/laravel/wayfinder/pull/5))
+
+## v0.1.0
+
+-   Initial release!
