@@ -20,7 +20,7 @@ If you would like to automatically watch your files for changes, you should also
 npm i -D vite-plugin-run
 ```
 
-Then, in your `vite.config.js`:
+Then, update your application's `vite.config.js` file to watch for changes to your application's routes and controllers:
 
 ```ts
 import { run } from "vite-plugin-run";
