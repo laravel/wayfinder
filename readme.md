@@ -165,17 +165,25 @@ Then, you can use the `.form` variant to generate `<form>` object attributes aut
 import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
-    <form {...store.form(1)}>
-        {" "}
-        {/* { action: "/posts", method: "post" } */}
+    <form {...store.form()}> {/* <form action="/posts" method="post"> */}
         {/* ... */}
     </form>
 );
 
 const Page = () => (
-    <form {...update.form.patch(1)}>
-        {" "}
-        {/* { action: "/posts/1?_method=PATCH", method: "post" } */}
+    <form {...update.form(1)}> {/* <form action="/posts/1?_method=PATCH" method="post"> */}
+        {/* ... */}
+    </form>
+);
+```
+
+If your form action supports multiple methods and would like to specify a method, you can invoke additional methods on the `form`:
+
+```tsx
+import { store, update } from "@actions/App/Http/Controllers/PostController";
+
+const Page = () => (
+    <form {...update.form.put(1)}> {/* <form action="/posts/1?_method=PUT" method="post"> */}
         {/* ... */}
     </form>
 );
@@ -206,7 +214,7 @@ You can also merge with the URL's existing parameters by passing a `mergeQuery` 
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
 
-// window.location.search = "?page=1&sort_by=category&q=shirt
+// window.location.search = "?page=1&sort_by=category&q=shirt"
 
 const options = {
     mergeQuery: {
@@ -215,7 +223,7 @@ const options = {
     },
 };
 
-show.url(1, options); // "/posts/1?page=2&sort_by=name&q=shirt
+show.url(1, options); // "/posts/1?page=2&sort_by=name&q=shirt"
 ```
 
 If you would like to remove a parameter from the resulting URL, define the value as `null` or `undefined`:
@@ -223,7 +231,7 @@ If you would like to remove a parameter from the resulting URL, define the value
 ```ts
 import { show } from "@actions/App/Http/Controllers/PostController";
 
-// window.location.search = "?page=1&sort_by=category&q=shirt
+// window.location.search = "?page=1&sort_by=category&q=shirt"
 
 const options = {
     mergeQuery: {
@@ -232,7 +240,7 @@ const options = {
     },
 };
 
-show.url(1, options); // "/posts/1?page=2q=shirt
+show.url(1, options); // "/posts/1?page=2&q=shirt"
 ```
 
 ## Wayfinder and Inertia
