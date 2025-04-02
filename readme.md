@@ -1,4 +1,6 @@
-# Laravel Wayfinder
+<p align="center"><img src="./art/logo.svg" width="50%" alt="Laravel Wayfinder Logo"></p>
+
+## Introduction
 
 Laravel Wayfinder bridges your Laravel backend and TypeScript frontend with zero friction. It automatically generates fully-typed, importable TypeScript functions for your controllers and routes — so you can call your Laravel endpoints directly in your client code just like any other function. No more hardcoding URLs, guessing route parameters, or syncing backend changes manually.
 
