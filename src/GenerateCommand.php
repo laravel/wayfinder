@@ -18,7 +18,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--base=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
 
     private ?string $forcedScheme;
 
@@ -283,7 +283,7 @@ class GenerateCommand extends Command
 
     private function base(): string
     {
-        $base = $this->option('base') ?? join_paths(resource_path(), 'js');
+        $base = $this->option('path') ?? join_paths(resource_path(), 'js');
 
         return join_paths($base, $this->pathDirectory);
     }

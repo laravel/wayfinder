@@ -60,7 +60,7 @@ php artisan wayfinder:generate
 By default, Wayfinder generates files in three directories (`wayfinder`, `actions`, and `routes`) within `resources/js`, but you can configure the base path:
 
 ```
-php artisan wayfinder:generate --base=resources/js/wayfinder
+php artisan wayfinder:generate --path=resources/js/wayfinder
 ```
 
 The `--skip-actions` and `--skip-routes` options may be used to skip TypeScript definition generation for controller methods or routes, respectively:
@@ -165,13 +165,17 @@ Then, you can use the `.form` variant to generate `<form>` object attributes aut
 import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
-    <form {...store.form()}> {/* <form action="/posts" method="post"> */}
+    <form {...store.form()}>
+        {" "}
+        {/* <form action="/posts" method="post"> */}
         {/* ... */}
     </form>
 );
 
 const Page = () => (
-    <form {...update.form(1)}> {/* <form action="/posts/1?_method=PATCH" method="post"> */}
+    <form {...update.form(1)}>
+        {" "}
+        {/* <form action="/posts/1?_method=PATCH" method="post"> */}
         {/* ... */}
     </form>
 );
@@ -183,7 +187,9 @@ If your form action supports multiple methods and would like to specify a method
 import { store, update } from "@actions/App/Http/Controllers/PostController";
 
 const Page = () => (
-    <form {...update.form.put(1)}> {/* <form action="/posts/1?_method=PUT" method="post"> */}
+    <form {...update.form.put(1)}>
+        {" "}
+        {/* <form action="/posts/1?_method=PUT" method="post"> */}
         {/* ... */}
     </form>
 );
