@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnonymousMiddlewareController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
@@ -54,3 +55,5 @@ Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 's
 
 Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404']);
+
+Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);

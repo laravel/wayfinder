@@ -56,6 +56,10 @@ class GenerateCommand extends Command
 
         $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) {
             $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
+                if ($middleware instanceof \Closure) {
+                    return [];
+                }
+
                 $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
 
                 return $this->urlDefaults[$middleware];
