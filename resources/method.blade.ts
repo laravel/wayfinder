@@ -1,6 +1,9 @@
 @use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
-{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')) => ({
+{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): {
+    url: string,
+    method: @js($verbs->first()->actual),
+} => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verbs->first()->actual),
 })
@@ -67,7 +70,10 @@
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
+{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): {
+    url: string,
+    method: @js($verb->actual),
+} => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verb->actual),
 })
@@ -75,7 +81,10 @@
 @endforeach
 @if ($withForm)
 @include('wayfinder::docblock')
-const {!! $method !!}Form = (@include('wayfinder::function-arguments')) => ({
+const {!! $method !!}Form = (@include('wayfinder::function-arguments')): {
+    action: string,
+    method: @js($verbs->first()->formSafe),
+} => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verbs->first()->formSafe !== $verbs->first()->actual)
 {
     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
@@ -91,7 +100,10 @@ options
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
+{!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): {
+    action: string,
+    method: @js($verb->formSafe),
+} => ({
     action: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}@if ($verb->formSafe !== $verb->actual)
 {
     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
