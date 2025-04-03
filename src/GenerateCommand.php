@@ -68,9 +68,9 @@ class GenerateCommand extends Command
             return new Route($route, $defaults, $this->forcedScheme, $this->forcedRoot);
         });
 
-        $this->files->deleteDirectory($this->base());
-
         if (! $this->option('skip-actions')) {
+            $this->files->deleteDirectory($this->base());
+
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
 
             $controllers->undot()->each($this->writeBarrelFiles(...));
@@ -83,9 +83,9 @@ class GenerateCommand extends Command
 
         $this->pathDirectory = 'routes';
 
-        $this->files->deleteDirectory($this->base());
-
         if (! $this->option('skip-routes')) {
+            $this->files->deleteDirectory($this->base());
+
             $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
 
             $named->undot()->each($this->writeBarrelFiles(...));
