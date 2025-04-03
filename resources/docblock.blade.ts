@@ -1,4 +1,4 @@
-/** {!! when(!str_contains($controller, '\\Closure'), "\n * @see {$controller}::{$method}") !!}
+/**{!! when(!str_contains($controller, '\\Closure'), "\n * @see {$controller}::{$method}") !!}
  * @see {!! $path !!}:{!! $line !!}
 @foreach ($parameters as $parameter)
 @if ($parameter->default !== null)
