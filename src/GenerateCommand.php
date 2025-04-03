@@ -9,6 +9,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory;
 use ReflectionProperty;
@@ -250,7 +251,11 @@ class GenerateCommand extends Command
             return;
         }
 
-        $children->each(function ($grandkids, $child) use ($parent) {
+        $normalizeToCamelCase = fn ($value) => Str::of($value)
+            ->whenContains(['-', '_'], fn (Stringable $string) => $string->camel())
+            ->toString();
+
+        $children->each(function ($grandkids, $child) use ($parent, $normalizeToCamelCase) {
             $grandkids = collect($grandkids);
 
             if (array_is_list($grandkids->all())) {
@@ -259,17 +264,13 @@ class GenerateCommand extends Command
 
             $directory = join_paths($this->base(), $parent, $child);
 
-            $imports = $grandkids->keys()->map(fn ($grandkid) => "import * as {$grandkid} from './{$grandkid}'")->implode(PHP_EOL);
+            $imports = $grandkids->keys()->map(fn ($grandkid) => "import * as {$normalizeToCamelCase($grandkid)} from './{$grandkid}'")->implode(PHP_EOL);
 
             $this->appendContent(join_paths($directory, 'index.ts'), $imports);
 
-            $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$k)->implode(', '.PHP_EOL);
+            $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$normalizeToCamelCase($k))->implode(', '.PHP_EOL);
 
-            $varExport = $child;
-
-            if (str_contains($varExport, '-')) {
-                $varExport = Str::camel($varExport);
-            }
+            $varExport = $normalizeToCamelCase($child);
 
             $this->appendContent(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
 
