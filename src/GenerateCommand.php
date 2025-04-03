@@ -250,7 +250,15 @@ class GenerateCommand extends Command
             return;
         }
 
-        $children->each(function ($grandkids, $child) use ($parent) {
+        $convertToCamelIfHyphenated = function ($value) {
+            if (str_contains($value, '-')) {
+                $value = Str::camel($value);
+            }
+
+            return $value;
+        };
+
+        $children->each(function ($grandkids, $child) use ($parent, $convertToCamelIfHyphenated) {
             $grandkids = collect($grandkids);
 
             if (array_is_list($grandkids->all())) {
@@ -259,11 +267,11 @@ class GenerateCommand extends Command
 
             $directory = join_paths($this->base(), $parent, $child);
 
-            $imports = $grandkids->keys()->map(fn ($grandkid) => "import * as {$grandkid} from './{$grandkid}'")->implode(PHP_EOL);
+            $imports = $grandkids->keys()->map(fn ($grandkid) => "import * as {$convertToCamelIfHyphenated($grandkid)} from './{$grandkid}'")->implode(PHP_EOL);
 
             $this->appendContent(join_paths($directory, 'index.ts'), $imports);
 
-            $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$k)->implode(', '.PHP_EOL);
+            $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$convertToCamelIfHyphenated($k))->implode(', '.PHP_EOL);
 
             $varExport = $child;
 
