@@ -273,11 +273,7 @@ class GenerateCommand extends Command
 
             $keys = $grandkids->keys()->map(fn ($k) => str_repeat(' ', 4).$convertToCamelIfHyphenated($k))->implode(', '.PHP_EOL);
 
-            $varExport = $child;
-
-            if (str_contains($varExport, '-')) {
-                $varExport = Str::camel($varExport);
-            }
+            $varExport = $convertToCamelIfHyphenated($child);
 
             $this->appendContent(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
 
