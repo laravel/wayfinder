@@ -7,8 +7,8 @@ body:
   - type: input
     attributes:
       label: Wayfinder Version
-      description: Provide the version of the Laravel Wayfinder that you are using.
-      placeholder: 0.1.0
+      description: Provide the Wayfinder version that you are using.
+      placeholder: 1.0.0
     validations:
       required: true
   - type: input
