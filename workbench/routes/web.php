@@ -57,3 +57,11 @@ Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404']);
 
 Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);
+
+Route::prefix('/api/v1')->name('api.v1.')->group(function () {
+    Route::get('/tasks', fn () => 'ok')->name('tasks');
+
+    Route::prefix('/tasks/{task}/task-status')->name('task-status.')->group(function () {
+        Route::get('/', fn () => 'ok')->name('index');
+    });
+});
