@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.1...HEAD)
 
--   Nothing yet
+-   Check if routable is an Eloquent model ([#8](https://github.com/laravel/wayfinder/pull/8))
 
 ## [v0.1.1](https://github.com/laravel/wayfinder/compare/v0.1.0...v0.1.1)
 
