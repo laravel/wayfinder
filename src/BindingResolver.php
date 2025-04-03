@@ -2,22 +2,28 @@
 
 namespace Laravel\Wayfinder;
 
+use Illuminate\Database\Eloquent\Model;
+
 class BindingResolver
 {
-    protected static $models = [];
+    protected static $booted = [];
 
     protected static $columns = [];
 
-    public static function resolveTypeAndKey(string $model, $key): array
+    public static function resolveTypeAndKey(string $routable, $key): array
     {
-        $booted = self::$models[$model] ??= app($model);
+        $booted = self::$booted[$routable] ??= app($routable);
 
         $key ??= $booted->getRouteKeyName();
 
-        self::$columns[$model] ??= $booted->getConnection()->getSchemaBuilder()->getColumns($booted->getTable());
+        if (! ($booted instanceof Model)) {
+            return [null, $key];
+        }
+
+        self::$columns[$routable] ??= $booted->getConnection()->getSchemaBuilder()->getColumns($booted->getTable());
 
         return [
-            collect(self::$columns[$model])->first(
+            collect(self::$columns[$routable])->first(
                 fn ($column) => $column['name'] === $key,
             )['type_name'] ?? null,
             $key,
