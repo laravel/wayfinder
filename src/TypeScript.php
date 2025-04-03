@@ -12,6 +12,7 @@ class TypeScript
             ->replace('[ ', '[')
             ->replace(' ]', ']')
             ->replace(', }', ' }')
+            ->trim()
             ->toString();
     }
 

@@ -24,5 +24,5 @@ args{!! when($parameters->every->optional, '?') !!}: {
 @endif
 ,
 @endif
-options?: { query?: QueryParams, mergeQuery?: QueryParams },
+options?: { query?: QueryParams, mergeQuery?: QueryParams }
 @endtrimDeadspace
