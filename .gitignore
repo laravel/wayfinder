@@ -4,3 +4,5 @@
 /package-lock.json
 /vendor
 /workbench/resources/js
+.idea
+.vscode
