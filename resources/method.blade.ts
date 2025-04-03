@@ -1,6 +1,6 @@
 @use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
-{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')) => ({
+{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): @include('wayfinder::return-type') => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verbs->first()->actual),
 })
@@ -67,7 +67,7 @@
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')) => ({
+{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): @include('wayfinder::return-type', ['verb' => $verb]) => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verb->actual),
 })

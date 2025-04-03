@@ -1,3 +1,10 @@
+type Method = "get" | "post" | "put" | "patch" | "delete";
+
+export type RouteDefinition<MethodOverride = void> = {
+    url: string;
+    method: MethodOverride extends string ? MethodOverride : Method;
+};
+
 export type QueryParams = Record<
     string,
     | string
