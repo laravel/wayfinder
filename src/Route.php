@@ -165,10 +165,9 @@ class Route
 
     private function finalJsMethod(string $method): string
     {
-        $method = match ($method) {
-            'delete' => 'deleteMethod',
-            default => $method,
-        };
+        $renameMethods = config('wayfinder.rename_methods', []);
+
+        $method = $renameMethods[$method] ?? $method;
 
         if (is_numeric($method)) {
             return 'method'.$method;

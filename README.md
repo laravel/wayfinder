@@ -110,7 +110,11 @@ update({ post: 1, author: 2 });
 update({ post: { id: 1 }, author: { id: 2 } });
 ```
 
-**Note:** If you have a `delete` method on your controller, Wayfinder will rename it to `deleteMethod` when generating its functions. This is because `delete` is not allowed as a variable declaration.
+**Note:** If you have a `delete` method on your controller, Wayfinder will rename it to `deleteMethod` when generating its functions. This is because `delete` is not allowed as a variable declaration. You can publish the config file if you want to rename more methods, using this command.
+
+```php
+php artisan vendor:publish --provider="Laravel\Wayfinder\WayfinderServiceProvider" --tag="wayfinder-config"
+```
 
 If you've specified a key for the parameter binding, Wayfinder will detect this and allow you to pass the value in as a property on an object:
 
