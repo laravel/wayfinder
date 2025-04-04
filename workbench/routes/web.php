@@ -31,6 +31,10 @@ Route::get('/dashboard', function () {
     return 'Dashboard';
 })->name('dashboard');
 
+Route::get('/', function () {
+    return 'Home';
+})->name('home');
+
 Route::post('/optional/{parameter?}', [OptionalController::class, 'optional']);
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
 
