@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import {
     deleteMethod,
     method404,
-} from "../workbench/resources/js/actions/DisallowedMethodNameController";
+} from "../workbench/resources/js/actions/App/Http/Controllers/DisallowedMethodNameController";
 
 test("will append `method` to invalid methods", () => {
     expect(method404.url()).toBe("/disallowed/404");

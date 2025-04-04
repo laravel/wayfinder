@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\AnonymousMiddlewareController;
+use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\ModelBindingController;
+use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\ParameterNameController;
 use App\Http\Controllers\PostController;
@@ -57,6 +59,8 @@ Route::get('/parameter-names/{SCREAMING_SNAKE_CASE}/screaming-snake', [Parameter
 
 Route::domain('example.test')->get('/fixed-domain/{param}', [DomainController::class, 'fixedDomain']);
 Route::domain('{domain}.au')->get('/dynamic-domain/{param}', [DomainController::class, 'dynamicDomain']);
+
+Route::get('/nested/controller', [NestedController::class, 'nested']);
 
 Route::get('/two-routes-one-action-1', [TwoRoutesSameActionController::class, 'same']);
 Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 'same']);
