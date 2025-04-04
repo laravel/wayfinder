@@ -304,7 +304,7 @@ import { show } from "@actions/App/Http/Controllers/PostController";
 ```
 
 > [!IMPORTANT]
-> Support for Wayfinder-shaped objects in `useForm` and `Link` was added to Inertia in [v2.0.6](https://github.com/inertiajs/inertia/releases/tag/v2.0.6)
+> Support for the use of Wayfinder-shaped objects in Inertia's `useForm` and `Link` components was added to Inertia in [v2.0.6](https://github.com/inertiajs/inertia/releases/tag/v2.0.6).
 
 ## Contributing
 
