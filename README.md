@@ -268,7 +268,20 @@ const form = useForm({
 form.submit(store()); // Will POST to `/posts`...
 ```
 
-You may also use Wayfinder in conjunction with Inertia's `Link` component:
+Wayfinder works in both React and Vue environments. For example, you can accomplish the same thing in Vue:
+
+```tsx
+import { useForm } from "@inertiajs/vue";
+import { store } from "@actions/App/Http/Controllers/PostController";
+
+const form = useForm({
+    name: "My Big Post",
+});
+
+form.submit(store()); // Will POST to `/posts`...
+```
+
+You may also use Wayfinder in conjunction with Inertia's `Link` component. In React:
 
 ```tsx
 import { Link } from "@inertiajs/react";
@@ -276,6 +289,22 @@ import { show } from "@actions/App/Http/Controllers/PostController";
 
 const Nav = () => <Link href={show(1)}>Show me the first post</Link>;
 ```
+
+And in Vue:
+
+```vue
+<script setup lang="ts">
+import { Link } from "@inertiajs/vue";
+import { show } from "@actions/App/Http/Controllers/PostController";
+</script>
+
+<template>
+    <Link :href="show(1)">Show me the first post</Link>
+</template>
+```
+
+> [!IMPORTANT]
+> Support for Wayfinder-shaped objects in `useForm` and `Link` was added to Inertia in [v2.0.6](https://github.com/inertiajs/inertia/releases/tag/v2.0.6)
 
 ## Contributing
 
