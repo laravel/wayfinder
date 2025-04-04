@@ -77,12 +77,12 @@ class Route
 
         $signatureParams = collect($this->base->signatureParameters(UrlRoutable::class));
 
-        return collect($this->base->parameterNames())->map(fn($name) => new Parameter(
+        return collect($this->base->parameterNames())->map(fn ($name) => new Parameter(
             $name,
             $optionalParameters->has($name) || $this->paramDefaults->has($name),
             $this->base->bindingFieldFor($name),
             $this->paramDefaults->get($name),
-            $signatureParams->first(fn($p) => $p->getName() === $name),
+            $signatureParams->first(fn ($p) => $p->getName() === $name),
         ));
     }
 
@@ -93,13 +93,13 @@ class Route
 
     public function uri(): string
     {
-        $defaultParams = $this->paramDefaults->mapWithKeys(fn($value, $key) => ["{{$key}}" => "{{$key}?}"]);
+        $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
 
         $scheme = $this->scheme() ?? '//';
 
         return str($this->base->uri)
             ->start('/')
-            ->when($this->domain() !== null, fn($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
+            ->when($this->domain() !== null, fn ($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
     }
@@ -203,10 +203,10 @@ class Route
             'with',
         ];
 
-        $method = in_array($method, $reserved) ? $method . 'Method' : $method;
+        $method = in_array($method, $reserved) ? $method.'Method' : $method;
 
         if (is_numeric($method)) {
-            return 'method' . $method;
+            return 'method'.$method;
         }
 
         return $method;
