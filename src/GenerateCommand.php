@@ -40,7 +40,7 @@ class GenerateCommand extends Command
 
     public function handle()
     {
-        $this->view->addNamespace('wayfinder', __DIR__ . '/../resources');
+        $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
 
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
@@ -55,7 +55,7 @@ class GenerateCommand extends Command
                 $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
 
                 return $this->urlDefaults[$middleware];
-            })->flatMap(fn($r) => $r);
+            })->flatMap(fn ($r) => $r);
 
             return new Route($route, $defaults, $this->forcedScheme, $this->forcedRoot);
         });
@@ -63,14 +63,14 @@ class GenerateCommand extends Command
         if (! $this->option('skip-actions')) {
             $this->files->deleteDirectory($this->base());
 
-            $controllers = $routes->filter(fn(Route $route) => $route->hasController())->groupBy(fn(Route $route) => $route->dotNamespace());
+            $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
 
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
             $this->writeContent();
 
-            info('[Wayfinder] Generated actions in ' . $this->base());
+            info('[Wayfinder] Generated actions in '.$this->base());
         }
 
         $this->pathDirectory = 'routes';
@@ -78,20 +78,20 @@ class GenerateCommand extends Command
         if (! $this->option('skip-routes')) {
             $this->files->deleteDirectory($this->base());
 
-            $named = $routes->filter(fn(Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn(Route $route) => $route->name());
+            $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => $route->name());
 
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
             $this->writeContent();
 
-            info('[Wayfinder] Generated routes in ' . $this->base());
+            info('[Wayfinder] Generated routes in '.$this->base());
         }
 
         $this->pathDirectory = 'wayfinder';
 
         $this->files->ensureDirectoryExists($this->base());
-        $this->files->copy(__DIR__ . '/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
+        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
     }
 
     private function appendContent($path, $content): void
@@ -121,11 +121,11 @@ class GenerateCommand extends Command
 
     private function writeControllerFile(Collection $routes, string $namespace): void
     {
-        $path = join_paths($this->base(), ...explode('.', $namespace)) . '.ts';
+        $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
         $this->appendCommonImports($routes, $path, $namespace);
 
-        $routes->groupBy(fn(Route $route) => $route->method())->each(function ($methodRoutes) use ($path) {
+        $routes->groupBy(fn (Route $route) => $route->method())->each(function ($methodRoutes) use ($path) {
             if ($methodRoutes->count() === 1) {
                 return $this->writeControllerMethodExport($methodRoutes->first(), $path);
             }
@@ -133,20 +133,20 @@ class GenerateCommand extends Command
             return $this->writeMultiRouteControllerMethodExport($methodRoutes, $path);
         });
 
-        [$invokable, $methods] = $routes->partition(fn(Route $route) => $route->hasInvokableController());
+        [$invokable, $methods] = $routes->partition(fn (Route $route) => $route->hasInvokableController());
 
         $defaultExport = $invokable->isNotEmpty() ? $invokable->first()->jsMethod() : last(explode('.', $namespace));
 
         if ($invokable->isEmpty()) {
-            $exportedMethods = $methods->map(fn(Route $route) => $route->jsMethod());
-            $reservedMethods = $methods->filter(fn(Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn(Route $route) => $route->originalJsMethod() . ': ' . $route->jsMethod());
+            $exportedMethods = $methods->map(fn (Route $route) => $route->jsMethod());
+            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => $route->originalJsMethod().': '.$route->jsMethod());
             $exportedMethods = $exportedMethods->merge($reservedMethods);
 
             $methodProps = "const {$defaultExport} = { ";
             $methodProps .= $exportedMethods->unique()->implode(', ');
             $methodProps .= ' }';
         } else {
-            $methodProps = $methods->map(fn(Route $route) => $defaultExport . '.' . $route->jsMethod() . ' = ' . $route->jsMethod())->unique()->implode(PHP_EOL);
+            $methodProps = $methods->map(fn (Route $route) => $defaultExport.'.'.$route->jsMethod().' = '.$route->jsMethod())->unique()->implode(PHP_EOL);
         }
 
         $this->appendContent($path, <<<JAVASCRIPT
@@ -166,8 +166,8 @@ class GenerateCommand extends Command
             'controller' => $routes->first()->controller(),
             'isInvokable' => $routes->first()->hasInvokableController(),
             'withForm' => $this->option('with-form') ?? false,
-            'routes' => $routes->map(fn($r) => [
-                'tempMethod' => $r->jsMethod() . md5($r->uri()),
+            'routes' => $routes->map(fn ($r) => [
+                'tempMethod' => $r->jsMethod().md5($r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
@@ -193,18 +193,18 @@ class GenerateCommand extends Command
 
     private function writeNamedFile(Collection $routes, string $namespace): void
     {
-        $path = join_paths($this->base(), ...explode('.', $namespace)) . '.ts';
+        $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
 
         $this->appendCommonImports($routes, $path, $namespace);
 
-        $routes->each(fn(Route $route) => $this->writeNamedMethodExport($route, $path));
+        $routes->each(fn (Route $route) => $this->writeNamedMethodExport($route, $path));
 
-        $imports = $routes->map(fn(Route $route) => $route->namedMethod())->implode(', ');
+        $imports = $routes->map(fn (Route $route) => $route->namedMethod())->implode(', ');
 
         $basename = basename($path, '.ts');
         $base = Str::of($basename)->when(
             str_contains($basename, '-'),
-            fn($s) => $s->camel()
+            fn ($s) => $s->camel()
         )->toString();
 
         if ($base !== $imports) {
@@ -220,13 +220,13 @@ class GenerateCommand extends Command
     {
         $imports = ['queryParams', 'type QueryParams'];
 
-        if ($routes->contains(fn(Route $route) => $route->parameters()->contains(fn(Parameter $parameter) => $parameter->optional))) {
+        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
             $imports[] = 'validateParameters';
         }
 
         $importBase = str_repeat('/..', substr_count($namespace, '.') + 1);
 
-        $this->appendContent($path, 'import { ' . implode(', ', $imports) . " } from '.{$importBase}/wayfinder'\n");
+        $this->appendContent($path, 'import { '.implode(', ', $imports)." } from '.{$importBase}/wayfinder'\n");
     }
 
     private function writeNamedMethodExport(Route $route, string $path): void
@@ -253,17 +253,17 @@ class GenerateCommand extends Command
             return;
         }
 
-        $normalizeToCamelCase = fn($value) => str_contains($value, '-') ? Str::camel($value) : $value;
+        $normalizeToCamelCase = fn ($value) => str_contains($value, '-') ? Str::camel($value) : $value;
 
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
-        $childKeys = $children->keys()->mapWithKeys(fn($child) => [$normalizeToCamelCase($child) => $child]);
+        $childKeys = $children->keys()->mapWithKeys(fn ($child) => [$normalizeToCamelCase($child) => $child]);
 
-        $imports = $childKeys->filter(fn($child, $key) => $key !== 'index')->map(fn($child, $key) => "import {$key} from './{$child}'")->implode(PHP_EOL);
+        $imports = $childKeys->filter(fn ($child, $key) => $key !== 'index')->map(fn ($child, $key) => "import {$key} from './{$child}'")->implode(PHP_EOL);
 
         $this->prependContent($indexPath, $imports);
 
-        $keys = $childKeys->keys()->map(fn($key) => str_repeat(' ', 4) . $key)->implode(', ' . PHP_EOL);
+        $keys = $childKeys->keys()->map(fn ($key) => str_repeat(' ', 4).$key)->implode(', '.PHP_EOL);
 
         $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
 
@@ -277,7 +277,7 @@ class GenerateCommand extends Command
                 export default {$varExport}
                 JAVASCRIPT);
 
-        $children->each(fn($grandChildren, $child) => $this->writeBarrelFiles($grandChildren, join_paths($parent, $child)));
+        $children->each(fn ($grandChildren, $child) => $this->writeBarrelFiles($grandChildren, join_paths($parent, $child)));
     }
 
     private function base(): string
@@ -315,7 +315,7 @@ class GenerateCommand extends Command
         }
 
         $methodContents = str($methodContents)->after('{')->beforeLast('}')->trim();
-        $tokens = token_get_all('<?php ' . $methodContents);
+        $tokens = token_get_all('<?php '.$methodContents);
         $foundUrlFacade = false;
         $defaults = [];
         $inArray = false;
