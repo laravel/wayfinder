@@ -97,8 +97,8 @@ class Route
 
         $scheme = $this->scheme() ?? '//';
 
-        return str("/")
-            ->when($this->base->uri !== '/', fn ($uri) => $uri->append($this->base->uri))
+        return str($this->base->uri)
+            ->start('/')
             ->when($this->domain() !== null, fn ($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
