@@ -1,4 +1,3 @@
-@use('Illuminate\Support\HtmlString')
 @include('wayfinder::docblock')
 {!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): {
     url: string,

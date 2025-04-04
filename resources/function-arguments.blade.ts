@@ -1,4 +1,3 @@
-@trimDeadspace
 @if ($parameters->isNotEmpty())
 args{!! when($parameters->every->optional, '?') !!}: {
     @foreach ($parameters as $parameter)
@@ -25,4 +24,3 @@ args{!! when($parameters->every->optional, '?') !!}: {
 ,
 @endif
 options?: { query?: QueryParams, mergeQuery?: QueryParams }
-@endtrimDeadspace

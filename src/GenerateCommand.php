@@ -9,7 +9,6 @@ use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory;
 use ReflectionProperty;
 
@@ -35,7 +34,6 @@ class GenerateCommand extends Command
         private Router $router,
         private Factory $view,
         private UrlGenerator $url,
-        private BladeCompiler $bladeCompiler,
     ) {
         parent::__construct();
     }
@@ -44,12 +42,6 @@ class GenerateCommand extends Command
     {
         $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
-        $this->bladeCompiler->directive('trimDeadspace', function () {
-            return '<?php ob_start(); ?>';
-        });
-        $this->bladeCompiler->directive('endtrimDeadspace', function () {
-            return '<?php echo \Laravel\Wayfinder\TypeScript::trimDeadspace(ob_get_clean()); ?>';
-        });
 
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
