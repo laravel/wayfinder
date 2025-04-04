@@ -78,10 +78,10 @@ class GenerateCommand extends Command
         if (! $this->option('skip-routes')) {
             $this->files->deleteDirectory($this->base());
 
-            $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => Str::beforeLast($route->name(), '.'));
+            $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => $route->name());
 
-            $named->undot()->each($this->writeBarrelFiles(...));
             $named->each($this->writeNamedFile(...));
+            $named->undot()->each($this->writeBarrelFiles(...));
 
             $this->writeContent();
 
@@ -99,6 +99,13 @@ class GenerateCommand extends Command
         $this->content[$path] ??= [];
 
         $this->content[$path][] = $content;
+    }
+
+    private function prependContent($path, $content): void
+    {
+        $this->content[$path] ??= [];
+
+        array_unshift($this->content[$path], $content);
     }
 
     private function writeContent(): void
@@ -197,11 +204,11 @@ class GenerateCommand extends Command
         )->toString();
 
         if ($base !== $imports) {
-            $this->appendContent($path, <<<JAVASCRIPT
-                const {$base} = { {$imports} }
+            $this->appendContent($path, "const {$base} = { {$imports} }\n");
+        }
 
-                export default {$base}
-                JAVASCRIPT);
+        if ($base !== 'index') {
+            $this->appendContent($path, "export default {$base}");
         }
     }
 
@@ -244,26 +251,19 @@ class GenerateCommand extends Command
 
         $normalizeToCamelCase = fn ($value) => str_contains($value, '-') ? Str::camel($value) : $value;
 
-        $children->each(function ($grandkids, $child) use ($parent, $normalizeToCamelCase) {
-            $grandkids = collect($grandkids);
+        $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
-            if (array_is_list($grandkids->all())) {
-                return;
-            }
+        $childKeys = $children->keys()->mapWithKeys(fn ($child) => [$normalizeToCamelCase($child) => $child]);
 
-            $directory = join_paths($this->base(), $parent, $child);
+        $imports = $childKeys->filter(fn ($child, $key) => $key !== 'index')->map(fn ($child, $key) => "import {$key} from './{$child}'")->implode(PHP_EOL);
 
-            $grandKidKeys = $grandkids->keys()->mapWithKeys(fn ($grandkid) => [$normalizeToCamelCase($grandkid) => $grandkid]);
+        $this->prependContent($indexPath, $imports);
 
-            $imports = $grandKidKeys->map(fn ($grandkid, $key) => "import * as {$key} from './{$grandkid}'")->implode(PHP_EOL);
+        $keys = $childKeys->keys()->map(fn ($key) => str_repeat(' ', 4).$key)->implode(', '.PHP_EOL);
 
-            $this->appendContent(join_paths($directory, 'index.ts'), $imports);
+        $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
 
-            $keys = $grandKidKeys->keys()->map(fn ($key) => str_repeat(' ', 4).$key)->implode(', '.PHP_EOL);
-
-            $varExport = $normalizeToCamelCase($child);
-
-            $this->appendContent(join_paths($directory, 'index.ts'), <<<JAVASCRIPT
+        $this->appendContent($indexPath, <<<JAVASCRIPT
 
 
                 const {$varExport} = {
@@ -273,8 +273,7 @@ class GenerateCommand extends Command
                 export default {$varExport}
                 JAVASCRIPT);
 
-            $this->writeBarrelFiles($grandkids, join_paths($parent, $child));
-        });
+        $children->each(fn ($grandChildren, $child) => $this->writeBarrelFiles($grandChildren, join_paths($parent, $child)));
     }
 
     private function base(): string
