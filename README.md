@@ -112,7 +112,7 @@ update({ post: { id: 1 }, author: { id: 2 } });
 ```
 
 > [!NOTE]
-> If you are using a JavaScript [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words), such as `delete` or `import`, as a method in your controller, Wayfinder will rename it to `[method name]Method` when generating its functions. This is because these words are not allowed as variable declarations in JavaScript.
+> If you are using a JavaScript [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) such as `delete` or `import`, as a method in your controller, Wayfinder will rename it to `[method name]Method` (`deleteMethod`, `importMethod`) when generating its functions. This is because these words are not allowed as variable declarations in JavaScript.
 
 If you've specified a key for the parameter binding, Wayfinder will detect this and allow you to pass the value in as a property on an object:
 
