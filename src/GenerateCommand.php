@@ -138,8 +138,12 @@ class GenerateCommand extends Command
         $defaultExport = $invokable->isNotEmpty() ? $invokable->first()->jsMethod() : last(explode('.', $namespace));
 
         if ($invokable->isEmpty()) {
+            $exportedMethods = $methods->map(fn (Route $route) => $route->jsMethod());
+            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => $route->originalJsMethod().': '.$route->jsMethod());
+            $exportedMethods = $exportedMethods->merge($reservedMethods);
+
             $methodProps = "const {$defaultExport} = { ";
-            $methodProps .= $methods->map(fn (Route $route) => $route->jsMethod())->unique()->implode(', ');
+            $methodProps .= $exportedMethods->unique()->implode(', ');
             $methodProps .= ' }';
         } else {
             $methodProps = $methods->map(fn (Route $route) => $defaultExport.'.'.$route->jsMethod().' = '.$route->jsMethod())->unique()->implode(PHP_EOL);
