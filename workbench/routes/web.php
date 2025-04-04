@@ -14,6 +14,10 @@ use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function() {
+    return 'Home';
+})->name('home');
+
 Route::get('/closure', fn () => 'ok');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
@@ -30,6 +34,10 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 Route::get('/dashboard', function () {
     return 'Dashboard';
 })->name('dashboard');
+
+Route::get('/', function () {
+    return 'Home';
+})->name('home');
 
 Route::post('/optional/{parameter?}', [OptionalController::class, 'optional']);
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
