@@ -14,6 +14,10 @@ use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function() {
+    return 'Home';
+})->name('home');
+
 Route::get('/closure', fn () => 'ok');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
