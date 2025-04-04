@@ -110,7 +110,7 @@ update({ post: 1, author: 2 });
 update({ post: { id: 1 }, author: { id: 2 } });
 ```
 
-**Note:** If you have a `delete` method on your controller, Wayfinder will rename it to `deleteMethod` when generating its functions. This is because `delete` is not allowed as a variable declaration.
+**Note:** If you have are using a JavaScript [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) as a method on your controller, Wayfinder will rename it to `[method name]Method` when generating its functions. This is because these words are not allowed as variable declarations.
 
 If you've specified a key for the parameter binding, Wayfinder will detect this and allow you to pass the value in as a property on an object:
 
