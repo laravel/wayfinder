@@ -4,7 +4,8 @@
 
 Laravel Wayfinder bridges your Laravel backend and TypeScript frontend with zero friction. It automatically generates fully-typed, importable TypeScript functions for your controllers and routes — so you can call your Laravel endpoints directly in your client code just like any other function. No more hardcoding URLs, guessing route parameters, or syncing backend changes manually.
 
-**Note:** Wayfinder is currently in Beta, the API is subject to change prior to the v1.0.0 release. All notable changes will be documented in the [changelog](./CHANGELOG.md).
+> [!IMPORTANT]
+> Wayfinder is currently in Beta, the API is subject to change prior to the v1.0.0 release. All notable changes will be documented in the [changelog](./CHANGELOG.md).
 
 ## Installation
 
@@ -110,7 +111,8 @@ update({ post: 1, author: 2 });
 update({ post: { id: 1 }, author: { id: 2 } });
 ```
 
-**Note:** If you have are using a JavaScript [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) as a method on your controller, Wayfinder will rename it to `[method name]Method` when generating its functions. This is because these words are not allowed as variable declarations.
+> [!NOTE]
+> If you are using a JavaScript [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) such as `delete` or `import`, as a method in your controller, Wayfinder will rename it to `[method name]Method` (`deleteMethod`, `importMethod`) when generating its functions. This is because these words are not allowed as variable declarations in JavaScript.
 
 If you've specified a key for the parameter binding, Wayfinder will detect this and allow you to pass the value in as a property on an object:
 
@@ -142,7 +144,8 @@ import PostController from "@actions/App/Http/Controllers/PostController";
 PostController.show(1);
 ```
 
-**Note:** In the example above, importing the entire controller prevents the `PostController` from being tree-shaken, so all `PostController` actions will be included in your final bundle.
+> [!NOTE]
+> In the example above, importing the entire controller prevents the `PostController` from being tree-shaken, so all `PostController` actions will be included in your final bundle.
 
 ### Importing Named Routes
 
