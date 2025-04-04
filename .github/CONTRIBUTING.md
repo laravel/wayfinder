@@ -1,15 +1,12 @@
-# Contributing
+# Contribution Guide
 
-Thanks for your interest in contributing to Laravel Wayfinder!
+The Laravel contributing guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+
+## Installation and Setup
 
 ```sh
 git clone https://github.com/laravel/wayfinder.git wayfinder
 cd wayfinder
-```
-
-Next, install the dependencies:
-
-```sh
 composer install
 npm install
 ```
