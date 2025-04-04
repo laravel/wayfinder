@@ -4,15 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.3...main)
 
-- Check if routable is an Eloquent model ([#8](https://github.com/laravel/wayfinder/pull/8))
-- Return literal HTTP methods, fixes Inertia TypeScript error ([14](https://github.com/laravel/wayfinder/pull/14))
-- Strip additional whitespace ([#12](https://github.com/laravel/wayfinder/pull/12))
-- Fix: Convert Hyphenated File Names to Camel Case ([#13](https://github.com/laravel/wayfinder/pull/13))
-
 ## [v0.1.3](https://github.com/laravel/wayfinder/compare/v0.1.1...v0.1.3) - 2025-04-04
 
 ### What's Changed
 
+* Check if routable is an Eloquent model ([#8](https://github.com/laravel/wayfinder/pull/8))
+* Return literal HTTP methods, fixes Inertia TypeScript error ([14](https://github.com/laravel/wayfinder/pull/14))
+* Strip additional whitespace ([#12](https://github.com/laravel/wayfinder/pull/12))
+* Fix: Convert Hyphenated File Names to Camel Case ([#13](https://github.com/laravel/wayfinder/pull/13))
 * Do not delete directories when skipping by [@hosmelq](https://github.com/hosmelq) in https://github.com/laravel/wayfinder/pull/16
 * fix: URL constructor: // is not a valid URL. by [@ArthurYdalgo](https://github.com/ArthurYdalgo) in https://github.com/laravel/wayfinder/pull/20
 * docs: update Vite watcher pattern to support nested routes by [@IlyasMohetna](https://github.com/IlyasMohetna) in https://github.com/laravel/wayfinder/pull/19
