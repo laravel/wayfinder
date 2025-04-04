@@ -32,7 +32,7 @@ export default defineConfig({
             {
                 name: "wayfinder",
                 run: ["php", "artisan", "wayfinder:generate"],
-                pattern: ["routes/*.php", "app/**/Http/**/*.php"],
+                pattern: ["routes/**/*.php", "app/**/Http/**/*.php"],
             },
         ]),
     ],
