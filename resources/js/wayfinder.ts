@@ -60,7 +60,9 @@ export const queryParams = (options?: {
             });
 
             for (const subKey in query[key]) {
-                params.set(`${key}[${subKey}]`, getValue(query[key][subKey]));
+                if (query[key][subKey] !== undefined) {
+                    params.set(`${key}[${subKey}]`, getValue(query[key][subKey]));
+                }
             }
         } else {
             params.set(key, getValue(query[key]));
