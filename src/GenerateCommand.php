@@ -207,6 +207,14 @@ class GenerateCommand extends Command
             fn ($s) => $s->camel()
         )->toString();
 
+        if (in_array($base, TypeScript::RESERVED_KEYWORDS)) {
+            $base = $base.'Route';
+        }
+
+        if (is_numeric($base)) {
+            $base = 'route'.$base;
+        }
+
         if ($base !== $imports) {
             $this->appendContent($path, "const {$base} = { {$imports} }\n");
         }
