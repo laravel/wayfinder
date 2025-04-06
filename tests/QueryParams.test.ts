@@ -169,15 +169,22 @@ it("can merge with the form method", () => {
     });
 });
 
-it("handles nested objects with undefined keys", () => {
+it("ignores nested object values with unallowed types", () => {
     window.location.search = "?parent=og";
 
     const query = (): {
-        good: string;
+        string: string;
+        number: number;
+        boolean: boolean;
     } => {
         const obj = {
-            good: 'value',
-            bad: undefined,
+            string: 'string',
+            number: 5,
+            boolean: true,
+            undefined: undefined,
+            null: null,
+            array: [],
+            object: {},
         }
 
         return obj
@@ -190,7 +197,7 @@ it("handles nested objects with undefined keys", () => {
             },
         }),
     ).toEqual({
-        action: "/posts?parent=og&_method=HEAD&parent%5Bgood%5D=value",
+        action: "/posts?parent=og&_method=HEAD&parent%5Bstring%5D=string&parent%5Bnumber%5D=5&parent%5Bboolean%5D=1",
         method: "get",
     });
 });
