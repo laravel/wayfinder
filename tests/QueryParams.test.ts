@@ -168,3 +168,29 @@ it("can merge with the form method", () => {
         method: "get",
     });
 });
+
+it("handles nested objects with undefined keys", () => {
+    window.location.search = "?parent=og";
+
+    const query = (): {
+        good: string;
+    } => {
+        const obj = {
+            good: 'value',
+            bad: undefined,
+        }
+
+        return obj
+    }
+
+    expect(
+        index.form.head({
+            mergeQuery: {
+                parent: query(),
+            },
+        }),
+    ).toEqual({
+        action: "/posts?parent=og&_method=HEAD&parent%5Bgood%5D=value",
+        method: "get",
+    });
+});
