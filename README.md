@@ -257,6 +257,8 @@ show.url(1, options); // "/posts/1?page=2&q=shirt"
 
 When using [Inertia](https://inertiajs.com), you can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URL and method:
 
+[https://inertiajs.com/forms#wayfinder](https://inertiajs.com/forms#wayfinder)
+
 ```ts
 import { useForm } from "@inertiajs/react";
 import { store } from "@actions/App/Http/Controllers/PostController";
@@ -269,6 +271,8 @@ form.submit(store()); // Will POST to `/posts`...
 ```
 
 You may also use Wayfinder in conjunction with Inertia's `Link` component:
+
+[https://inertiajs.com/links#wayfinder](https://inertiajs.com/links#wayfinder)
 
 ```tsx
 import { Link } from "@inertiajs/react";
