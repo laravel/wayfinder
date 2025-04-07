@@ -56,12 +56,7 @@ class Route
 
     public function namedMethod(): string
     {
-        $base = Str::afterLast($this->name(), '.');
-
-        return $this->finalJsMethod(
-            str_contains($base, '-') ?
-                Str::camel($base) : $base
-        );
+        return $this->finalJsMethod(Str::afterLast($this->name(), '.'));
     }
 
     public function controller(): string
@@ -165,51 +160,7 @@ class Route
 
     private function finalJsMethod(string $method): string
     {
-        $reserved = [
-            'break',
-            'case',
-            'catch',
-            'class',
-            'const',
-            'continue',
-            'debugger',
-            'default',
-            'delete',
-            'do',
-            'else',
-            'export',
-            'extends',
-            'false',
-            'finally',
-            'for',
-            'function',
-            'if',
-            'import',
-            'in',
-            'instanceof',
-            'new',
-            'null',
-            'return',
-            'super',
-            'switch',
-            'this',
-            'throw',
-            'true',
-            'try',
-            'typeof',
-            'var',
-            'void',
-            'while',
-            'with',
-        ];
-
-        $method = in_array($method, $reserved) ? $method.'Method' : $method;
-
-        if (is_numeric($method)) {
-            return 'method'.$method;
-        }
-
-        return $method;
+        return TypeScript::safeMethod($method, 'Method');
     }
 
     private function relativePath(string $path)

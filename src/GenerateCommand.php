@@ -202,10 +202,8 @@ class GenerateCommand extends Command
         $imports = $routes->map(fn (Route $route) => $route->namedMethod())->implode(', ');
 
         $basename = basename($path, '.ts');
-        $base = Str::of($basename)->when(
-            str_contains($basename, '-'),
-            fn ($s) => $s->camel()
-        )->toString();
+
+        $base = TypeScript::safeMethod($basename, 'Route');
 
         if ($base !== $imports) {
             $this->appendContent($path, "const {$base} = { {$imports} }\n");
