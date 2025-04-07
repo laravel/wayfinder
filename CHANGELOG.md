@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.3...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.4...main)
+
+## [v0.1.4](https://github.com/laravel/wayfinder/compare/v0.1.3...v0.1.4) - 2025-04-07
+
+### What's Changed
+
+* Check possible undefined by [@hosmelq](https://github.com/hosmelq) in https://github.com/laravel/wayfinder/pull/30
+* Add route prefix to reserved js keyword route names by [@aktasumut34](https://github.com/aktasumut34) in https://github.com/laravel/wayfinder/pull/32
+
+### New Contributors
+
+* [@aktasumut34](https://github.com/aktasumut34) made their first contribution in https://github.com/laravel/wayfinder/pull/32
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.3...v0.1.4
 
 ## [v0.1.3](https://github.com/laravel/wayfinder/compare/v0.1.1...v0.1.3) - 2025-04-04
 
