@@ -44,6 +44,27 @@ class TypeScript
         'with',
     ];
 
+    public static function safeMethod(string $method, string $suffix): string
+    {
+        $method = str($method);
+
+        if ($method->contains('-')) {
+            $method = $method->camel();
+        }
+
+        $suffix = strtolower($suffix);
+
+        if (in_array($method, self::RESERVED_KEYWORDS)) {
+            return $method->append(ucfirst($suffix));
+        }
+
+        if (is_numeric((string) $method)) {
+            return $method->prepend($suffix);
+        }
+
+        return $method;
+    }
+
     public static function cleanUp(string $view): string
     {
         $replacements = [
