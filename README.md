@@ -40,21 +40,6 @@ export default defineConfig({
 });
 ```
 
-For convenience, you may also wish to register aliases for importing the generated files into your application:
-
-```ts
-import path from 'path';
-
-export default defineConfig({
-    // ...
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./resources/js"),
-        },
-    },
-});
-```
-
 ## Generating TypeScript Definitions
 
 The `wayfinder:generate` command can be used to generate TypeScript definitions for your routes and controller methods:
@@ -87,6 +72,8 @@ import { show } from "@/actions/App/Http/Controllers/PostController";
 
 show(1); // { url: "/posts/1", method: "get" }
 ```
+> [!NOTE]
+> The @ alias can be used for convenience. It's available by default when using [Laravel Vite Plugin](https://github.com/laravel/vite-plugin). To let Typescript also understand this alias, make sure it's configured in your tsconfig.json in the paths section under compilerOptions: `"paths": {"@/*": ["./resources/js/*"]}`.
 
 If you just need the URL, or would like to choose a method from the HTTP methods defined on the server, you can invoke additional methods on the Wayfinder generated function:
 
