@@ -28,7 +28,7 @@ class StorePostRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => ['required', 'string'],
             'price' => ['required', 'numeric'],
-            'stock' => ['required', 'integer'],
+            'stock' => ['required', 'integer', Rule::dimensions([2,3])],
             'hidden' => ['boolean'],
             'catalog_id' => ['required', 'integer', 'exists:catalogs,id'],
             'slug' => ['string', 'max:255', 'unique:products'],
