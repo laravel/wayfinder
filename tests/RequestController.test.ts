@@ -2,8 +2,8 @@ import { describe, expectTypeOf, test } from "vitest";
 
 import type { StorePostRequest, UpdatePostRequest } from '../workbench/resources/js/actions/App/Http/Controllers/RequestController'
 
-describe("model", () => {
-    test("model structure", () => {
+describe("request validation", () => {
+    test("store request data structure", () => {
         const data: StorePostRequest = {
             name: 'name',
             description: 'description',
@@ -17,7 +17,7 @@ describe("model", () => {
         expectTypeOf(data).toMatchObjectType<StorePostRequest>
     });
 
-    test("model structure", () => {
+    test("update request data structure", () => {
         const data: UpdatePostRequest = {
             name: 'name',
             description: 'description',
