@@ -12,14 +12,6 @@
     url: @js($uri),
 }
 
-@if ($request->isNotEmpty())
-{!! when(true, 'export type') !!} {!! $request->get('class') !!} = {
-@foreach($request->get('rules') as $rule)
-    {!! $rule->get('field') !!}: {!! $rule->get('types') !!}
-@endforeach
-}
-@endif
-
 @include('wayfinder::docblock')
 {!! $method !!}.url = (@include('wayfinder::function-arguments')) => {
 @if ($parameters->count() === 1)
@@ -128,4 +120,12 @@ options
 @endforeach
 {!! $method !!}.form = {!! $method !!}Form
 
+@endif
+
+@if ($request->isNotEmpty())
+{!! when(true, 'export type') !!} {!! $request->get('class') !!} = {
+@foreach($request->get('rules') as $rule)
+    {!! $rule->get('field') !!}: {!! $rule->get('types') !!}
+@endforeach
+}
 @endif
