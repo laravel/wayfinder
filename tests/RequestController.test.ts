@@ -2,8 +2,6 @@ import { describe, expectTypeOf, test } from "vitest";
 
 import type { StorePostRequest, UpdatePostRequest } from '../workbench/resources/js/actions/App/Http/Controllers/RequestController'
 
-// test for request, request param in different order (not first), request rules as strings, request rules as instances
-
 describe("model", () => {
     test("model structure", () => {
         const data: StorePostRequest = {
@@ -29,8 +27,8 @@ describe("model", () => {
             catalog_id: 2,
             code: 'code',
             slug: 'name',
-            image: 'data'
+            image: new File([], 'image')
         }
-        expectTypeOf(data).toMatchObjectType<StorePostRequest>
+        expectTypeOf(data).toMatchObjectType<UpdatePostRequest>
     });
 })
