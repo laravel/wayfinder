@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Wayfinder;
+namespace Laravel\Wayfinder\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -10,8 +10,10 @@ use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\Factory;
+use Laravel\Wayfinder\Parameter;
+use Laravel\Wayfinder\Route;
+use Laravel\Wayfinder\TypeScript;
 use ReflectionProperty;
-
 use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\info;
 
@@ -280,7 +282,7 @@ class GenerateCommand extends Command
 
     private function base(): string
     {
-        $base = $this->option('path') ?? join_paths(resource_path(), 'js');
+        $base = $this->option('path') ?? config('wayfinder.output_path');
 
         return join_paths($base, $this->pathDirectory);
     }
