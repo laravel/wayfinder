@@ -126,7 +126,7 @@ show({ slug: "my-new-post" });
 
 ### Invokable Controllers
 
-If your controller is an invokable controller, you may simple invoke the imported Wayfinder function directly:
+If your controller is an invokable controller, you may simply invoke the imported Wayfinder function directly:
 
 ```ts
 import StorePostController from "@actions/App/Http/Controllers/StorePostController";
