@@ -2,15 +2,14 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const testbenchDir = path.join(__dirname, "vendor", "bin", "testbench");
+
 const artisan = (command: string): void => console.error(execSync(`${testbenchDir} ${command}`).toString('utf8'))
 
 export function setup(): void {
     try {
-        if (process.env.WAYFINDER_CACHE_ROUTES) {
-            artisan('route:cache')
-        } else {
-            artisan('route:clear')
-        }
+        process.env.WAYFINDER_CACHE_ROUTES
+            ? artisan('route:cache')
+            : artisan('route:clear')
 
         artisan('wayfinder:generate --path=workbench/resources/js --with-form')
     } catch (error) {
