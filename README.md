@@ -186,7 +186,7 @@ const Page = () => (
 );
 ```
 
-If your form action supports multiple methods and you would like to specify a method, additional methods can be invoked on the `form`:
+If your form action supports multiple methods and would like to specify a method, you can invoke additional methods on the `form`:
 
 ```tsx
 import { store, update } from "@actions/App/Http/Controllers/PostController";
