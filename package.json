@@ -1,7 +1,8 @@
 {
     "type": "module",
     "scripts": {
-        "test": "vitest run"
+        "test": "vitest run && npm run test-routes-cached",
+        "test-routes-cached": "WAYFINDER_CACHE_ROUTES=1 vitest run"
     },
     "devDependencies": {
         "@types/node": "^22.7.5",

@@ -2,8 +2,10 @@
 
 namespace Laravel\Wayfinder;
 
+use Closure;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Routing\Route as BaseRoute;
+use Illuminate\Routing\RouteAction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
@@ -127,7 +129,7 @@ class Route
         $controller = $this->controller();
 
         if ($controller === '\\Closure') {
-            return $this->relativePath((new ReflectionClosure($this->base->getAction()['uses']))->getFileName());
+            return $this->relativePath((new ReflectionClosure($this->closure()))->getFileName());
         }
 
         if (! class_exists($controller)) {
@@ -142,7 +144,7 @@ class Route
         $controller = $this->controller();
 
         if ($controller === '\\Closure') {
-            return (new ReflectionClosure($this->base->getAction()['uses']))->getStartLine();
+            return (new ReflectionClosure($this->closure()))->getStartLine();
         }
 
         if (! class_exists($controller)) {
@@ -166,5 +168,12 @@ class Route
     private function relativePath(string $path)
     {
         return ltrim(str_replace(base_path(), '', $path), DIRECTORY_SEPARATOR);
+    }
+
+    private function closure(): Closure
+    {
+        return RouteAction::containsSerializedClosure($this->base->getAction())
+            ? unserialize($this->base->getAction('uses'))->getClosure()
+            : $this->base->getAction('uses');
     }
 }
