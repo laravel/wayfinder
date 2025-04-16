@@ -7,6 +7,7 @@ use Illuminate\Routing\Route as BaseRoute;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
+use Illuminate\Support\Reflector;
 use ReflectionClass;
 
 class Route
@@ -72,12 +73,12 @@ class Route
 
         $signatureParams = collect($this->base->signatureParameters(UrlRoutable::class));
 
-        return collect($this->base->parameterNames())->map(fn ($name) => new Parameter(
+        return collect($this->base->parameterNames())->map(fn($name) => new Parameter(
             $name,
             $optionalParameters->has($name) || $this->paramDefaults->has($name),
             $this->base->bindingFieldFor($name),
             $this->paramDefaults->get($name),
-            $signatureParams->first(fn ($p) => $p->getName() === $name),
+            $signatureParams->first(fn($p) => $p->getName() === $name),
         ));
     }
 
@@ -88,13 +89,13 @@ class Route
 
     public function uri(): string
     {
-        $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
+        $defaultParams = $this->paramDefaults->mapWithKeys(fn($value, $key) => ["{{$key}}" => "{{$key}?}"]);
 
         $scheme = $this->scheme() ?? '//';
 
         return str($this->base->uri)
             ->start('/')
-            ->when($this->domain() !== null, fn ($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
+            ->when($this->domain() !== null, fn($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
     }
@@ -137,6 +138,54 @@ class Route
         return $this->relativePath((new ReflectionClass($controller))->getFileName());
     }
 
+    public function controllerMethodRequest(): Collection
+    {
+        $controller = $this->controller();
+        $types = new Collection();
+        $request = null;
+
+        if ($controller === '\\Closure') {
+            return $types;
+        }
+
+        if (! class_exists($controller)) {
+            return $types;
+        }
+
+        $reflection = (new ReflectionClass($controller));
+
+        if(! $reflection->hasMethod($this->method())) {
+            return $types;
+        }
+
+        $reflectionMethod = $reflection->getMethod($this->method());
+        $parameters = $reflectionMethod->getParameters();
+
+
+        foreach ($parameters as $parameter) {
+            if(Reflector::isParameterSubclassOf($parameter, 'Illuminate\\Foundation\\Http\\FormRequest')) {
+                $request = $parameter;
+            }
+        }
+
+        if (is_null($request)) {
+            return $types;
+        }
+
+        $requestReflectionClass = (new ReflectionClass($request->getType()->getName()));
+        
+        if($requestReflectionClass->hasMethod('rules')) {
+            $rules = $requestReflectionClass->getMethod('rules')->invoke($requestReflectionClass->newInstance());
+
+            $types = (new Request(
+                Str::afterLast($request->getType()->getName(), '\\'),
+                $rules
+            ))->types;
+        }
+        
+        return $types;
+    }
+
     public function controllerMethodLineNumber(): int
     {
         $controller = $this->controller();
@@ -167,4 +216,5 @@ class Route
     {
         return ltrim(str_replace(base_path(), '', $path), DIRECTORY_SEPARATOR);
     }
+
 }

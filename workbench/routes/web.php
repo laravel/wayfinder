@@ -14,13 +14,14 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\TwoRoutesSameActionController;
 use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
+use App\Http\Controllers\RequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return 'Home';
 })->name('home');
 
-Route::get('/closure', fn () => 'ok');
+Route::get('/closure', fn() => 'ok');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
 Route::post('/invokable-plus-controller', [InvokablePlusController::class, 'store']);
@@ -71,9 +72,12 @@ Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->n
 Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);
 
 Route::prefix('/api/v1')->name('api.v1.')->group(function () {
-    Route::get('/tasks', fn () => 'ok')->name('tasks');
+    Route::get('/tasks', fn() => 'ok')->name('tasks');
 
     Route::prefix('/tasks/{task}/task-status')->name('task-status.')->group(function () {
-        Route::get('/', fn () => 'ok')->name('index');
+        Route::get('/', fn() => 'ok')->name('index');
     });
 });
+
+Route::post('/store-post', [RequestController::class, 'store']);
+Route::post('/update-post', [RequestController::class, 'update']);

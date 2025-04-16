@@ -97,6 +97,7 @@ options
     method: @js($verbs->first()->formSafe),
 })
 
+
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
 {!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): {
@@ -119,4 +120,12 @@ options
 @endforeach
 {!! $method !!}.form = {!! $method !!}Form
 
+@endif
+
+@if ($request->isNotEmpty())
+{!! when(true, 'export type') !!} {!! $request->get('class') !!} = {
+@foreach($request->get('rules') as $rule)
+    {!! $rule->get('field') !!}: {!! $rule->get('types') !!}
+@endforeach
+}
 @endif
