@@ -1,5 +1,5 @@
 providers:
-  # - Workbench\App\Providers\WorkbenchServiceProvider
+  - App\Providers\WorkbenchServiceProvider
 
 workbench:
   start: '/'
