@@ -170,6 +170,7 @@ class GenerateCommand extends Command
             'isInvokable' => $routes->first()->hasInvokableController(),
             'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
+                'method' => $r->jsMethod(),
                 'tempMethod' => $r->jsMethod().md5($r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
