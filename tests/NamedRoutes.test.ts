@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import edit from "../workbench/resources/js/routes/posts/edit";
+import { edit } from "../workbench/resources/js/routes/posts";
 
 it("exports named routes", () => {
     expect(edit.url(1)).toBe("/posts/1/edit");
