@@ -78,7 +78,9 @@ class GenerateCommand extends Command
         if (! $this->option('skip-routes')) {
             $this->files->deleteDirectory($this->base());
 
-            $named = $routes->filter(fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.'))->groupBy(fn (Route $route) => $route->name());
+            $named = $routes->filter(
+                fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.') && ! Str::startsWith($route->name(), 'generated::')
+            )->groupBy(fn (Route $route) => $route->name());
 
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
@@ -98,7 +100,9 @@ class GenerateCommand extends Command
     {
         $this->content[$path] ??= [];
 
-        $this->content[$path][] = $content;
+        if (! in_array($content, $this->content[$path])) {
+            $this->content[$path][] = $content;
+        }
     }
 
     private function prependContent($path, $content): void
@@ -112,7 +116,6 @@ class GenerateCommand extends Command
     {
         foreach ($this->content as $path => $content) {
             $this->files->ensureDirectoryExists(dirname($path));
-
             $this->files->put($path, TypeScript::cleanUp(implode(PHP_EOL, $content)));
         }
 
@@ -193,25 +196,15 @@ class GenerateCommand extends Command
 
     private function writeNamedFile(Collection $routes, string $namespace): void
     {
-        $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
+        $parts = explode('.', $namespace);
+        array_pop($parts);
+        $parts[] = 'index';
+
+        $path = join_paths($this->base(), ...$parts).'.ts';
 
         $this->appendCommonImports($routes, $path, $namespace);
 
         $routes->each(fn (Route $route) => $this->writeNamedMethodExport($route, $path));
-
-        $imports = $routes->map(fn (Route $route) => $route->namedMethod())->implode(', ');
-
-        $basename = basename($path, '.ts');
-
-        $base = TypeScript::safeMethod($basename, 'Route');
-
-        if ($base !== $imports) {
-            $this->appendContent($path, "const {$base} = { {$imports} }\n");
-        }
-
-        if ($base !== 'index') {
-            $this->appendContent($path, "export default {$base}");
-        }
     }
 
     private function appendCommonImports(Collection $routes, string $path, string $namespace): void
@@ -224,7 +217,7 @@ class GenerateCommand extends Command
 
         $importBase = str_repeat('/..', substr_count($namespace, '.') + 1);
 
-        $this->appendContent($path, 'import { '.implode(', ', $imports)." } from '.{$importBase}/wayfinder'\n");
+        $this->appendContent($path, 'import { '.implode(', ', $imports)." } from '.{$importBase}/wayfinder'".PHP_EOL);
     }
 
     private function writeNamedMethodExport(Route $route, string $path): void
@@ -255,13 +248,25 @@ class GenerateCommand extends Command
 
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
-        $childKeys = $children->keys()->mapWithKeys(fn ($child) => [$normalizeToCamelCase($child) => $child]);
+        $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
+            $child => [
+                'safe' => TypeScript::safeMethod($normalizeToCamelCase($child), 'Method'),
+                'normalized' => $normalizeToCamelCase($child),
+            ],
+        ]);
 
-        $imports = $childKeys->filter(fn ($child, $key) => $key !== 'index')->map(fn ($child, $key) => "import {$key} from './{$child}'")->implode(PHP_EOL);
+        if (! ($this->content[$indexPath] ?? false)) {
+            $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index')->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
+        } else {
+            $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
+            $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
+        }
 
-        $this->prependContent($indexPath, $imports);
+        if ($imports) {
+            $this->prependContent($indexPath, $imports);
+        }
 
-        $keys = $childKeys->keys()->map(fn ($key) => str_repeat(' ', 4).$key)->implode(', '.PHP_EOL);
+        $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safe']])))->implode(', '.PHP_EOL);
 
         $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
 
