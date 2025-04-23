@@ -78,9 +78,7 @@ class GenerateCommand extends Command
         if (! $this->option('skip-routes')) {
             $this->files->deleteDirectory($this->base());
 
-            $named = $routes->filter(
-                fn (Route $route) => $route->name() && ! Str::endsWith($route->name(), '.') && ! Str::startsWith($route->name(), 'generated::')
-            )->groupBy(fn (Route $route) => $route->name());
+            $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => $route->name());
 
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));

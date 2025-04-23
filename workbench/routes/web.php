@@ -70,6 +70,10 @@ Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->n
 
 Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);
 
+Route::get('/package-route', function () {
+    //
+})->name('my-package::store');
+
 Route::prefix('/api/v1')->name('api.v1.')->group(function () {
     Route::get('/tasks', fn () => 'ok')->name('tasks');
 

@@ -121,7 +121,17 @@ class Route
 
     public function name(): ?string
     {
-        return $this->base->getName();
+        $name = $this->base->getName();
+
+        if (! $name || Str::endsWith($name, '.') || Str::startsWith($name, 'generated::')) {
+            return null;
+        }
+
+        if (str_contains($name, '::')) {
+            return 'namespaced.'.str_replace('::', '.', $name);
+        }
+
+        return $name;
     }
 
     public function controllerPath(): string
