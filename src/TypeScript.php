@@ -70,19 +70,32 @@ class TypeScript
         $replacements = [
             ' ,' => ',',
             '[ ' => '[',
-            ' ]' => ']',
             ', }' => ' }',
             '} )' => '})',
-            ' )' => ' )',
+            ' )' => ')',
             '( ' => '(',
             '( ' => '(',
-            "\n +" => ' +',
+            PHP_EOL.' +' => ' +',
+            '})'.PHP_EOL.'/**' => '})'.PHP_EOL.PHP_EOL.'/**',
+            '}'.PHP_EOL.'/**' => '}'.PHP_EOL.PHP_EOL.'/**',
+        ];
+
+        $regexReplacements = [
+            '/\=\> \{\n{2,}/' => '=> {'.PHP_EOL,
+            '/\\s+\.replace/' => sprintf('%s%s.replace', PHP_EOL, str_repeat(' ', 12)),
+            '/\s+\+ queryParams\(options\)/' => ' + queryParams(options)',
+            '/\n{3,}/' => "\n\n",
         ];
 
         return str($view)
             ->pipe(function (Stringable $str) {
                 // Clean up function arguments
-                $matches = $str->matchAll('/ = \(([^)]+\))/');
+                $matches = $str->matchAll('/ = \(([^)]+\))/')
+                    ->concat($str->matchAll('/\.url\(\s*args,\s+\{/'))
+                    ->concat($str->matchAll('/\.url\(\s*args,\s+options\s*\)/'))
+                    ->concat($str->matchAll('/\.url\(\s*options\s*\)/'))
+                    ->concat($str->matchAll('/\(\s+\{/'))
+                    ->concat($str->matchAll('/\}\s+\)/'));
 
                 foreach ($matches as $match) {
                     $str = $str->replaceFirst($match, preg_replace('/\s+/', ' ', $match));
@@ -90,7 +103,33 @@ class TypeScript
 
                 return $str;
             })
-            ->replaceMatches('/\n{3,}/', "\n\n")
+            ->pipe(function (Stringable $str) {
+                $depth = 0;
+
+                return str(
+                    $str->explode(PHP_EOL)
+                        ->map(fn ($s) => trim($s))
+                        ->map(function ($s) use (&$depth) {
+                            if ($s === '') {
+                                return $s;
+                            }
+
+                            if (str_starts_with($s, '}') || str_starts_with($s, ']')) {
+                                $depth--;
+                            }
+
+                            $line = str_repeat(' ', $depth * 4).$s;
+
+                            if (str_ends_with($s, '{') || str_ends_with($s, '[')) {
+                                $depth++;
+                            }
+
+                            return $line;
+                        })
+                        ->implode(PHP_EOL)
+                );
+            })
+            ->replaceMatches(array_keys($regexReplacements), array_values($regexReplacements))
             ->replace(array_keys($replacements), array_values($replacements))
             ->toString();
     }
