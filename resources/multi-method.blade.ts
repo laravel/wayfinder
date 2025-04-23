@@ -1,14 +1,14 @@
-@use('Illuminate\Support\HtmlString')
-
 @foreach ($routes as $route)
-@include('wayfinder::method', [
-    ...$route,
-    'method' => $route['tempMethod'],
-    'export' => false,
-])
+    @include('wayfinder::method', [
+        ...$route,
+        'method' => $route['tempMethod'],
+        'docblock_method' => $route['method'],
+        'export' => false,
+    ])
 @endforeach
+
 {!! when(!$isInvokable, 'export ') !!}const {!! $method !!} = {
 @foreach ($routes as $route)
     @js($route['uri']): {!! $route['tempMethod'] !!},
 @endforeach
-}{{"\n"}}
+}{{PHP_EOL}}
