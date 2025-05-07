@@ -46,15 +46,30 @@ class Parameter
 
     protected function typeToTypeScript($type)
     {
-        return match ($type) {
-            'int' => 'number',
-            'integer' => 'number',
-            'string' => 'string',
-            'bool' => 'boolean',
-            'boolean' => 'boolean',
-            'bigint' => 'number',
-            'number' => 'number',
-            default => 'string',
-        };
+        $mapping = [
+            'number' => [
+                'int',
+                'integer',
+                'bigint',
+                'int8',
+                'serial',
+                'bigserial',
+                'bigint',
+                'number',
+                'float',
+                'double',
+                'decimal',
+            ],
+            'string' => ['string', 'text', 'varchar', 'char', 'json', 'jsonb'],
+            'boolean' => ['bool', 'boolean'],
+        ];
+
+        foreach ($mapping as $tsType => $types) {
+            if (in_array($type, $types)) {
+                return $tsType;
+            }
+        }
+
+        return 'string';
     }
 }
