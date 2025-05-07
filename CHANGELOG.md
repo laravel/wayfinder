@@ -2,7 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.4...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.5...main)
+
+## [v0.1.5](https://github.com/laravel/wayfinder/compare/v0.1.4...v0.1.5) - 2025-05-07
+
+### What's Changed
+
+* Grammar Check of README.md by [@j3ns3n](https://github.com/j3ns3n) in https://github.com/laravel/wayfinder/pull/43
+* php 8.2 support by [@emhashef](https://github.com/emhashef) in https://github.com/laravel/wayfinder/pull/42
+* Update README.md to improve integration by [@nckrtl](https://github.com/nckrtl) in https://github.com/laravel/wayfinder/pull/35
+* Improve docs by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/wayfinder/pull/47
+* Add support for generating route while routes are cached by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/wayfinder/pull/45
+* Test it can import storage routes by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/wayfinder/pull/46
+* Blade + TypeScript clean up by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/52
+* Handle namespaced routes correctly by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/51
+* Fix: Use forward slashes in docblock paths by [@istiak-tridip](https://github.com/istiak-tridip) in https://github.com/laravel/wayfinder/pull/56
+* Fix for PostgreSQL ID typing by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/58
+* Don't escape forward slashes in URI by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/60
+
+### Potential Minor Breaking Change
+
+The changes to how Wayfinder writes barrel files in v0.1.3 were largely reverted. Sorry for the back and forth there, still refining the DX.
+
+### New Contributors
+
+* [@j3ns3n](https://github.com/j3ns3n) made their first contribution in https://github.com/laravel/wayfinder/pull/43
+* [@emhashef](https://github.com/emhashef) made their first contribution in https://github.com/laravel/wayfinder/pull/42
+* [@nckrtl](https://github.com/nckrtl) made their first contribution in https://github.com/laravel/wayfinder/pull/35
+* [@istiak-tridip](https://github.com/istiak-tridip) made their first contribution in https://github.com/laravel/wayfinder/pull/56
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.4...v0.1.5
 
 ## [v0.1.4](https://github.com/laravel/wayfinder/compare/v0.1.3...v0.1.4) - 2025-04-07
 
