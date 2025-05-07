@@ -9,7 +9,7 @@
 
 {!! $method !!}.definition = {
     methods: [@foreach ($verbs as $verb)@js($verb->actual){!! when(! $loop->last, ',') !!}@endforeach],
-    url: @js($uri),
+    url: {!! $uri !!},
 }
 
 @include('wayfinder::docblock')

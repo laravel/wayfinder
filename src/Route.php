@@ -7,6 +7,7 @@ use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Routing\Route as BaseRoute;
 use Illuminate\Routing\RouteAction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
@@ -94,11 +95,13 @@ class Route
 
         $scheme = $this->scheme() ?? '//';
 
-        return str($this->base->uri)
+        $uri = str($this->base->uri)
             ->start('/')
             ->when($this->domain() !== null, fn ($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
+
+        return Js::from($uri, JSON_UNESCAPED_SLASHES)->toHtml();
     }
 
     public function scheme(): ?string
