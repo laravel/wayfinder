@@ -183,7 +183,7 @@ class Route
 
     private function relativePath(string $path)
     {
-        return ltrim(str_replace(base_path(), '', $path), DIRECTORY_SEPARATOR);
+        return str($path)->replace(base_path(), '')->ltrim(DIRECTORY_SEPARATOR)->replace(DIRECTORY_SEPARATOR, '/')->toString();
     }
 
     private function closure(): Closure
