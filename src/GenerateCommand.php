@@ -17,7 +17,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--ignore-routes=}';
 
     private ?string $forcedScheme;
 
@@ -59,6 +59,14 @@ class GenerateCommand extends Command
 
             return new Route($route, $defaults, $this->forcedScheme, $this->forcedRoot);
         });
+
+        if ($this->option('ignore-routes')) {
+            $ignoreRoutes = collect(explode(',', $this->option('ignore-routes')));
+
+            $routes = $routes->filter(
+                fn (Route $route) => ! $ignoreRoutes->some(fn (string $ignored) => str_starts_with($route->uri(), $ignored) || str_starts_with($route->name(), $ignored))
+            );
+        }
 
         if (! $this->option('skip-actions')) {
             $this->files->deleteDirectory($this->base());
@@ -154,7 +162,8 @@ class GenerateCommand extends Command
         {$methodProps}
 
         export default {$defaultExport}
-        JAVASCRIPT);
+        JAVASCRIPT
+        );
     }
 
     private function writeMultiRouteControllerMethodExport(Collection $routes, string $path): void
@@ -277,7 +286,8 @@ class GenerateCommand extends Command
                 }
 
                 export default {$varExport}
-                JAVASCRIPT);
+                JAVASCRIPT
+        );
 
         $children->each(fn ($grandChildren, $child) => $this->writeBarrelFiles($grandChildren, join_paths($parent, $child)));
     }
