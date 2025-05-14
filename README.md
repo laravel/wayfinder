@@ -63,6 +63,12 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+If you want to exclude specific routes from being generated, you can use the `--ignore-routes` option and pass a comma-separated list of route names to ignore:
+
+```
+php artisan wayfinder:generate --ignore-routes=pulse,horizon,swagger,api,livewire
+```
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ## Usage
