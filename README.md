@@ -26,21 +26,17 @@ npm i -D vite-plugin-run
 Then, update your application's `vite.config.js` file to watch for changes to your application's routes and controllers:
 
 ```ts
-import { run } from "vite-plugin-run";
+import { wayfinder } from "@laravel/vite-plugin-wayfinder";
 
 export default defineConfig({
     plugins: [
+        wayfinder(),
         // ...
-        run([
-            {
-                name: "wayfinder",
-                run: ["php", "artisan", "wayfinder:generate"],
-                pattern: ["routes/**/*.php", "app/**/Http/**/*.php"],
-            },
-        ]),
     ],
 });
 ```
+
+[Wayfinder vite plugin documentation](https://github.com/laravel/vite-plugin-wayfinder).
 
 ## Generating TypeScript Definitions
 
