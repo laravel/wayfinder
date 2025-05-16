@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.5...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.6...main)
+
+## [v0.1.6](https://github.com/laravel/wayfinder/compare/v0.1.5...v0.1.6) - 2025-05-16
+
+### What's Changed
+
+* Wayfinder Vite plugin by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/67
+* feat: Add multiple imports handling by [@maicol07](https://github.com/maicol07) in https://github.com/laravel/wayfinder/pull/63
+
+### New Contributors
+
+* [@maicol07](https://github.com/maicol07) made their first contribution in https://github.com/laravel/wayfinder/pull/63
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.5...v0.1.6
 
 ## [v0.1.5](https://github.com/laravel/wayfinder/compare/v0.1.4...v0.1.5) - 2025-05-07
 
