@@ -29,6 +29,14 @@ class GenerateCommand extends Command
 
     private $content = [];
 
+    /**
+     * Imports array where the key is the generated file path and the value is an array of imports.
+     * Each import is an array where the first element is the import path and the second element is an array of imported items.
+     *
+     * @var array<string, array<string, string[]>>
+     */
+    private $imports = [];
+
     public function __construct(
         private Filesystem $files,
         private Router $router,
@@ -115,6 +123,12 @@ class GenerateCommand extends Command
         foreach ($this->content as $path => $content) {
             $this->files->ensureDirectoryExists(dirname($path));
             $this->files->put($path, TypeScript::cleanUp(implode(PHP_EOL, $content)));
+
+            // Prepend the imports to the file
+            if (isset($this->imports[$path])) {
+                $importLines = collect($this->imports[$path])->map(fn ($imports, $key) => 'import { '.implode(', ', array_unique($imports))." } from '{$key}'")->implode(PHP_EOL);
+                $this->files->prepend($path, $importLines.PHP_EOL);
+            }
         }
 
         $this->content = [];
@@ -215,8 +229,13 @@ class GenerateCommand extends Command
         }
 
         $importBase = str_repeat('/..', substr_count($namespace, '.') + 1);
+        $pathKey = ".{$importBase}/wayfinder";
 
-        $this->appendContent($path, 'import { '.implode(', ', $imports)." } from '.{$importBase}/wayfinder'".PHP_EOL);
+        $this->imports[$path] ??= [];
+        $this->imports[$path][$pathKey] = [
+            ...($this->imports[$path][$pathKey] ?? []),
+            ...$imports,
+        ];
     }
 
     private function writeNamedMethodExport(Route $route, string $path): void
