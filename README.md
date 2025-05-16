@@ -15,12 +15,12 @@ To get started, install Wayfinder via the Composer package manager:
 composer require laravel/wayfinder
 ```
 
-We also recommend installing and configuring [`vite-plugin-run`](https://github.com/innocenzi/vite-plugin-run) to ensure that your routes are generated during Vite's build step and also whenever your files change while running the Vite's dev server.
+Next, install the [Wayfinder Vite plugin](https://github.com/laravel/vite-plugin-wayfinder) to ensure that your routes are generated during Vite's build step and also whenever your files change while running the Vite's dev server.
 
 First, install the plugin via NPM:
 
 ```
-npm i -D vite-plugin-run
+npm i -D @laravel/vite-plugin-wayfinder
 ```
 
 Then, update your application's `vite.config.js` file to watch for changes to your application's routes and controllers:
@@ -36,7 +36,7 @@ export default defineConfig({
 });
 ```
 
-[Wayfinder vite plugin documentation](https://github.com/laravel/vite-plugin-wayfinder).
+You can read about all of the plugin's configuration options in the [documentation](https://github.com/laravel/vite-plugin-wayfinder).
 
 ## Generating TypeScript Definitions
 
