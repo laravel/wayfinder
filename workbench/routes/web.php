@@ -41,7 +41,7 @@ Route::get('/', function () {
     return 'Home';
 })->name('home');
 
-Route::post('/optional/{parameter?}', [OptionalController::class, 'optional']);
+Route::post('/optional/{parameter?}', [OptionalController::class, 'optional'])->name('optional');
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
 
 Route::post('/users/{user}', [ModelBindingController::class, 'show']);

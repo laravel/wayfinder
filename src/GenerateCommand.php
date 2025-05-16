@@ -126,7 +126,7 @@ class GenerateCommand extends Command
 
             // Prepend the imports to the file
             if (isset($this->imports[$path])) {
-                $importLines = collect($this->imports[$path])->map(fn ($imports, $key) => "import { ".implode(', ', array_unique($imports))." } from '{$key}'")->implode(PHP_EOL);
+                $importLines = collect($this->imports[$path])->map(fn ($imports, $key) => 'import { '.implode(', ', array_unique($imports))." } from '{$key}'")->implode(PHP_EOL);
                 $this->files->prepend($path, $importLines.PHP_EOL);
             }
         }
@@ -229,14 +229,12 @@ class GenerateCommand extends Command
         }
 
         $importBase = str_repeat('/..', substr_count($namespace, '.') + 1);
+        $pathKey = ".{$importBase}/wayfinder";
 
-        if (!isset($this->imports[$path])) {
-            $this->imports[$path] = [];
-        }
-
-        $this->imports[$path][".{$importBase}/wayfinder"] = [
-            ...($this->imports[$path][".{$importBase}/wayfinder"] ?? []),
-            ...$imports
+        $this->imports[$path] ??= [];
+        $this->imports[$path][$pathKey] = [
+            ...($this->imports[$path][$pathKey] ?? []),
+            ...$imports,
         ];
     }
 
