@@ -9,11 +9,13 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
-export type RouteDefinition<TMethod extends string | string[]> = {
-    url: string;
-} & (TMethod extends string[] ? { methods: TMethod } : { method: TMethod });
+type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | string;
 
-export type RouteFormDefinition<TMethod extends string> = {
+export type RouteDefinition<TMethod extends Method | Method[]> = {
+    url: string;
+} & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
+
+export type RouteFormDefinition<TMethod extends Method> = {
     action: string;
     method: TMethod;
 };
