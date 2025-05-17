@@ -9,10 +9,21 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
-export const queryParams = (options?: {
+export type RouteDefinition<TMethod extends string | string[]> = {
+    url: string;
+} & (TMethod extends string[] ? { methods: TMethod } : { method: TMethod });
+
+export type RouteFormDefinition<TMethod extends string> = {
+    action: string;
+    method: TMethod;
+};
+
+export type RouteQueryOptions = {
     query?: QueryParams;
     mergeQuery?: QueryParams;
-}) => {
+}
+
+export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
     }
