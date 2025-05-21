@@ -9,7 +9,7 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
-type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | string;
+type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
 
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
