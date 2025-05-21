@@ -4,14 +4,10 @@
     method: @js($verbs->first()->actual),
 })
 
-@php
-    $verbsArray = $verbs->map(fn($verb) => $verb->actual)->join("','");
-@endphp
-
 {!! $method !!}.definition = {
-    methods: ['{!! $verbsArray !!}'],
+    methods: {!! $verbs->pluck('actual')->toJson() !!},
     url: {!! $uri !!},
-} satisfies RouteDefinition<['{!! $verbsArray !!}']>
+} satisfies RouteDefinition<{!! $verbs->pluck('actual')->toJson() !!}>
 
 @include('wayfinder::docblock')
 {!! $method !!}.url = (@include('wayfinder::function-arguments')) => {
