@@ -222,7 +222,11 @@ class GenerateCommand extends Command
 
     private function appendCommonImports(Collection $routes, string $path, string $namespace): void
     {
-        $imports = ['queryParams', 'type QueryParams'];
+        $imports = ['queryParams', 'type RouteQueryOptions', 'type RouteDefinition'];
+
+        if ($this->option('with-form') === true) {
+            $imports[] = 'type RouteFormDefinition';
+        }
 
         if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
             $imports[] = 'validateParameters';

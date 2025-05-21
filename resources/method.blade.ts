@@ -1,16 +1,13 @@
 @include('wayfinder::docblock')
-{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): {
-    url: string,
-    method: @js($verbs->first()->actual),
-} => ({
+{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verbs->first()->actual)> => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verbs->first()->actual),
 })
 
 {!! $method !!}.definition = {
-    methods: [@foreach ($verbs as $verb)@js($verb->actual){!! when(! $loop->last, ',') !!}@endforeach],
+    methods: {!! $verbs->pluck('actual')->toJson() !!},
     url: {!! $uri !!},
-}
+} satisfies RouteDefinition<{!! $verbs->pluck('actual')->toJson() !!}>
 
 @include('wayfinder::docblock')
 {!! $method !!}.url = (@include('wayfinder::function-arguments')) => {
@@ -69,10 +66,7 @@
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
-{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): {
-    url: string,
-    method: @js($verb->actual),
-} => ({
+{!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verb->actual)> => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verb->actual),
 })
@@ -80,10 +74,7 @@
 
 @if ($withForm)
     @include('wayfinder::docblock')
-    const {!! $method !!}Form = (@include('wayfinder::function-arguments')): {
-        action: string,
-        method: @js($verbs->first()->formSafe),
-    } => ({
+    const {!! $method !!}Form = (@include('wayfinder::function-arguments')): RouteFormDefinition<@js($verbs->first()->formSafe)> => ({
         action: {!! $method !!}.url(
             {!! when($parameters->isNotEmpty(), 'args, ') !!}
             @if ($verbs->first()->formSafe === $verbs->first()->actual)
@@ -102,10 +93,7 @@
 
     @foreach ($verbs as $verb)
         @include('wayfinder::docblock')
-        {!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): {
-            action: string,
-            method: @js($verb->formSafe),
-        } => ({
+        {!! $method !!}Form.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): RouteFormDefinition<@js($verb->formSafe)> => ({
             action: {!! $method !!}.url(
                 {!! when($parameters->isNotEmpty(), 'args, ') !!}
                 @if ($verb->formSafe === $verb->actual)
