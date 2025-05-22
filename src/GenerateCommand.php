@@ -183,7 +183,7 @@ class GenerateCommand extends Command
             'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().md5($r->uri()),
+                'tempMethod' => $r->jsMethod().hash('xxh3', $r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
