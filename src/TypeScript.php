@@ -58,7 +58,7 @@ class TypeScript
             return $method->append(ucfirst($suffix));
         }
 
-        if (is_numeric((string) $method)) {
+        if ($method->match('/^[a-zA-Z_$]/')->isEmpty()) {
             return $method->prepend($suffix);
         }
 
