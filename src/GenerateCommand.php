@@ -269,14 +269,12 @@ class GenerateCommand extends Command
             return;
         }
 
-        $normalizeToCamelCase = fn ($value) => str_contains($value, '-') ? Str::camel($value) : $value;
-
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
         $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
             $child => [
-                'safe' => TypeScript::safeMethod($normalizeToCamelCase($child), 'Method'),
-                'normalized' => $normalizeToCamelCase($child),
+                'safe' => TypeScript::safeMethod($child, 'Method'),
+                'normalized' => (string) str($child)->whenContains('-', fn ($s) => $s->camel()),
             ],
         ]);
 
@@ -293,7 +291,7 @@ class GenerateCommand extends Command
 
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safe']])))->implode(', '.PHP_EOL);
 
-        $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
+        $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
 
         $this->appendContent($indexPath, <<<JAVASCRIPT
 
