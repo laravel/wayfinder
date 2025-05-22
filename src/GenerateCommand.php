@@ -199,7 +199,7 @@ class GenerateCommand extends Command
             'method' => $route->jsMethod(),
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $isInvokable = $route->hasInvokableController(),
-            'shouldExport' => $isInvokable,
+            'shouldExport' => ! $isInvokable,
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -247,11 +247,11 @@ class GenerateCommand extends Command
     private function writeNamedMethodExport(Route $route, string $path): void
     {
         $this->appendContent($path, $this->view->make('wayfinder::method', [
-            'controller' => $route->controller(),
+            'controller' => $controller = $route->controller(),
             'method' => $route->namedMethod(),
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $isInvokable = $route->hasInvokableController(),
-            'shouldExport' => $isInvokable,
+            'shouldExport' => (! $isInvokable) || str_contains($controller, '\\Closure'),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
