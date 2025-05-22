@@ -1,5 +1,5 @@
 @include('wayfinder::docblock')
-{!! when(($export ?? true) && !$isInvokable, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verbs->first()->actual)> => ({
+{!! when($shouldExport, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verbs->first()->actual)> => ({
     url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
     method: @js($verbs->first()->actual),
 })

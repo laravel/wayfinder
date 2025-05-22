@@ -42,6 +42,17 @@ class TypeScript
         'void',
         'while',
         'with',
+        'public',
+        'private',
+        'protected',
+        'static',
+        'package',
+        'let',
+        'enum',
+        'await',
+        'implements',
+        'interface',
+        'yield',
     ];
 
     public static function safeMethod(string $method, string $suffix): string
@@ -58,7 +69,7 @@ class TypeScript
             return $method->append(ucfirst($suffix));
         }
 
-        if (is_numeric((string) $method)) {
+        if ($method->match('/^[a-zA-Z_$]/')->isEmpty()) {
             return $method->prepend($suffix);
         }
 

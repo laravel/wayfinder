@@ -179,11 +179,12 @@ class GenerateCommand extends Command
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
             'controller' => $routes->first()->controller(),
-            'isInvokable' => $routes->first()->hasInvokableController(),
+            'isInvokable' => $isInvokable = $routes->first()->hasInvokableController(),
+            'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().md5($r->uri()),
+                'tempMethod' => $r->jsMethod().hash('xxh3', $r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
@@ -197,7 +198,8 @@ class GenerateCommand extends Command
             'controller' => $route->controller(),
             'method' => $route->jsMethod(),
             'original_method' => $route->originalJsMethod(),
-            'isInvokable' => $route->hasInvokableController(),
+            'isInvokable' => $isInvokable = $route->hasInvokableController(),
+            'shouldExport' => ! $isInvokable,
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -245,10 +247,11 @@ class GenerateCommand extends Command
     private function writeNamedMethodExport(Route $route, string $path): void
     {
         $this->appendContent($path, $this->view->make('wayfinder::method', [
-            'controller' => $route->controller(),
+            'controller' => $controller = $route->controller(),
             'method' => $route->namedMethod(),
             'original_method' => $route->originalJsMethod(),
-            'isInvokable' => false,
+            'isInvokable' => $isInvokable = $route->hasInvokableController(),
+            'shouldExport' => (! $isInvokable) || str_contains($controller, '\\Closure'),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -266,14 +269,12 @@ class GenerateCommand extends Command
             return;
         }
 
-        $normalizeToCamelCase = fn ($value) => str_contains($value, '-') ? Str::camel($value) : $value;
-
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
         $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
             $child => [
-                'safe' => TypeScript::safeMethod($normalizeToCamelCase($child), 'Method'),
-                'normalized' => $normalizeToCamelCase($child),
+                'safe' => TypeScript::safeMethod($child, 'Method'),
+                'normalized' => (string) str($child)->whenContains('-', fn ($s) => $s->camel()),
             ],
         ]);
 
@@ -290,7 +291,7 @@ class GenerateCommand extends Command
 
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safe']])))->implode(', '.PHP_EOL);
 
-        $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
+        $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
 
         $this->appendContent($indexPath, <<<JAVASCRIPT
 

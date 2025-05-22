@@ -3,11 +3,11 @@
         ...$route,
         'method' => $route['tempMethod'],
         'docblock_method' => $route['method'],
-        'export' => false,
+        'shouldExport' => false,
     ])
 @endforeach
 
-{!! when(!$isInvokable, 'export ') !!}const {!! $method !!} = {
+{!! when($shouldExport, 'export ') !!}const {!! $method !!} = {
 @foreach ($routes as $route)
     {!! $route['uri'] !!}: {!! $route['tempMethod'] !!},
 @endforeach
