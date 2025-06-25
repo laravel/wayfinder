@@ -68,7 +68,7 @@ class GenerateCommand extends Command
             return new Route($route, $defaults, $this->forcedScheme, $this->forcedRoot);
         });
 
-        if (! $this->option('skip-actions')) {
+        if (! $this->option('skip-actions') || config('wayfinder.skip.actions')) {
             $this->files->deleteDirectory($this->base());
 
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
@@ -83,7 +83,7 @@ class GenerateCommand extends Command
 
         $this->pathDirectory = 'routes';
 
-        if (! $this->option('skip-routes')) {
+        if (! $this->option('skip-routes') || config('wayfinder.skip.routes')) {
             $this->files->deleteDirectory($this->base());
 
             $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => $route->name());
