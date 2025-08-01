@@ -228,6 +228,10 @@ class GenerateCommand extends Command
             $imports[] = 'type RouteFormDefinition';
         }
 
+        if ($routes->contains(fn (Route $route) => $route->parameters()->isNotEmpty())) {
+            $imports[] = 'applyDefaultParameters';
+        }
+
         if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
             $imports[] = 'validateParameters';
         }

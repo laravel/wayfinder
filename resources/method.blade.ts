@@ -31,6 +31,7 @@
         @endforeach
         }
     }
+    args = applyDefaultParameters(args)
 @endif
 
 @if ($parameters->where('optional')->isNotEmpty())

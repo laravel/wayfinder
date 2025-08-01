@@ -13,4 +13,9 @@ class DomainController
     {
         //
     }
+
+    public function defaultParametersDomain()
+    {
+        //
+    }
 }

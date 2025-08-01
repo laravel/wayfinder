@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class WorkbenchServiceProvider extends ServiceProvider
@@ -19,6 +20,10 @@ class WorkbenchServiceProvider extends ServiceProvider
                 'serve' => true,
                 'throw' => false,
             ],
+        ]);
+
+        URL::defaults([
+            'defaultDomain' => 'tim.macdonald',
         ]);
     }
 

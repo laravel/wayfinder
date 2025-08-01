@@ -59,6 +59,7 @@ Route::get('/parameter-names/{SCREAMING_SNAKE_CASE}/screaming-snake', [Parameter
 
 Route::domain('example.test')->get('/fixed-domain/{param}', [DomainController::class, 'fixedDomain']);
 Route::domain('{domain}.au')->get('/dynamic-domain/{param}', [DomainController::class, 'dynamicDomain']);
+Route::domain('{defaultDomain}.au')->get('/default-parameters-domain/{param}', [DomainController::class, 'defaultParametersDomain']);
 
 Route::get('/nested/controller', [NestedController::class, 'nested']);
 
