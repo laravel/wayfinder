@@ -75,15 +75,12 @@ export const queryParams = (options?: RouteQueryOptions) => {
             });
 
             for (const subKey in query[key]) {
-                if (
-                    ["string", "number", "boolean"].includes(
-                        typeof query[key][subKey],
-                    )
-                ) {
-                    params.set(
-                        `${key}[${subKey}]`,
-                        getValue(query[key][subKey]),
-                    );
+                if (typeof query[key][subKey] === 'undefined') {
+                    continue;
+                }
+
+                if (['string', 'number', 'boolean'].includes(typeof query[key][subKey])) {
+                    params.set(`${key}[${subKey}]`, getValue(query[key][subKey]));
                 }
             }
         } else {
