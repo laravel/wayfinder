@@ -8,6 +8,7 @@ use Illuminate\Routing\Route as BaseRoute;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\View\Factory;
 use ReflectionProperty;
@@ -54,7 +55,9 @@ class GenerateCommand extends Command
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
 
-        $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) {
+        $globalUrlDefaults = collect(URL::getDefaultParameters())->filter(fn ($v) => is_scalar($v) || is_null($v));
+
+        $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
             $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
                 if ($middleware instanceof \Closure) {
                     return [];
@@ -65,7 +68,7 @@ class GenerateCommand extends Command
                 return $this->urlDefaults[$middleware];
             })->flatMap(fn ($r) => $r);
 
-            return new Route($route, $defaults, $this->forcedScheme, $this->forcedRoot);
+            return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
 
         if (! $this->option('skip-actions')) {
@@ -344,6 +347,12 @@ class GenerateCommand extends Command
         }
 
         $methodContents = str($methodContents)->after('{')->beforeLast('}')->trim();
+
+        return $this->extractUrlDefaults($methodContents);
+    }
+
+    private function extractUrlDefaults(string $methodContents): array
+    {
         $tokens = token_get_all('<?php '.$methodContents);
         $foundUrlFacade = false;
         $defaults = [];
