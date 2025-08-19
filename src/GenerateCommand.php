@@ -55,7 +55,7 @@ class GenerateCommand extends Command
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
 
-        $globalUrlDefaults = collect(URL::getDefaultParameters())->filter(fn ($v) => is_scalar($v) || is_null($v));
+        $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
 
         $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
             $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
