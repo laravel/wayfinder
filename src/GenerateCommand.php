@@ -157,7 +157,7 @@ class GenerateCommand extends Command
 
         if ($invokable->isEmpty()) {
             $exportedMethods = $methods->map(fn (Route $route) => $route->jsMethod());
-            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => $route->originalJsMethod().': '.$route->jsMethod());
+            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => TypeScript::quoteIfNeeded($route->originalJsMethod()).': '.$route->jsMethod());
             $exportedMethods = $exportedMethods->merge($reservedMethods);
 
             $methodProps = "const {$defaultExport} = { ";
@@ -176,17 +176,20 @@ class GenerateCommand extends Command
 
     private function writeMultiRouteControllerMethodExport(Collection $routes, string $path): void
     {
+        $isInvokable = $routes->first()->hasInvokableController();
+
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $routes->first()->jsMethod(),
             'original_method' => $routes->first()->originalJsMethod(),
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
             'controller' => $routes->first()->controller(),
-            'isInvokable' => $routes->first()->hasInvokableController(),
+            'isInvokable' => $isInvokable,
+            'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().md5($r->uri()),
+                'tempMethod' => $r->jsMethod().hash('xxh128', $r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
@@ -201,6 +204,7 @@ class GenerateCommand extends Command
             'method' => $route->jsMethod(),
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $route->hasInvokableController(),
+            'shouldExport' => ! $route->hasInvokableController(),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -255,7 +259,8 @@ class GenerateCommand extends Command
             'controller' => $route->controller(),
             'method' => $route->namedMethod(),
             'original_method' => $route->originalJsMethod(),
-            'isInvokable' => false,
+            'isInvokable' => $route->hasInvokableController(),
+            'shouldExport' => ! $route->hasInvokableController() || str_contains($route->controller(), '\\Closure'),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -273,14 +278,12 @@ class GenerateCommand extends Command
             return;
         }
 
-        $normalizeToCamelCase = fn ($value) => str_contains($value, '-') ? Str::camel($value) : $value;
-
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
 
         $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
             $child => [
-                'safe' => TypeScript::safeMethod($normalizeToCamelCase($child), 'Method'),
-                'normalized' => $normalizeToCamelCase($child),
+                'safe' => TypeScript::safeMethod($child, 'Method'),
+                'normalized' => str($child)->whenContains('-', fn ($s) => $s->camel())->toString(),
             ],
         ]);
 
@@ -297,7 +300,7 @@ class GenerateCommand extends Command
 
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safe']])))->implode(', '.PHP_EOL);
 
-        $varExport = $normalizeToCamelCase(Str::afterLast($parent, DIRECTORY_SEPARATOR));
+        $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
 
         $this->appendContent($indexPath, <<<JAVASCRIPT
 

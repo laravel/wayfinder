@@ -7,6 +7,7 @@ use Illuminate\Support\Stringable;
 class TypeScript
 {
     public const RESERVED_KEYWORDS = [
+        'await',
         'break',
         'case',
         'catch',
@@ -18,6 +19,7 @@ class TypeScript
         'delete',
         'do',
         'else',
+        'enum',
         'export',
         'extends',
         'false',
@@ -25,12 +27,20 @@ class TypeScript
         'for',
         'function',
         'if',
+        'implements',
         'import',
         'in',
         'instanceof',
+        'interface',
+        'let',
         'new',
         'null',
+        'package',
+        'private',
+        'protected',
+        'public',
         'return',
+        'static',
         'super',
         'switch',
         'this',
@@ -42,6 +52,7 @@ class TypeScript
         'void',
         'while',
         'with',
+        'yield',
     ];
 
     public static function safeMethod(string $method, string $suffix): string
@@ -58,11 +69,24 @@ class TypeScript
             return $method->append(ucfirst($suffix));
         }
 
-        if (is_numeric((string) $method)) {
+        if ($method->match('/^[a-zA-Z_$]/')->isEmpty()) {
             return $method->prepend($suffix);
         }
 
         return $method;
+    }
+
+    public static function quoteIfNeeded(string $name): string
+    {
+        if (is_numeric($name)) {
+            return $name;
+        }
+
+        if (is_numeric($name[0])) {
+            return '"'.$name.'"';
+        }
+
+        return $name;
     }
 
     public static function cleanUp(string $view): string
