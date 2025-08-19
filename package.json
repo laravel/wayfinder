@@ -7,12 +7,12 @@
         "lint:fix": "eslint ./workbench/resources/js --ext .ts,.tsx --fix"
     },
     "devDependencies": {
+        "@eslint/js": "^9.29.0",
         "@types/node": "^22.7.5",
-        "@typescript-eslint/eslint-plugin": "^7.0.0",
-        "@typescript-eslint/parser": "^7.0.0",
-        "eslint": "^8.56.0",
-        "eslint-plugin-import": "^2.29.1",
-        "happy-dom": "^15.11.7",
-        "vitest": "^2.1.3"
+        "eslint": "^9.29.0",
+        "happy-dom": "^18.0.1",
+        "typescript-eslint": "^8.34.1",
+        "vite": "^7.1.3",
+        "vitest": "^3.2.3"
     }
 }
