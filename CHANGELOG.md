@@ -2,7 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.6...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.7...main)
+
+## [v0.1.7](https://github.com/laravel/wayfinder/compare/v0.1.6...v0.1.7) - 2025-08-19
+
+### What's Changed
+
+* feat: introduce route utility types for improved DX by [@istiak-tridip](https://github.com/istiak-tridip) in https://github.com/laravel/wayfinder/pull/68
+* Add compatibility with strictNullChecks by [@nickwelsh](https://github.com/nickwelsh) in https://github.com/laravel/wayfinder/pull/76
+* feat: Adds support for providing default URL parameters via the frontend by [@owenconti](https://github.com/owenconti) in https://github.com/laravel/wayfinder/pull/75
+* Update JS packages by [@SuperDJ](https://github.com/SuperDJ) in https://github.com/laravel/wayfinder/pull/73
+* Resolve multiple bugs by [@istiak-tridip](https://github.com/istiak-tridip) in https://github.com/laravel/wayfinder/pull/72
+
+### New Contributors
+
+* [@nickwelsh](https://github.com/nickwelsh) made their first contribution in https://github.com/laravel/wayfinder/pull/76
+* [@owenconti](https://github.com/owenconti) made their first contribution in https://github.com/laravel/wayfinder/pull/75
+* [@SuperDJ](https://github.com/SuperDJ) made their first contribution in https://github.com/laravel/wayfinder/pull/73
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.6...v0.1.7
 
 ## [v0.1.6](https://github.com/laravel/wayfinder/compare/v0.1.5...v0.1.6) - 2025-05-16
 
