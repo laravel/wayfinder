@@ -20,7 +20,7 @@ declare global {
 }
 window.Wayfinder = {
     defaultParameters: {},
-}
+};
 
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
@@ -34,7 +34,7 @@ export type RouteFormDefinition<TMethod extends Method> = {
 export type RouteQueryOptions = {
     query?: QueryParams;
     mergeQuery?: QueryParams;
-}
+};
 
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
@@ -84,8 +84,15 @@ export const queryParams = (options?: RouteQueryOptions) => {
             });
 
             for (const subKey in query[key]) {
-                if (['string', 'number', 'boolean'].includes(typeof query[key][subKey])) {
-                    params.set(`${key}[${subKey}]`, getValue(query[key][subKey]));
+                if (
+                    ["string", "number", "boolean"].includes(
+                        typeof query[key][subKey],
+                    )
+                ) {
+                    params.set(
+                        `${key}[${subKey}]`,
+                        getValue(query[key][subKey]),
+                    );
                 }
             }
         } else {
@@ -98,19 +105,25 @@ export const queryParams = (options?: RouteQueryOptions) => {
     return str.length > 0 ? `?${str}` : "";
 };
 
-export const setDefaultParameters = (params: Record<string, unknown>) => {
+export const setUrlDefaults = (params: Record<string, unknown>) => {
     window.Wayfinder.defaultParameters = params;
 };
 
-export const addDefaultParameter = (key: string, value: string | number | boolean) => {
+export const addUrlDefault = (
+    key: string,
+    value: string | number | boolean,
+) => {
     window.Wayfinder.defaultParameters[key] = value;
 };
 
-export const applyDefaultParameters = (existing: Record<string, unknown>) => {
-    const existingParams = { ...existing }
+export const applyUrlDefaults = (existing: Record<string, unknown>) => {
+    const existingParams = { ...existing };
 
     for (const key in window.Wayfinder.defaultParameters) {
-        if (existingParams[key] === undefined && window.Wayfinder.defaultParameters[key] !== undefined) {
+        if (
+            existingParams[key] === undefined &&
+            window.Wayfinder.defaultParameters[key] !== undefined
+        ) {
             existingParams[key] = window.Wayfinder.defaultParameters[key];
         }
     }
