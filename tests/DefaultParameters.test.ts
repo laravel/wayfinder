@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
-import { setUrlDefaults } from "../resources/js/wayfinder";
 import {
     defaultParametersDomain,
     dynamicDomain,
     fixedDomain,
 } from "../workbench/resources/js/actions/App/Http/Controllers/DomainController";
+import { setUrlDefaults } from "../workbench/resources/js/wayfinder";
 
 test("it can generate urls without default parameters set", () => {
     expect(fixedDomain.url({ param: "foo" })).toBe(

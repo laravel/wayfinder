@@ -11,16 +11,7 @@ export type QueryParams = Record<
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
 
-declare global {
-    interface Window {
-        Wayfinder: {
-            defaultParameters: Record<string, unknown>;
-        };
-    }
-}
-window.Wayfinder = {
-    defaultParameters: {},
-};
+let urlDefaults = {};
 
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
@@ -106,25 +97,25 @@ export const queryParams = (options?: RouteQueryOptions) => {
 };
 
 export const setUrlDefaults = (params: Record<string, unknown>) => {
-    window.Wayfinder.defaultParameters = params;
+    urlDefaults = params;
 };
 
 export const addUrlDefault = (
     key: string,
     value: string | number | boolean,
 ) => {
-    window.Wayfinder.defaultParameters[key] = value;
+    urlDefaults[key] = value;
 };
 
 export const applyUrlDefaults = (existing: Record<string, unknown>) => {
     const existingParams = { ...existing };
 
-    for (const key in window.Wayfinder.defaultParameters) {
+    for (const key in urlDefaults) {
         if (
             existingParams[key] === undefined &&
-            window.Wayfinder.defaultParameters[key] !== undefined
+            urlDefaults[key] !== undefined
         ) {
-            existingParams[key] = window.Wayfinder.defaultParameters[key];
+            existingParams[key] = urlDefaults[key];
         }
     }
 
