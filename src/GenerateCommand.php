@@ -154,7 +154,7 @@ class GenerateCommand extends Command
 
         if ($invokable->isEmpty()) {
             $exportedMethods = $methods->map(fn (Route $route) => $route->jsMethod());
-            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => $route->originalJsMethod().': '.$route->jsMethod());
+            $reservedMethods = $methods->filter(fn (Route $route) => $route->originalJsMethod() !== $route->jsMethod())->map(fn (Route $route) => TypeScript::quoteIfNeeded($route->originalJsMethod()).': '.$route->jsMethod());
             $exportedMethods = $exportedMethods->merge($reservedMethods);
 
             $methodProps = "const {$defaultExport} = { ";

@@ -76,6 +76,19 @@ class TypeScript
         return $method;
     }
 
+    public static function quoteIfNeeded(string $name): string
+    {
+        if (is_numeric($name)) {
+            return $name;
+        }
+
+        if (is_numeric($name[0])) {
+            return '"'.$name.'"';
+        }
+
+        return $name;
+    }
+
     public static function cleanUp(string $view): string
     {
         $replacements = [

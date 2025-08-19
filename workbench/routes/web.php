@@ -67,6 +67,8 @@ Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 's
 
 Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->name('disallowed.404');
+Route::get('/disallowed/2fa', [DisallowedMethodNameController::class, '2fa'])->name('2fa.disallowed');
+Route::get('/disallowed/default', [DisallowedMethodNameController::class, 'default'])->name('default.login');
 
 Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);
 
