@@ -107,7 +107,7 @@ export const addUrlDefault = (
     urlDefaults[key] = value;
 };
 
-export const applyUrlDefaults = (existing: Record<string, unknown>) => {
+export const applyUrlDefaults = <T>(existing: T): T => {
     const existingParams = { ...existing };
 
     for (const key in urlDefaults) {
