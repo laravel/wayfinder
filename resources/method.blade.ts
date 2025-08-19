@@ -31,6 +31,8 @@
         @endforeach
         }
     }
+
+    args = applyUrlDefaults(args)
 @endif
 
 @if ($parameters->where('optional')->isNotEmpty())

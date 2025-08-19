@@ -11,6 +11,8 @@ export type QueryParams = Record<
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
 
+let urlDefaults = {};
+
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
 } & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
@@ -23,7 +25,7 @@ export type RouteFormDefinition<TMethod extends Method> = {
 export type RouteQueryOptions = {
     query?: QueryParams;
     mergeQuery?: QueryParams;
-}
+};
 
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
@@ -89,6 +91,32 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const str = params.toString();
 
     return str.length > 0 ? `?${str}` : "";
+};
+
+export const setUrlDefaults = (params: Record<string, unknown>) => {
+    urlDefaults = params;
+};
+
+export const addUrlDefault = (
+    key: string,
+    value: string | number | boolean,
+) => {
+    urlDefaults[key] = value;
+};
+
+export const applyUrlDefaults = <T>(existing: T): T => {
+    const existingParams = { ...existing };
+
+    for (const key in urlDefaults) {
+        if (
+            existingParams[key] === undefined &&
+            urlDefaults[key] !== undefined
+        ) {
+            existingParams[key] = urlDefaults[key];
+        }
+    }
+
+    return existingParams;
 };
 
 export const validateParameters = (

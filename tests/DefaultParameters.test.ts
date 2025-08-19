@@ -3,17 +3,21 @@ import {
     defaultParametersDomain,
     fixedDomain,
 } from "../workbench/resources/js/actions/App/Http/Controllers/DomainController";
+import { setUrlDefaults } from "../workbench/resources/js/wayfinder";
 
-test("can generate fixed domain urls", () => {
+test("it can generate urls without default parameters set", () => {
     expect(fixedDomain.url({ param: "foo" })).toBe(
         "//example.test/fixed-domain/foo",
     );
 });
 
-test("can generate dynamic domain urls", () => {
+test("it can generate urls with default URL parameters set on backend and frontend", () => {
+    setUrlDefaults({
+        defaultDomain: "tim.macdonald",
+    });
+
     expect(
         defaultParametersDomain.url({
-            defaultDomain: "tim.macdonald",
             param: "foo",
         }),
     ).toBe("//tim.macdonald.au/default-parameters-domain/foo");
