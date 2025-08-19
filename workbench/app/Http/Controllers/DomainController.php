@@ -9,11 +9,6 @@ class DomainController
         //
     }
 
-    public function dynamicDomain()
-    {
-        //
-    }
-
     public function defaultParametersDomain()
     {
         //
