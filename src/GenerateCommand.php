@@ -173,18 +173,20 @@ class GenerateCommand extends Command
 
     private function writeMultiRouteControllerMethodExport(Collection $routes, string $path): void
     {
+        $isInvokable = $routes->first()->hasInvokableController();
+
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $routes->first()->jsMethod(),
             'original_method' => $routes->first()->originalJsMethod(),
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
             'controller' => $routes->first()->controller(),
-            'isInvokable' => $isInvokable = $routes->first()->hasInvokableController(),
+            'isInvokable' => $isInvokable,
             'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().hash('xxh3', $r->uri()),
+                'tempMethod' => $r->jsMethod().hash('xxh128', $r->uri()),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
@@ -198,8 +200,8 @@ class GenerateCommand extends Command
             'controller' => $route->controller(),
             'method' => $route->jsMethod(),
             'original_method' => $route->originalJsMethod(),
-            'isInvokable' => $isInvokable = $route->hasInvokableController(),
-            'shouldExport' => ! $isInvokable,
+            'isInvokable' => $route->hasInvokableController(),
+            'shouldExport' => ! $route->hasInvokableController(),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -247,11 +249,11 @@ class GenerateCommand extends Command
     private function writeNamedMethodExport(Route $route, string $path): void
     {
         $this->appendContent($path, $this->view->make('wayfinder::method', [
-            'controller' => $controller = $route->controller(),
+            'controller' => $route->controller(),
             'method' => $route->namedMethod(),
             'original_method' => $route->originalJsMethod(),
-            'isInvokable' => $isInvokable = $route->hasInvokableController(),
-            'shouldExport' => (! $isInvokable) || str_contains($controller, '\\Closure'),
+            'isInvokable' => $route->hasInvokableController(),
+            'shouldExport' => ! $route->hasInvokableController() || str_contains($route->controller(), '\\Closure'),
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
@@ -274,7 +276,7 @@ class GenerateCommand extends Command
         $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
             $child => [
                 'safe' => TypeScript::safeMethod($child, 'Method'),
-                'normalized' => (string) str($child)->whenContains('-', fn ($s) => $s->camel()),
+                'normalized' => str($child)->whenContains('-', fn ($s) => $s->camel())->toString(),
             ],
         ]);
 
