@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.7...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.8...main)
+
+## [v0.1.8](https://github.com/laravel/wayfinder/compare/v0.1.7...v0.1.8) - 2025-08-20
+
+### What's Changed
+
+* Fix type errors for URL default methods by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/78
+* CI JS code formatting by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/79
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.7...v0.1.8
 
 ## [v0.1.7](https://github.com/laravel/wayfinder/compare/v0.1.6...v0.1.7) - 2025-08-19
 
