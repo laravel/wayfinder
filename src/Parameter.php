@@ -51,6 +51,7 @@ class Parameter
                 'int',
                 'integer',
                 'bigint',
+                'int4',
                 'int8',
                 'serial',
                 'bigserial',
