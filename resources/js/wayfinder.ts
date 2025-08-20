@@ -11,7 +11,7 @@ export type QueryParams = Record<
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
 
-let urlDefaults = {};
+let urlDefaults: Record<string, unknown> = {};
 
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
@@ -75,12 +75,19 @@ export const queryParams = (options?: RouteQueryOptions) => {
             });
 
             for (const subKey in query[key]) {
-                if (typeof query[key][subKey] === 'undefined') {
+                if (typeof query[key][subKey] === "undefined") {
                     continue;
                 }
 
-                if (['string', 'number', 'boolean'].includes(typeof query[key][subKey])) {
-                    params.set(`${key}[${subKey}]`, getValue(query[key][subKey]));
+                if (
+                    ["string", "number", "boolean"].includes(
+                        typeof query[key][subKey],
+                    )
+                ) {
+                    params.set(
+                        `${key}[${subKey}]`,
+                        getValue(query[key][subKey]),
+                    );
                 }
             }
         } else {
@@ -104,19 +111,21 @@ export const addUrlDefault = (
     urlDefaults[key] = value;
 };
 
-export const applyUrlDefaults = <T>(existing: T): T => {
-    const existingParams = { ...existing };
+export const applyUrlDefaults = <T extends Record<string, unknown> | undefined>(
+    existing: T,
+): T => {
+    const existingParams = { ...(existing ?? ({} as Record<string, unknown>)) };
 
     for (const key in urlDefaults) {
         if (
             existingParams[key] === undefined &&
             urlDefaults[key] !== undefined
         ) {
-            existingParams[key] = urlDefaults[key];
+            (existingParams as Record<string, unknown>)[key] = urlDefaults[key];
         }
     }
 
-    return existingParams;
+    return existingParams as T;
 };
 
 export const validateParameters = (

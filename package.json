@@ -1,10 +1,11 @@
 {
     "type": "module",
     "scripts": {
-        "test": "vitest run && npm run lint && npm run test-routes-cached && npm run lint",
+        "test": "vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run tsc",
         "test-routes-cached": "WAYFINDER_CACHE_ROUTES=1 vitest run",
         "lint": "eslint ./workbench/resources/js --ext .ts,.tsx",
-        "lint:fix": "eslint ./workbench/resources/js --ext .ts,.tsx --fix"
+        "lint:fix": "eslint ./workbench/resources/js --ext .ts,.tsx --fix",
+        "tsc": "tsc --noEmit"
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
