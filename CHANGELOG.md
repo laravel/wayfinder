@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.8...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.9...main)
+
+## [v0.1.9](https://github.com/laravel/wayfinder/compare/v0.1.8...v0.1.9) - 2025-08-21
+
+### What's Changed
+
+* Add Postgres default int4 type to the number map by [@billypoke](https://github.com/billypoke) in https://github.com/laravel/wayfinder/pull/81
+* fix: Add missing "options" to `Method` type by [@r3Fuze](https://github.com/r3Fuze) in https://github.com/laravel/wayfinder/pull/80
+
+### New Contributors
+
+* [@billypoke](https://github.com/billypoke) made their first contribution in https://github.com/laravel/wayfinder/pull/81
+* [@r3Fuze](https://github.com/r3Fuze) made their first contribution in https://github.com/laravel/wayfinder/pull/80
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.8...v0.1.9
 
 ## [v0.1.8](https://github.com/laravel/wayfinder/compare/v0.1.7...v0.1.8) - 2025-08-20
 
