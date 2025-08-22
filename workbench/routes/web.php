@@ -21,7 +21,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/closure', fn () => 'ok');
-Route::get('/invokable-controller', InvokableController::class);
+Route::get('/invokable-controller', InvokableController::class)->name('invokable');
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
 Route::post('/invokable-plus-controller', [InvokablePlusController::class, 'store']);
 
