@@ -7,6 +7,7 @@ use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\ModelBindingController;
+use App\Http\Controllers\NamedInvokableController;
 use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\ParameterNameController;
@@ -22,6 +23,7 @@ Route::get('/', function () {
 
 Route::get('/closure', fn () => 'ok');
 Route::get('/invokable-controller', InvokableController::class);
+Route::get('/named-invokable-controller', NamedInvokableController::class)->name('invokable');
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
 Route::post('/invokable-plus-controller', [InvokablePlusController::class, 'store']);
 

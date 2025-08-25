@@ -260,7 +260,7 @@ class GenerateCommand extends Command
             'method' => $route->namedMethod(),
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $route->hasInvokableController(),
-            'shouldExport' => ! $route->hasInvokableController() || str_contains($route->controller(), '\\Closure'),
+            'shouldExport' => true,
             'path' => $route->controllerPath(),
             'line' => $route->controllerMethodLineNumber(),
             'parameters' => $route->parameters(),
