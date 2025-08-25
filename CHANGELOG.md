@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.9...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.10...main)
+
+## [v0.1.10](https://github.com/laravel/wayfinder/compare/v0.1.9...v0.1.10) - 2025-08-25
+
+### What's Changed
+
+* fix: export named routes for invokable controllers by [@istiak-tridip](https://github.com/istiak-tridip) in https://github.com/laravel/wayfinder/pull/84
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.9...v0.1.10
 
 ## [v0.1.9](https://github.com/laravel/wayfinder/compare/v0.1.8...v0.1.9) - 2025-08-21
 
