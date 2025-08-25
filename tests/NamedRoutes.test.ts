@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
+import { dashboard, invokable } from "../workbench/resources/js/routes";
 import { edit } from "../workbench/resources/js/routes/posts";
-import { invokable, dashboard } from "../workbench/resources/js/routes";
 
 it("exports named routes", () => {
     expect(edit.url(1)).toBe("/posts/1/edit");
@@ -9,15 +9,15 @@ it("exports named routes", () => {
         method: "get",
     });
 
-    expect(dashboard.url()).toBe("/dashboard")
+    expect(dashboard.url()).toBe("/dashboard");
     expect(dashboard()).toEqual({
         url: "/dashboard",
         method: "get",
     });
 
-    expect(invokable.url()).toBe("/invokable-controller")
+    expect(invokable.url()).toBe("/named-invokable-controller");
     expect(invokable()).toEqual({
-        url: "/invokable-controller",
+        url: "/named-invokable-controller",
         method: "get",
     });
 });
