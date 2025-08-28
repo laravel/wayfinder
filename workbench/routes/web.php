@@ -22,7 +22,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/closure', fn () => 'ok');
-Route::get('/export/{export}', fn () => 'Export')->name('export');
+Route::get('/export/{report}/{export}', fn () => 'Export')->name('export');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/named-invokable-controller', NamedInvokableController::class)->name('invokable');
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
