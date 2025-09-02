@@ -10,7 +10,7 @@ args{!! when($parameters->every->optional, '?') !!}: {
 
 | [
     @foreach ($parameters as $parameter)
-        {{ $parameter->name }}: {!! $parameter->types !!}
+        {{ $parameter->safeName() }}: {!! $parameter->types !!}
         @if ($parameter->key)
             | { {!! $parameter->key !!}: {!! $parameter->types !!} }
          @endif

@@ -73,4 +73,9 @@ class Parameter
 
         return 'string';
     }
+
+    public function safeName(): string
+    {
+        return TypeScript::safeMethod($this->name, 'Param');
+    }
 }
