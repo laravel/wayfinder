@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.10...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.11...main)
+
+## [v0.1.11](https://github.com/laravel/wayfinder/compare/v0.1.10...v0.1.11) - 2025-09-02
+
+### What's Changed
+
+* Fix TypeScript reserved keyword parameters in array syntax by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/wayfinder/pull/87
+
+### New Contributors
+
+* [@pascalbaljet](https://github.com/pascalbaljet) made their first contribution in https://github.com/laravel/wayfinder/pull/87
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.10...v0.1.11
 
 ## [v0.1.10](https://github.com/laravel/wayfinder/compare/v0.1.9...v0.1.10) - 2025-08-25
 
