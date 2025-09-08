@@ -288,7 +288,7 @@ class GenerateCommand extends Command
             if ($keysWithGrandkids->has($child)) {
                 foreach ($this->content[$indexPath] ?? [] as $content) {
                     if (str_contains((string) $content, 'const '.$safeMethod.' =')) {
-                        $safe .= str($safe)->hash('xxh128')->substr(0, 6)->ucfirst();
+                        $safe .= str(hash('xxh128', $safe))->substr(0, 6)->ucfirst();
                     }
                 }
             }
