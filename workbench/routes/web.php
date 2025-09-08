@@ -64,6 +64,8 @@ Route::domain('example.test')->get('/fixed-domain/{param}', [DomainController::c
 Route::domain('{defaultDomain}.au')->get('/default-parameters-domain/{param}', [DomainController::class, 'defaultParametersDomain']);
 
 Route::get('/nested/controller', [NestedController::class, 'nested']);
+Route::get('/nested/controller/child', [NestedController::class, 'child'])->name('nested.child');
+Route::get('/nested/controller/child/grandchild', [NestedController::class, 'grandchild'])->name('nested.child.grandchild');
 
 Route::get('/two-routes-one-action-1', [TwoRoutesSameActionController::class, 'same']);
 Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 'same']);
