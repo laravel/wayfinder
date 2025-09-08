@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.11...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.12...main)
+
+## [v0.1.12](https://github.com/laravel/wayfinder/compare/v0.1.11...v0.1.12) - 2025-09-08
+
+### What's Changed
+
+* Parse model dockblocks as a fallback by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/93
+* Handle nested root and grandchild route names by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/94
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.11...v0.1.12
 
 ## [v0.1.11](https://github.com/laravel/wayfinder/compare/v0.1.10...v0.1.11) - 2025-09-02
 
