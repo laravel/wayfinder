@@ -279,18 +279,32 @@ class GenerateCommand extends Command
         }
 
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
+        $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
 
-        $childKeys = $children->keys()->mapWithKeys(fn ($child) => [
-            $child => [
-                'safe' => TypeScript::safeMethod($child, 'Method'),
-                'normalized' => str($child)->whenContains('-', fn ($s) => $s->camel())->toString(),
-            ],
-        ]);
+        $childKeys = $children->keys()->mapWithKeys(function ($child) use ($indexPath, $keysWithGrandkids) {
+            $safeMethod = TypeScript::safeMethod($child, 'Method');
+            $safe = $safeMethod;
+
+            if ($keysWithGrandkids->has($child)) {
+                foreach ($this->content[$indexPath] ?? [] as $content) {
+                    if (str_contains((string) $content, 'const '.$safeMethod.' =')) {
+                        $safe .= str(hash('xxh128', $safe))->substr(0, 6)->ucfirst();
+                    }
+                }
+            }
+
+            return [
+                $child => [
+                    'safe' => $safe,
+                    'safeAssign' => "Object.assign({$safeMethod}, {$safe})",
+                    'normalized' => str($child)->whenContains('-', fn ($s) => $s->camel())->toString(),
+                ],
+            ];
+        });
 
         if (! ($this->content[$indexPath] ?? false)) {
             $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index')->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
         } else {
-            $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
             $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
         }
 
@@ -298,7 +312,7 @@ class GenerateCommand extends Command
             $this->prependContent($indexPath, $imports);
         }
 
-        $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safe']])))->implode(', '.PHP_EOL);
+        $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safeAssign'] ?? $alias['safe']])))->implode(', '.PHP_EOL);
 
         $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
 
