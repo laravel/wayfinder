@@ -294,7 +294,7 @@ class CurrentRouteService
                 for (const [paramKey, paramValue] of params.entries()) {
                     const match = paramKey.match(new RegExp(`^${baseKey}\\[(\\d+)\\]$`));
                     if (match) {
-                        const index = parseInt(match[1], 10);
+                        const index = parseInt(match[1] as string, 10);
                         indexedValues.push({ index, value: paramValue });
                     }
                 }
