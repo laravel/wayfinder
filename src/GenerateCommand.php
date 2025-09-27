@@ -18,7 +18,12 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate
+        {--path= : Specify the directory where the generated files will be saved}
+        {--skip-actions : Skip generating action files}
+        {--skip-routes : Skip generating route files}
+        {--with-form : Generate additional form methods for routes}
+        {--with-vendor-routes : Include vendor routes in the generation process}';
 
     private ?string $forcedScheme;
 
@@ -43,6 +48,7 @@ class GenerateCommand extends Command
         private Router $router,
         private Factory $view,
         private UrlGenerator $url,
+        private CurrentRouteService $currentRouteService,
     ) {
         parent::__construct();
     }
@@ -70,6 +76,12 @@ class GenerateCommand extends Command
 
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
+
+        if (! $this->option('with-vendor-routes')) {
+            $routes = $routes->filter(fn (Route $route) => ! $route->isVendorRoute());
+        }
+
+        $routesForCurrentRouteService = $routes->filter(fn (Route $route) => $route->verbs()->first()->actual === 'get');
 
         if (! $this->option('skip-actions')) {
             $this->files->deleteDirectory($this->base());
@@ -102,7 +114,23 @@ class GenerateCommand extends Command
         $this->pathDirectory = 'wayfinder';
 
         $this->files->ensureDirectoryExists($this->base());
-        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
+
+        $wayfinderPath = __DIR__.'/../resources/js/wayfinder.ts';
+        $baseIndexPath = join_paths($this->base(), 'index.ts');
+
+        $this->files->copy($wayfinderPath, $baseIndexPath);
+
+        $content = $this->currentRouteService->generate(
+            $this->files->get($wayfinderPath),
+            $routesForCurrentRouteService,
+            $this->forcedScheme,
+            $this->forcedRoot,
+            $this->base(),
+        );
+
+        $this->files->put($baseIndexPath, $content);
+
+        info('[Wayfinder] Generated wayfinder utilities with route definitions');
     }
 
     private function appendContent($path, $content): void

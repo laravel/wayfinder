@@ -11,6 +11,7 @@ use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
+use ReflectionFunction;
 
 class Route
 {
@@ -43,6 +44,11 @@ class Route
         return $this->hasInvokableController()
             ? '__invoke'
             : $this->base->getActionMethod();
+    }
+
+    public function action(string $key = null): mixed
+    {
+        return $this->base->getAction($key);
     }
 
     public function jsMethod(): string
@@ -191,8 +197,35 @@ class Route
 
     private function closure(): Closure
     {
-        return RouteAction::containsSerializedClosure($this->base->getAction())
-            ? unserialize($this->base->getAction('uses'))->getClosure()
-            : $this->base->getAction('uses');
+        return RouteAction::containsSerializedClosure($this->action())
+            ? unserialize($this->action('uses'))->getClosure()
+            : $this->action('uses');
+    }
+
+    public function isVendorRoute(): bool
+    {
+        if ($this->action('uses') instanceof Closure) {
+            $path = (new ReflectionFunction($this->action('uses')))->getFileName();
+        } elseif (
+            is_string($this->action('uses')) &&
+            str_contains($this->action('uses'), 'SerializableClosure')
+        ) {
+            return false;
+        } elseif (is_string($this->action('uses'))) {
+            if (
+                in_array($this->base->getControllerClass(), [
+                    '\Illuminate\Routing\RedirectController',
+                    '\Illuminate\Routing\ViewController',
+                ], true)
+            ) {
+                return false;
+            }
+
+            $path = (new ReflectionClass($this->base->getControllerClass()))->getFileName();
+        } else {
+            return false;
+        }
+
+        return str_starts_with($path, base_path('vendor'));
     }
 }

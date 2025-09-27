@@ -9,6 +9,18 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
+export type RouteArguments =
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | { [key: string]: RouteArguments | (string | number)[] };
+
+// Reusable primitives and object aliases for route argument structures
+export type RoutePrimitive = string | number | boolean;
+export type RouteObject = { [key: string]: RouteArguments };
+
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
 
 let urlDefaults: Record<string, unknown> = {};
