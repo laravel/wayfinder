@@ -52,6 +52,12 @@ By default, Wayfinder generates files in three directories (`wayfinder`, `action
 php artisan wayfinder:generate --path=resources/js/wayfinder
 ```
 
+Use the `--with-vendor-routes` option to include TypeScript definitions for vendor routes as well:
+
+```
+php artisan wayfinder:generate --with-vendor-routes
+```
+
 The `--skip-actions` and `--skip-routes` options may be used to skip TypeScript definition generation for controller methods or routes, respectively:
 
 ```
