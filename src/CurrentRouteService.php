@@ -46,17 +46,17 @@ class CurrentRouteService
 
     private function generateRoutesFile(array $namedRoutes, string $basePath, string $indexImportPath): void
     {
-        $routesPath = $basePath . '/routes.ts';
+        $routesPath = $basePath.'/routes.ts';
         $this->files->ensureDirectoryExists(dirname($routesPath));
 
         $namedRoutesJs = $this->generateNamedRoutesJs($namedRoutes);
         $wildcardValidation = $this->generateWildcardValidationFunction($namedRoutes);
         $checkQueryParams = $this->generateCheckQueryParams();
 
-        $imports = "import type { RouteArguments, RoutePrimitive, RouteObject } from '{$indexImportPath}';";
+        $imports = "import type { RouteArguments, RoutePrimitive, RouteObject } from '{$indexImportPath}'";
 
         $content = <<<TYPESCRIPT
-        {$imports}
+        {$imports};
 
         {$namedRoutesJs}
 
@@ -92,7 +92,7 @@ class CurrentRouteService
                     $appUrl = rtrim($appUrl, '/');
                     $base = $domain ? $domain : parse_url($appUrl, PHP_URL_HOST);
 
-                    $fullUrl = $scheme . '://' . $base . $root . '/' . ltrim($uri, '/');
+                    $fullUrl = $scheme.'://'.$base.$root.'/'.ltrim($uri, '/');
                     $namedRoutes[$name] = rtrim($fullUrl, '/');
                 }
             }
@@ -104,23 +104,23 @@ class CurrentRouteService
     private function generateNamedRoutesTypes(array $namedRoutes): string
     {
         if (empty($namedRoutes)) {
-            return 'export type NamedRoute = never;' . "\n\n" .
-                'export type WildcardRoute = never;' . "\n\n" .
+            return 'export type NamedRoute = never;'."\n\n".
+                'export type WildcardRoute = never;'."\n\n".
                 'export type RouteName = never;';
         }
 
         $routeNames = array_keys($namedRoutes);
 
         // Generate exact route names
-        $exactRoutes = "'" . implode("' | '", $routeNames) . "'";
+        $exactRoutes = "'".implode("' | '", $routeNames)."'";
 
         // Generate optimized wildcard patterns
         $wildcardPatterns = $this->generateOptimizedWildcards($routeNames);
-        $wildcardUnion = empty($wildcardPatterns) ? 'never' : "'" . implode("' | '", $wildcardPatterns) . "'";
+        $wildcardUnion = empty($wildcardPatterns) ? 'never' : "'".implode("' | '", $wildcardPatterns)."'";
 
-        return "export type NamedRoute = {$exactRoutes};" . "\n\n" .
-            "export type WildcardRoute = {$wildcardUnion};" . "\n\n" .
-            "export type RouteName = NamedRoute | WildcardRoute;";
+        return "export type NamedRoute = {$exactRoutes};"."\n\n".
+            "export type WildcardRoute = {$wildcardUnion};"."\n\n".
+            'export type RouteName = NamedRoute | WildcardRoute;';
     }
 
     private function generateOptimizedWildcards(array $routeNames): array
@@ -147,7 +147,7 @@ class CurrentRouteService
         // Add prefix wildcards with 2+ occurrences
         foreach ($prefixCounts as $prefix => $count) {
             if ($count >= 2) {
-                $wildcards[] = $prefix . '.*';
+                $wildcards[] = $prefix.'.*';
             }
         }
 
@@ -164,7 +164,7 @@ class CurrentRouteService
         // Add suffix wildcards with 2+ occurrences
         foreach ($suffixCounts as $suffix => $count) {
             if ($count >= 2) {
-                $wildcards[] = '*.' . $suffix;
+                $wildcards[] = '*.'.$suffix;
             }
         }
 
@@ -181,7 +181,7 @@ class CurrentRouteService
         $wildcards = $this->generateOptimizedWildcards($routeNames);
 
         if (empty($wildcards)) {
-            return <<<JAVASCRIPT
+            return <<<'JAVASCRIPT'
             /**
              * Validates if a wildcard pattern matches existing routes
              * This function is auto-generated based on your application's routes
@@ -198,14 +198,14 @@ class CurrentRouteService
 
         foreach ($wildcards as $wildcard) {
             if (str_starts_with($wildcard, '*.')) {
-                $suffixWildcards[] = "'" . substr($wildcard, 2) . "'";
+                $suffixWildcards[] = "'".substr($wildcard, 2)."'";
             } elseif (str_ends_with($wildcard, '.*')) {
-                $prefixWildcards[] = "'" . substr($wildcard, 0, -2) . "'";
+                $prefixWildcards[] = "'".substr($wildcard, 0, -2)."'";
             }
         }
 
-        $prefixArray = empty($prefixWildcards) ? '[]' : '[' . implode(', ', $prefixWildcards) . ']';
-        $suffixArray = empty($suffixWildcards) ? '[]' : '[' . implode(', ', $suffixWildcards) . ']';
+        $prefixArray = empty($prefixWildcards) ? '[]' : '['.implode(', ', $prefixWildcards).']';
+        $suffixArray = empty($suffixWildcards) ? '[]' : '['.implode(', ', $suffixWildcards).']';
 
         return <<<JAVASCRIPT
         /**
@@ -339,7 +339,7 @@ class CurrentRouteService
             $routesArray[] = "    '{$name}': '{$url}'";
         }
 
-        return "export const namedRoutes: Record<string, string> = {\n" . implode(",\n", $routesArray) . "\n};";
+        return "export const namedRoutes: Record<string, string> = {\n".implode(",\n", $routesArray)."\n};";
     }
 
     private function generateCurrentRouteContent(string $content, string $routesImportPath, string $routeTypesJs): string
