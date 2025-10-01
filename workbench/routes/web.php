@@ -21,8 +21,8 @@ Route::get('/', function () {
     return 'Home';
 })->name('home');
 
-Route::get('/closure', fn() => 'ok');
-Route::get('/export/{report}/{export}', fn() => 'Export')->name('export');
+Route::get('/closure', fn () => 'ok');
+Route::get('/export/{report}/{export}', fn () => 'Export')->name('export');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/named-invokable-controller', NamedInvokableController::class)->name('invokable');
 Route::get('/invokable-plus-controller', InvokablePlusController::class);
@@ -37,13 +37,13 @@ Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.up
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
 // Suffix wildcard routes for checking in CurrentRoute.test.ts
-Route::get('/create/post', fn() => 'create')->name('create.post');
-Route::get('/edit/post', fn() => 'edit')->name('edit.post');
-Route::get('/show/post', fn() => 'show')->name('show.post');
+Route::get('/create/post', fn () => 'create')->name('create.post');
+Route::get('/edit/post', fn () => 'edit')->name('edit.post');
+Route::get('/show/post', fn () => 'show')->name('show.post');
 
-Route::get('settings/appearance', fn() => 'setting')->name('appearance');
+Route::get('settings/appearance', fn () => 'setting')->name('appearance');
 
-Route::get('download/{pdfId}/{fileName?}', fn() => 'download')->name('pdf.download');
+Route::get('download/{pdfId}/{fileName?}', fn () => 'download')->name('pdf.download');
 
 Route::get('/dashboard', function () {
     return 'Dashboard';
@@ -91,9 +91,9 @@ Route::get('/package-route', function () {
 })->name('my-package::store');
 
 Route::prefix('/api/v1')->name('api.v1.')->group(function () {
-    Route::get('/tasks', fn() => 'ok')->name('tasks');
+    Route::get('/tasks', fn () => 'ok')->name('tasks');
 
     Route::prefix('/tasks/{task}/task-status')->name('task-status.')->group(function () {
-        Route::get('/', fn() => 'ok')->name('index');
+        Route::get('/', fn () => 'ok')->name('index');
     });
 });

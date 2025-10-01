@@ -46,7 +46,7 @@ class Route
             : $this->base->getActionMethod();
     }
 
-    public function action(string $key = null): mixed
+    public function action(?string $key = null): mixed
     {
         return $this->base->getAction($key);
     }
