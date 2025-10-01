@@ -3,7 +3,7 @@ export type QueryParams = {
         | string
         | number
         | boolean
-        | string[]
+        | (string | number)[]
         | null
         | undefined
         | QueryParams;
