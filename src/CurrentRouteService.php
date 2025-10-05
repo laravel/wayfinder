@@ -2,7 +2,6 @@
 
 namespace Laravel\Wayfinder;
 
-use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
@@ -76,25 +75,12 @@ class CurrentRouteService
             $name = $route->name();
 
             if ($name) {
-                try {
-                    $url = rtrim($this->url->route($name), '/');
-                    $namedRoutes[$name] = $url;
-                } catch (Exception) {
-                    $uri = $route->uri();
+                $uri = $route->uri();
 
-                    $uri = trim($uri, "'\"");
+                $uri = trim($uri, "'\"");
 
-                    $domain = $route->domain();
-                    $scheme = $this->forcedScheme ?? 'https';
-                    $root = $this->forcedRoot ?? '';
-
-                    $appUrl = config('app.url');
-                    $appUrl = rtrim($appUrl, '/');
-                    $base = $domain ? $domain : parse_url($appUrl, PHP_URL_HOST);
-
-                    $fullUrl = $scheme.'://'.$base.$root.'/'.ltrim($uri, '/');
-                    $namedRoutes[$name] = rtrim($fullUrl, '/');
-                }
+                $fullUrl = '/'.ltrim($uri, '/');
+                $namedRoutes[$name] = rtrim($fullUrl, '/');
             }
         }
 
@@ -349,6 +335,7 @@ class CurrentRouteService
 
         $buffer = [];
         $buffer[] = "import { namedRoutes, isValidWildcardPattern, checkQueryParams } from '{$routesImportPath}';";
+
         // Base utilities/content first
         $buffer[] = trim($content);
         $buffer[] = $routeTypesJs;
@@ -361,21 +348,69 @@ class CurrentRouteService
         * currentRoute(): string
         * @overload
         * currentRoute(name: RouteName, params?: RouteArguments): boolean
+        * @overload
+        * currentRoute(routeDefinition: RouteDefinition<Method>): boolean
+        * @overload
+        * currentRoute(url: string): boolean
         * 
         * Check github page for more details
         * https://github.com/laravel/wayfinder
         *
         */
         export function currentRoute(): string;
-        export function currentRoute(name?: RouteName, params?: RouteArguments): boolean;
-        export function currentRoute(name?: RouteName, params?: RouteArguments): string | boolean {
+        export function currentRoute(name: RouteName, params?: RouteArguments): boolean;
+        export function currentRoute(routeDefinition: RouteDefinition<Method>): boolean;
+        export function currentRoute(url: string): boolean;
+        export function currentRoute(name?: RouteName | RouteDefinition<Method> | string, params?: RouteArguments): string | boolean {
             if (name == null) return window.location.href;
 
             const currentUrl = decodeURI(window.location.href);
             const currentUrlObj = new URL(currentUrl);
             const currentPath = decodeURIComponent(currentUrlObj.pathname.replace(/\/$/, ''));
             const normalize = (url: string) => url.replace(/\/$/, '');
+            
+            // Helper to parse URL and extract path and query params
+            const parseUrl = (url: string): { path: string; queryParams: URLSearchParams } => {
+                let fullUrl = url;
 
+                if (url.startsWith('/') && !url.startsWith('//')) {
+                    fullUrl = window.location.origin || 'http://localhost' + url;
+                }
+                
+                const urlObj = new URL(fullUrl);
+                
+                return {
+                    path: decodeURIComponent(urlObj.pathname.replace(/\/$/, '')),
+                    queryParams: urlObj.searchParams
+                };
+            };
+
+            // Helper to compare query params
+            const queryParamsMatch = (expected: URLSearchParams): boolean => {
+                for (const [key, value] of expected.entries()) {
+                    const currentValues = currentUrlObj.searchParams.getAll(key);
+                    if (!currentValues.includes(value)) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            // Handle RouteDefinition object (from controller)
+            if (typeof name === 'object' && name !== null && 'url' in name) {
+                const { path, queryParams } = parseUrl(name.url);
+                const pathMatches = normalize(currentPath) === normalize(path);
+                return pathMatches && queryParamsMatch(queryParams);
+            }
+
+            // Handle direct URL string (starts with / or http)
+            if (typeof name === 'string' && (name.startsWith('/') || name.startsWith('http://') || name.startsWith('https://'))) {
+                const { path, queryParams } = parseUrl(name);
+                const pathMatches = normalize(currentPath) === normalize(path);
+                return pathMatches && queryParamsMatch(queryParams);
+            }
+
+            // Rest of the named route logic...
             const replaceRouteParams = (routeUrl: string, routeParams: RouteArguments): string => {
                 if (typeof routeParams === 'string' || typeof routeParams === 'number' || typeof routeParams === 'boolean') {
                     return routeUrl.replace(/\{[^}]+\}/, String(routeParams));
@@ -433,7 +468,7 @@ class CurrentRouteService
             };
 
             const matchRoute = (routeName: string, routeUrl: string) => {
-                const routePath = decodeURIComponent(routeUrl.replace(/^[a-z]+:\/\/[^/]+/i, '').replace(/\/$/, ''));
+                const routePath = decodeURIComponent(routeUrl.replace(/\/$/, ''));
                 
                 // If params contains any arrays, treat them as query parameters only
                 if (typeof params === 'object' && params !== null) {
@@ -463,7 +498,7 @@ class CurrentRouteService
                                 reconstructed = reconstructed.replace(new RegExp(`\\{${key}\\?\\}`, 'g'), encoded);
                             }
                             reconstructed = reconstructed.replace(/\/\{[^}]+\?\}/g, '').replace(/\{[^}]+\?\}/g, '');
-                            const reconstructedPath = decodeURIComponent(new URL(reconstructed).pathname.replace(/\/$/, ''));
+                            const reconstructedPath = decodeURIComponent(reconstructed.replace(/\/$/, ''));
                             return normalize(nCurrent) === normalize(reconstructedPath);
                         }
                     }
@@ -496,7 +531,7 @@ class CurrentRouteService
                 }
 
                 const urlWithParams = replaceRouteParams(routeUrl, params);
-                const pathWithParams = decodeURIComponent(new URL(urlWithParams).pathname.replace(/\/$/, ''));
+                const pathWithParams = decodeURIComponent(urlWithParams.replace(/\/$/, ''));
                 const pathMatches = normalize(currentPath) === normalize(pathWithParams);
                 
                 if (typeof params === 'object' && params !== null) {
@@ -505,13 +540,13 @@ class CurrentRouteService
                 return pathMatches;
             };
 
-            // Exact route match
-            if (namedRoutes[name]) {
+            // Handle named routes
+            if (typeof name === 'string' && namedRoutes[name]) {
                 return matchRoute(name, namedRoutes[name]);
             }
 
             // Wildcard matching
-            if (name.includes('*')) {
+            if (typeof name === 'string' && name.includes('*')) {
                 if (!isValidWildcardPattern(name)) return false;
 
                 let matchingRoutes: string[] = [];
@@ -528,7 +563,7 @@ class CurrentRouteService
                     if (!routeUrl) return false;
                     
                     if (params === undefined) {
-                        const routePath = decodeURIComponent(routeUrl.replace(/^[a-z]+:\/\/[^/]+/i, '').replace(/\/$/, ''));
+                        const routePath = decodeURIComponent(routeUrl.replace(/\/$/, ''));
                         if (normalize(currentPath) === normalize(routePath)) return true;
                         if (/\{[^}]+\}/.test(routePath)) {
                             return extractParamsFromPath(currentPath, routePath) !== null;

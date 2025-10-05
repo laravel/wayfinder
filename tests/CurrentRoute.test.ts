@@ -1,5 +1,9 @@
-import { expect, it, beforeEach } from "vitest";
+import { expect, it } from "vitest";
 import { currentRoute } from "../workbench/resources/js/wayfinder";
+import PostController, {
+    show,
+} from "../workbench/resources/js/actions/App/Http/Controllers/PostController";
+import InvokableController from "../workbench/resources/js/actions/App/Http/Controllers/InvokableController";
 
 const mockWindow = {
     location: {
@@ -196,4 +200,51 @@ it("handles mixed array parameter formats", () => {
             categories: ["tech", "news"],
         }),
     ).toBe(true);
+});
+
+// Test with controller RouteDefinition object
+it("matches with RouteDefinition object from controller", () => {
+    setHref("/posts/123");
+    expect(currentRoute(PostController.show(123))).toBe(true);
+});
+
+it("matches with RouteDefinition .url string", () => {
+    setHref("/posts/123");
+    expect(currentRoute(PostController.show.url({ post: 123 }))).toBe(true);
+});
+
+it("matches RouteDefinition with query params", () => {
+    setHref("/posts/123?q=test");
+    expect(
+        currentRoute(
+            PostController.show({ post: 123 }, { query: { q: "test" } }),
+        ),
+    ).toBe(true);
+});
+
+it("matches direct URL path with leading slash", () => {
+    setHref("/posts/create");
+    expect(currentRoute(PostController.create.url())).toBe(true);
+});
+
+it("matches RouteDefinition with array query params", () => {
+    setHref("/posts/123?q[]=test&q[]=test2");
+    expect(
+        currentRoute(
+            PostController.show(
+                { post: 123 },
+                { query: { q: ["test", "test2"] } },
+            ),
+        ),
+    ).toBe(true);
+});
+
+it("correctly matches RouteDefinition parameters with the URL", () => {
+    setHref("/posts/123");
+    expect(currentRoute(show({ post: 123 }))).toBe(true);
+});
+
+it("matches InvokableController", () => {
+    setHref("/invokable-controller");
+    expect(currentRoute(InvokableController())).toBe(true);
 });
