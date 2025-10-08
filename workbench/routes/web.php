@@ -40,6 +40,10 @@ Route::get('/dashboard', function () {
     return 'Dashboard';
 })->name('dashboard');
 
+Route::get('/invalid-js-name', function () {
+    return 'Invalid JS name';
+})->name('invalid#js@name');
+
 Route::get('/', function () {
     return 'Home';
 })->name('home');
