@@ -98,7 +98,6 @@ class TypeScript
             '} )' => '})',
             ' )' => ')',
             '( ' => '(',
-            '( ' => '(',
             PHP_EOL.' +' => ' +',
             '})'.PHP_EOL.'/**' => '})'.PHP_EOL.PHP_EOL.'/**',
             '}'.PHP_EOL.'/**' => '}'.PHP_EOL.PHP_EOL.'/**',
