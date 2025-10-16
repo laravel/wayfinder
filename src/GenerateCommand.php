@@ -32,6 +32,8 @@ class GenerateCommand extends Command
 
     private $cached = [];
 
+    private $generatedFiles = [];
+
     /**
      * Imports array where the key is the generated file path and the value is an array of imports.
      * Each import is an array where the first element is the import path and the second element is an array of imported items.
@@ -112,6 +114,8 @@ class GenerateCommand extends Command
 
         $this->files->ensureDirectoryExists($this->base());
         $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
+
+        $this->cleanup();
     }
 
     private function readCacheFile(): void
@@ -127,6 +131,21 @@ class GenerateCommand extends Command
     {
         $file = join_paths($this->base(), 'cache.json');
         $this->files->put($file, json_encode($this->cached));
+    }
+
+    private function cleanup()
+    {
+        $file = join_paths($this->base(), 'generated_files.json');
+        if ($this->files->exists($file)) {
+            $prevFiles = json_decode(file_get_contents($file, true), true);
+            $filesToBeDeleted = array_diff($prevFiles, $this->generatedFiles);
+            foreach ($filesToBeDeleted as $path) {
+                if ($this->files->exists($path)) {
+                    $this->files->delete($path);
+                }
+            }
+        }
+        $this->files->put($file, json_encode($this->generatedFiles));
     }
 
     private function appendContent($path, $content): void
@@ -164,9 +183,10 @@ class GenerateCommand extends Command
     private function writeControllerFile(Collection $routes, string $namespace): void
     {
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
+        $this->generatedFiles[] = $path;
 
         $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash)) {
+        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($path)) {
             return;
         }
         $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
@@ -246,17 +266,18 @@ class GenerateCommand extends Command
 
     private function writeNamedFile(Collection $routes, string $namespace): void
     {
-        $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash)) {
-            return;
-        }
-        $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
-
         $parts = explode('.', $namespace);
         array_pop($parts);
         $parts[] = 'index';
 
         $path = join_paths($this->base(), ...$parts).'.ts';
+        $this->generatedFiles[] = $path;
+
+        $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
+        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($path)) {
+            return;
+        }
+        $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
 
         $this->appendCommonImports($routes, $path, $namespace);
 
@@ -314,12 +335,14 @@ class GenerateCommand extends Command
             return;
         }
 
+        $indexPath = join_paths($this->base(), $parent, 'index.ts');
+        $this->generatedFiles[] = $indexPath;
+
         $cacheValues = $children->flatten()->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash)) {
+        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($indexPath)) {
             return;
         }
 
-        $indexPath = join_paths($this->base(), $parent, 'index.ts');
         $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
 
         $childKeys = $children->keys()->mapWithKeys(function ($child) use ($indexPath, $keysWithGrandkids) {
