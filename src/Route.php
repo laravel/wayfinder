@@ -170,7 +170,10 @@ class Route
 
     public function cacheKey()
     {
-        return $this->controllerAbsolutePath();
+        $routeName = $this->name();
+        $controllerPath = $this->controllerPath();
+
+        return hash('xxh128', $routeName.$controllerPath);
     }
 
     public function cacheValue(): string

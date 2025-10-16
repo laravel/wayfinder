@@ -93,14 +93,17 @@ class GenerateCommand extends Command
         $this->pathDirectory = 'routes';
 
         if (! $this->option('skip-routes')) {
-            $this->files->deleteDirectory($this->base());
+            $this->readCacheFile();
+            if (empty($this->cached)) {
+                $this->files->deleteDirectory($this->base());
+            }
 
             $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => $route->name());
-
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
             $this->writeContent();
+            $this->writeCacheFile();
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
@@ -243,6 +246,12 @@ class GenerateCommand extends Command
 
     private function writeNamedFile(Collection $routes, string $namespace): void
     {
+        $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
+        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash)) {
+            return;
+        }
+        $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
+
         $parts = explode('.', $namespace);
         array_pop($parts);
         $parts[] = 'index';
@@ -304,6 +313,7 @@ class GenerateCommand extends Command
         if (array_is_list($children->all())) {
             return;
         }
+
         $cacheValues = $children->flatten()->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
         if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash)) {
             return;
