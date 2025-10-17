@@ -158,35 +158,6 @@ class Route
         return $this->relativePath((new ReflectionClass($controller))->getFileName());
     }
 
-    public function controllerAbsolutePath(): string
-    {
-        $controller = $this->controller();
-        if ($controller === '\\Closure') {
-            return (new ReflectionClosure($this->closure()))->getFileName();
-        }
-
-        return (new ReflectionClass($controller))->getFileName();
-    }
-
-    public function cacheKey()
-    {
-        $routeName = $this->name();
-        $controllerPath = $this->controllerPath();
-
-        return hash('xxh128', $routeName.$controllerPath);
-    }
-
-    public function cacheValue(): string
-    {
-        $controller = hash_file('xxh128', $this->controllerAbsolutePath());
-        $uri = $this->uri();
-        $methods = json_encode($this->base->methods());
-        $parameters = json_encode($this->parameters());
-        $hash = hash('xxh128', $controller.$uri.$parameters.$methods);
-
-        return $hash;
-    }
-
     public function controllerMethodLineNumber(): int
     {
         $controller = $this->controller();

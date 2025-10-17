@@ -77,7 +77,7 @@ class GenerateCommand extends Command
 
         if (! $this->option('skip-actions')) {
             $this->readCacheFile();
-            if (empty($this->cached)) {
+            if ($this->cached->isEmpty()) {
                 $this->files->deleteDirectory($this->base());
             }
 
@@ -96,7 +96,7 @@ class GenerateCommand extends Command
 
         if (! $this->option('skip-routes')) {
             $this->readCacheFile();
-            if (empty($this->cached)) {
+            if ($this->cached->isEmpty()) {
                 $this->files->deleteDirectory($this->base());
             }
 
@@ -120,17 +120,38 @@ class GenerateCommand extends Command
 
     private function readCacheFile(): void
     {
-        $this->cached = [];
+        $this->cached = collect();
         $file = join_paths($this->base(), 'cache.json');
         if ($this->files->exists($file)) {
-            $this->cached = json_decode(file_get_contents($file, true), true);
+            $this->cached = collect(json_decode(file_get_contents($file, true), true));
         }
     }
 
     private function writeCacheFile(): void
     {
         $file = join_paths($this->base(), 'cache.json');
-        $this->files->put($file, json_encode($this->cached));
+        $this->files->put($file, json_encode($this->cached->toArray()));
+    }
+
+    public function cacheKey($route, $path): string
+    {
+        $data = [
+            'controller' => $route->controller(),
+            'method' => $route->name() ? $route->namedMethod() : null,
+            'namedMethod' => $route->jsMethod(),
+            'original_method' => $route->originalJsMethod(),
+            'isInvokable' => $route->hasInvokableController(),
+            'shouldExport' => ! $route->hasInvokableController(),
+            'path' => $route->controllerPath(),
+            'line' => $route->controllerMethodLineNumber(),
+            'parameters' => $route->parameters()->pluck('safeName')->toArray(),
+            'verbs' => $route->verbs()->pluck('actual')->toArray(),
+            'uri' => $route->uri(),
+            'withForm' => $this->option('with-form') ?? false,
+            // 'rand' => rand(),
+        ];
+
+        return hash('xxh128', $path.json_encode($data));
     }
 
     private function cleanup()
@@ -185,11 +206,11 @@ class GenerateCommand extends Command
         $path = join_paths($this->base(), ...explode('.', $namespace)).'.ts';
         $this->generatedFiles[] = $path;
 
-        $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($path)) {
+        $cahceKeys = $routes->map(fn ($route) => $this->cacheKey($route, $path));
+        if ($cahceKeys->every(fn ($key) => $this->cached->contains($key)) && $this->files->exists($path)) {
             return;
         }
-        $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
+        $this->cached->push(...$cahceKeys);
 
         $this->appendCommonImports($routes, $path, $namespace);
 
@@ -273,11 +294,11 @@ class GenerateCommand extends Command
         $path = join_paths($this->base(), ...$parts).'.ts';
         $this->generatedFiles[] = $path;
 
-        $cacheValues = $routes->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($path)) {
+        $cahceKeys = $routes->map(fn ($route) => $this->cacheKey($route, $path));
+        if ($cahceKeys->every(fn ($key) => $this->cached->contains($key)) && $this->files->exists($path)) {
             return;
         }
-        $cacheValues->each(fn ($hash, $key) => $this->cached[$key] = $hash);
+        $this->cached->push(...$cahceKeys);
 
         $this->appendCommonImports($routes, $path, $namespace);
 
@@ -338,9 +359,9 @@ class GenerateCommand extends Command
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
         $this->generatedFiles[] = $indexPath;
 
-        $cacheValues = $children->flatten()->mapWithKeys(fn ($route) => [$route->cacheKey() => $route->cacheValue()]);
-        if ($cacheValues->every(fn ($hash, $key) => isset($this->cached[$key]) && $this->cached[$key] === $hash) && $this->files->exists($indexPath)) {
-            return;
+        $cahceKeys = $children->flatten()->map(fn ($route) => $this->cacheKey($route, $indexPath));
+        if ($cahceKeys->every(fn ($key) => $this->cached->contains($key)) && $this->files->exists($indexPath)) {
+            // return;
         }
 
         $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
