@@ -36,12 +36,11 @@ Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.e
 Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-// Suffix wildcard routes for checking in CurrentRoute.test.ts
+Route::get('/posts/user/show/{user}', fn () => 'post user show')->name('post.user.show');
+Route::get('/posts/admin/show/{user}', fn () => 'post admin show')->name('post.admin.show');
+
 Route::get('/create/post', fn () => 'create')->name('create.post');
 Route::get('/edit/post', fn () => 'edit')->name('edit.post');
-Route::get('/show/post', fn () => 'show')->name('show.post');
-
-Route::get('settings/appearance', fn () => 'setting')->name('appearance');
 
 Route::get('download/{pdfId}/{fileName?}', fn () => 'download')->name('pdf.download');
 

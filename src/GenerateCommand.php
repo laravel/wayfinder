@@ -121,11 +121,9 @@ class GenerateCommand extends Command
         $this->files->copy($wayfinderPath, $baseIndexPath);
 
         $content = $this->currentRouteService->generate(
-            $this->files->get($wayfinderPath),
-            $routesForCurrentRouteService,
-            $this->forcedScheme,
-            $this->forcedRoot,
-            $this->base(),
+            originalContent: $this->files->get($wayfinderPath),
+            routes: $routesForCurrentRouteService,
+            basePath: $this->base(),
         );
 
         $this->files->put($baseIndexPath, $content);

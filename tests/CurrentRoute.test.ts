@@ -23,13 +23,17 @@ const baseUrl = () => {
 
 const setHref = (href: string) => {
     const base = baseUrl();
-    // console.log(base + decodeURIComponent(href));
     mockWindow.location.href = base + href;
 };
 
 it("returns current URL when no args", () => {
     setHref("/current/page");
     expect(currentRoute()).toBe(baseUrl() + "/current/page");
+});
+
+it("matches exact route with named route", () => {
+    setHref("/");
+    expect(currentRoute("home")).toBe(true);
 });
 
 it("matches exact route without params", () => {
@@ -89,6 +93,11 @@ it("supports wildcard prefix routes", () => {
 it("supports wildcard suffix routes", () => {
     setHref("/create/post");
     expect(currentRoute("*.post")).toBe(true);
+});
+
+it("supports middle wildcard routes", () => {
+    setHref("/posts/user/show/123");
+    expect(currentRoute("post.*.show", 123)).toBe(true);
 });
 
 it("normalizes trailing slashes", () => {

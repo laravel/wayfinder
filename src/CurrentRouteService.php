@@ -8,10 +8,6 @@ use Illuminate\Support\Collection;
 
 class CurrentRouteService
 {
-    private ?string $forcedScheme;
-
-    private ?string $forcedRoot;
-
     public function __construct(
         private Filesystem $files,
         private UrlGenerator $url,
@@ -22,12 +18,8 @@ class CurrentRouteService
     public function generate(
         string $originalContent,
         Collection $routes,
-        ?string $forcedScheme,
-        ?string $forcedRoot,
         string $basePath,
     ): string {
-        $this->forcedScheme = $forcedScheme;
-        $this->forcedRoot = $forcedRoot;
         $indexImportPath = './index';
         $routesImportPath = './routes';
 
@@ -75,12 +67,10 @@ class CurrentRouteService
             $name = $route->name();
 
             if ($name) {
-                $uri = $route->uri();
-
-                $uri = trim($uri, "'\"");
+                $uri = trim($route->uri(), "'\"");
 
                 $fullUrl = '/'.ltrim($uri, '/');
-                $namedRoutes[$name] = rtrim($fullUrl, '/');
+                $namedRoutes[$name] = rtrim($fullUrl, '/') ?: '/';
             }
         }
 
@@ -111,54 +101,66 @@ class CurrentRouteService
 
     private function generateOptimizedWildcards(array $routeNames): array
     {
-        $wildcards = [];
-
-        // Group routes by their segments for analysis
-        $routeGroups = [];
-        foreach ($routeNames as $route) {
-            $parts = explode('.', $route);
-            $routeGroups[] = $parts;
+        if (empty($routeNames)) {
+            return [];
         }
 
-        // Generate prefix wildcards (posts.* for posts.index, posts.show, etc.)
+        // Convert route names to segments
+        $routeSegments = array_map(fn ($route) => explode('.', $route), $routeNames);
+
+        // Count all pattern types
         $prefixCounts = [];
-        foreach ($routeGroups as $parts) {
-            // Only check meaningful prefixes (skip single segments)
-            for ($i = 1; $i < count($parts); $i++) {
+        $suffixCounts = [];
+        $middleCounts = [];
+
+        foreach ($routeSegments as $parts) {
+            $partCount = count($parts);
+
+            // Generate prefixes (skip single segments)
+            for ($i = 1; $i < $partCount; $i++) {
                 $prefix = implode('.', array_slice($parts, 0, $i));
                 $prefixCounts[$prefix] = ($prefixCounts[$prefix] ?? 0) + 1;
             }
-        }
 
-        // Add prefix wildcards with 2+ occurrences
-        foreach ($prefixCounts as $prefix => $count) {
-            if ($count >= 2) {
-                $wildcards[] = $prefix.'.*';
-            }
-        }
-
-        // Generate suffix wildcards (*.create for posts.create, users.create, etc.)
-        $suffixCounts = [];
-        foreach ($routeGroups as $parts) {
-            // Check all possible suffixes
-            for ($i = 1; $i < count($parts); $i++) {
+            // Generate suffixes
+            for ($i = 1; $i < $partCount; $i++) {
                 $suffix = implode('.', array_slice($parts, $i));
                 $suffixCounts[$suffix] = ($suffixCounts[$suffix] ?? 0) + 1;
             }
-        }
 
-        // Add suffix wildcards with 2+ occurrences
-        foreach ($suffixCounts as $suffix => $count) {
-            if ($count >= 2) {
-                $wildcards[] = '*.'.$suffix;
+            // Generate middle patterns (e.g., post.*.show from post.user.show)
+            for ($i = 1; $i < $partCount - 1; $i++) {
+                for ($j = $i + 1; $j < $partCount; $j++) {
+                    $before = implode('.', array_slice($parts, 0, $i));
+                    $after = implode('.', array_slice($parts, $j));
+                    $middlePattern = "$before.*.$after";
+                    $middleCounts[$middlePattern] = ($middleCounts[$middlePattern] ?? 0) + 1;
+                }
             }
         }
 
-        // Remove duplicates and sort for consistency
-        $wildcards = array_unique($wildcards);
-        sort($wildcards);
+        // Build wildcards from patterns with 2+ occurrences
+        $wildcards = [];
 
-        return $wildcards;
+        foreach ($prefixCounts as $prefix => $count) {
+            if ($count >= 2) {
+                $wildcards[] = "$prefix.*";
+            }
+        }
+
+        foreach ($suffixCounts as $suffix => $count) {
+            if ($count >= 2) {
+                $wildcards[] = "*.$suffix";
+            }
+        }
+
+        foreach ($middleCounts as $pattern => $count) {
+            if ($count >= 2) {
+                $wildcards[] = $pattern;
+            }
+        }
+
+        return array_unique($wildcards);
     }
 
     private function generateWildcardValidationFunction(array $namedRoutes): string
@@ -178,20 +180,24 @@ class CurrentRouteService
             JAVASCRIPT;
         }
 
-        // Generate arrays for prefix and suffix wildcards
+        // Generate arrays for different wildcard types
         $prefixWildcards = [];
         $suffixWildcards = [];
+        $middleWildcards = [];
 
         foreach ($wildcards as $wildcard) {
             if (str_starts_with($wildcard, '*.')) {
                 $suffixWildcards[] = "'".substr($wildcard, 2)."'";
             } elseif (str_ends_with($wildcard, '.*')) {
                 $prefixWildcards[] = "'".substr($wildcard, 0, -2)."'";
+            } elseif (str_contains($wildcard, '.*.')) {
+                $middleWildcards[] = "'".$wildcard."'";
             }
         }
 
         $prefixArray = empty($prefixWildcards) ? '[]' : '['.implode(', ', $prefixWildcards).']';
         $suffixArray = empty($suffixWildcards) ? '[]' : '['.implode(', ', $suffixWildcards).']';
+        $middleArray = empty($middleWildcards) ? '[]' : '['.implode(', ', $middleWildcards).']';
 
         return <<<JAVASCRIPT
         /**
@@ -201,6 +207,7 @@ class CurrentRouteService
         export const isValidWildcardPattern = (pattern: string): boolean => {
             const prefixWildcards: string[] = {$prefixArray};
             const suffixWildcards: string[] = {$suffixArray};
+            const middleWildcards: string[] = {$middleArray};
             const routeNames = Object.keys(namedRoutes);
             
             if (pattern.startsWith('*.')) {
@@ -215,6 +222,22 @@ class CurrentRouteService
                     routeNames.some(route => route.startsWith(prefix + '.'));
             }
             
+            if (pattern.includes('.*.')) {
+                return middleWildcards.includes(pattern) && 
+                    routeNames.some(route => {
+                        const parts = route.split('.');
+                        const patternParts = pattern.split('.');
+                        if (parts.length !== patternParts.length) return false;
+                        
+                        for (let i = 0; i < parts.length; i++) {
+                            if (patternParts[i] !== '*' && patternParts[i] !== parts[i]) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+            }
+            
             return false;
         };
         JAVASCRIPT;
@@ -223,7 +246,7 @@ class CurrentRouteService
     private function generateCheckQueryParams(): string
     {
         return <<<'JAVASCRIPT'
-        // Validate query params of the current URL against provided RouteArguments (excluding route path params)
+        // Validates query parameters of the current URL against provided RouteArguments
         export const checkQueryParams = (
             currentUrlObj: URL,
             name: string,
@@ -232,83 +255,91 @@ class CurrentRouteService
         ): boolean => {
             if (routeParams === null || typeof routeParams !== 'object') return true;
 
+            // Convert values to query string format
             const toQueryValue = (v: RoutePrimitive) => v === true ? '1' : v === false ? '0' : String(v);
-            const buildKey = (p: string, k: string) => (p && p.length > 0) ? `${p}[${k}]` : k;
-
-            const isRouteParamKey = (key: string): boolean => {
-                const tpl = namedRoutes[name] ?? '';
-                return tpl.includes(`{${key}}`) || tpl.includes(`{${key}?}`);
-            };
-
-            const expected = new Map<string, string[]>();
-            const add = (key: string, val: RoutePrimitive | RoutePrimitive[] | null | undefined | RouteObject) => {
-                if (val == null) return;
-                if (Array.isArray(val)) {
-                    const k = `${key}[]`;
-                    const arr = expected.get(k) ?? [];
-                    for (const item of val) arr.push(toQueryValue(item));
-                    expected.set(k, arr);
-                    return;
-                }
-                if (typeof val === 'object') {
-                    for (const [ck, cv] of Object.entries(val)) add(buildKey(key, ck), cv as RoutePrimitive);
-                    return;
-                }
-                const arr = expected.get(key) ?? [];
-                arr.push(toQueryValue(val));
-                expected.set(key, arr);
-            };
-
-            for (const [key, value] of Object.entries(routeParams)) {
-                // Skip route parameters unless they are arrays (arrays should always be treated as query params)
-                if (isRouteParamKey(key) && !Array.isArray(value)) continue;
-                add(key, value as RoutePrimitive);
-            }
-
-            const params = new URLSearchParams(decodeURIComponent(currentUrlObj.search));
             
-            // Helper function to get array values from URLSearchParams, handling both nice[] and nice[0], nice[1] formats
-            const getArrayValues = (baseKey: string): string[] => {
-                // First try the standard array format (nice[])
-                const standardArray = params.getAll(`${baseKey}[]`);
-                if (standardArray.length > 0) {
-                    return standardArray;
+            // Check if a key is a route parameter (not query parameter)
+            const isRouteParam = (key: string): boolean => {
+                const routeTemplate = namedRoutes[name] ?? '';
+                return routeTemplate.includes(`{${key}}`) || routeTemplate.includes(`{${key}?}`);
+            };
+
+            // Build expected query parameters
+            const expectedParams = new Map<string, string[]>();
+            
+            const addParam = (key: string, value: RoutePrimitive | RoutePrimitive[] | RouteObject | null | undefined) => {
+                if (value == null) return;
+                
+                if (Array.isArray(value)) {
+                    const arrayKey = `${key}[]`;
+                    const values = expectedParams.get(arrayKey) ?? [];
+                    value.forEach(item => values.push(toQueryValue(item)));
+                    expectedParams.set(arrayKey, values);
+                    return;
                 }
                 
-                // If not found, try indexed format (nice[0], nice[1], etc.)
+                if (typeof value === 'object') {
+                    Object.entries(value).forEach(([subKey, subValue]) => {
+                        const fullKey = key ? `${key}[${subKey}]` : subKey;
+                        addParam(fullKey, subValue as RoutePrimitive);
+                    });
+                    return;
+                }
+                
+                const values = expectedParams.get(key) ?? [];
+                values.push(toQueryValue(value));
+                expectedParams.set(key, values);
+            };
+
+            // Process route parameters, skipping non-array route params
+            Object.entries(routeParams).forEach(([key, value]) => {
+                if (isRouteParam(key) && !Array.isArray(value)) return;
+                addParam(key, value as RoutePrimitive);
+            });
+
+            const currentParams = new URLSearchParams(decodeURIComponent(currentUrlObj.search));
+            
+            // Get array values from URL (handles both nice[] and nice[0], nice[1] formats)
+            const getArrayValues = (baseKey: string): string[] => {
+                // Try standard array format first
+                const standardArray = currentParams.getAll(`${baseKey}[]`);
+                if (standardArray.length > 0) return standardArray;
+                
+                // Fallback to indexed format
                 const indexedValues: { index: number; value: string }[] = [];
-                for (const [paramKey, paramValue] of params.entries()) {
+                for (const [paramKey, paramValue] of currentParams.entries()) {
                     const match = paramKey.match(new RegExp(`^${baseKey}\\[(\\d+)\\]$`));
                     if (match) {
-                        const index = parseInt(match[1] as string, 10);
-                        indexedValues.push({ index, value: paramValue });
+                        indexedValues.push({ 
+                            index: parseInt(match[1] as string, 10), 
+                            value: paramValue 
+                        });
                     }
                 }
                 
-                // Sort by index and extract values
-                indexedValues.sort((a, b) => a.index - b.index);
-                return indexedValues.map(item => item.value);
+                return indexedValues
+                    .sort((a, b) => a.index - b.index)
+                    .map(item => item.value);
             };
             
-            for (const [key, values] of expected.entries()) {
-                if (values.length === 0) continue;
+            // Validate all expected parameters exist in current URL
+            for (const [key, expectedValues] of expectedParams.entries()) {
+                if (expectedValues.length === 0) continue;
                 
-                let present: string[];
-                if (key.endsWith('[]')) {
-                    // Handle array parameters
-                    const baseKey = key.slice(0, -2); // Remove '[]' suffix
-                    present = getArrayValues(baseKey).map(v => {
+                const currentValues = key.endsWith('[]') 
+                    ? getArrayValues(key.slice(0, -2)).map(v => {
+                        try { return decodeURIComponent(v); } catch { return v; }
+                    })
+                    : currentParams.getAll(key).map(v => {
                         try { return decodeURIComponent(v); } catch { return v; }
                     });
-                } else {
-                    // Handle regular parameters
-                    present = params.getAll(key).map(v => {
-                        try { return decodeURIComponent(v); } catch { return v; }
-                    });
+                
+                // Check if all expected values are present
+                if (!expectedValues.every(expected => currentValues.includes(expected))) {
+                    return false;
                 }
-                
-                for (const wanted of values) if (!present.includes(wanted)) return false;
             }
+            
             return true;
         };
         JAVASCRIPT;
@@ -342,7 +373,7 @@ class CurrentRouteService
 
         $buffer[] = <<<'JAVASCRIPT'
         /**
-        * Returns the current URL if called with no arguments, otherwise checks if the current route matches the given name and params.
+        * Returns the current URL if called with no arguments, otherwise checks if the current route matches the given name or controller route and params.
         *
         * @overload
         * currentRoute(): string
@@ -354,7 +385,7 @@ class CurrentRouteService
         * currentRoute(url: string): boolean
         * 
         * Check github page for more details
-        * https://github.com/laravel/wayfinder
+        * @see {@link https://github.com/laravel/wayfinder}
         *
         */
         export function currentRoute(): string;
@@ -372,13 +403,10 @@ class CurrentRouteService
             // Helper to parse URL and extract path and query params
             const parseUrl = (url: string): { path: string; queryParams: URLSearchParams } => {
                 let fullUrl = url;
-
                 if (url.startsWith('/') && !url.startsWith('//')) {
                     fullUrl = window.location.origin || 'http://localhost' + url;
                 }
-                
                 const urlObj = new URL(fullUrl);
-                
                 return {
                     path: decodeURIComponent(urlObj.pathname.replace(/\/$/, '')),
                     queryParams: urlObj.searchParams
@@ -396,21 +424,16 @@ class CurrentRouteService
                 return true;
             };
 
-            // Handle RouteDefinition object (from controller)
-            if (typeof name === 'object' && name !== null && 'url' in name) {
-                const { path, queryParams } = parseUrl(name.url);
-                const pathMatches = normalize(currentPath) === normalize(path);
-                return pathMatches && queryParamsMatch(queryParams);
-            }
+            // Helper to check if params contain arrays
+            const hasArrayParams = (params: RouteArguments): boolean => {
+                return typeof params === 'object' && params !== null && 
+                       Object.values(params).some(value => Array.isArray(value));
+            };
 
-            // Handle direct URL string (starts with / or http)
-            if (typeof name === 'string' && (name.startsWith('/') || name.startsWith('http://') || name.startsWith('https://'))) {
-                const { path, queryParams } = parseUrl(name);
-                const pathMatches = normalize(currentPath) === normalize(path);
-                return pathMatches && queryParamsMatch(queryParams);
-            }
+            // Helper to check if route has parameters
+            const hasRouteParams = (routePath: string): boolean => /\{[^}]+\}/.test(routePath);
 
-            // Rest of the named route logic...
+            // Helper to replace route parameters
             const replaceRouteParams = (routeUrl: string, routeParams: RouteArguments): string => {
                 if (typeof routeParams === 'string' || typeof routeParams === 'number' || typeof routeParams === 'boolean') {
                     return routeUrl.replace(/\{[^}]+\}/, String(routeParams));
@@ -418,10 +441,7 @@ class CurrentRouteService
                 if (typeof routeParams === 'object' && routeParams !== null) {
                     let result = routeUrl;
                     for (const [key, value] of Object.entries(routeParams)) {
-                        // Skip arrays - they should be treated as query parameters, not route parameters
-                        if (Array.isArray(value)) {
-                            continue;
-                        }
+                        if (Array.isArray(value)) continue; // Skip arrays - query params only
                         const val = String(value);
                         result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
                         result = result.replace(new RegExp(`\\{${key}\\?\\}`, 'g'), val);
@@ -431,6 +451,7 @@ class CurrentRouteService
                 return routeUrl;
             };
 
+            // Helper to extract parameters from path
             const extractParamsFromPath = (currentPath: string, routeTemplate: string): Record<string, string> | null => {
                 try {
                     const segments = decodeURIComponent(routeTemplate).split('/').filter((_, i, arr) => !(i === 0 && arr[0] === ''));
@@ -467,20 +488,60 @@ class CurrentRouteService
                 }
             };
 
+            // Helper to match path with parameters
+            const matchPathWithParams = (currentPath: string, routePath: string, routeUrl: string): boolean => {
+                const extracted = extractParamsFromPath(normalize(currentPath), normalize(routePath));
+                if (extracted === null) return false;
+
+                let reconstructed = routeUrl;
+                for (const [key, value] of Object.entries(extracted)) {
+                    const encoded = encodeURIComponent(value);
+                    reconstructed = reconstructed.replace(new RegExp(`\\{${key}\\}`, 'g'), encoded);
+                    reconstructed = reconstructed.replace(new RegExp(`\\{${key}\\?\\}`, 'g'), encoded);
+                }
+                reconstructed = reconstructed.replace(/\/\{[^}]+\?\}/g, '').replace(/\{[^}]+\?\}/g, '');
+                const reconstructedPath = decodeURIComponent(reconstructed.replace(/\/$/, ''));
+                return normalize(currentPath) === normalize(reconstructedPath);
+            };
+
+            // Helper to validate route parameters
+            const validateRouteParams = (routeName: string, extracted: Record<string, string>): boolean => {
+                if (typeof params === 'string' || typeof params === 'number' || typeof params === 'boolean') {
+                    const firstMatch = namedRoutes[routeName]?.match(/\{([^}]+)\}/);
+                    if (!firstMatch || firstMatch[1] === undefined) return false;
+                    return extracted[firstMatch[1].replace(/\?$/, '')] === String(params);
+                }
+
+                if (typeof params === 'object' && params !== null) {
+                    for (const [key, value] of Object.entries(params)) {
+                        if (Array.isArray(value)) continue; // Skip arrays - query params only
+                        if (namedRoutes[routeName] && (namedRoutes[routeName].includes(`{${key}}`) || namedRoutes[routeName].includes(`{${key}?}`))) {
+                            if ((extracted[key] ?? null) !== String(value)) return false;
+                        }
+                    }
+                    return checkQueryParams(currentUrlObj, routeName, params, namedRoutes);
+                }
+                return false;
+            };
+
+            // Handle RouteDefinition object (from controller) or direct URL string
+            if (
+                (typeof name === 'object' && name !== null && 'url' in name) ||
+                (typeof name === 'string' && (name.startsWith('/') || name.startsWith('http://') || name.startsWith('https://')))
+            ) {
+                const toParse = typeof name === 'object' ? name.url : name;
+                const { path, queryParams } = parseUrl(toParse);
+                const pathMatches = normalize(currentPath) === normalize(path);
+                return pathMatches && queryParamsMatch(queryParams);
+            }
+
+            // Main route matching function
             const matchRoute = (routeName: string, routeUrl: string) => {
                 const routePath = decodeURIComponent(routeUrl.replace(/\/$/, ''));
                 
-                // If params contains any arrays, treat them as query parameters only
-                if (typeof params === 'object' && params !== null) {
-                    const hasArrays = Object.values(params).some(value => Array.isArray(value));
-                    if (hasArrays) {
-                        // For routes with parameters, if we have arrays, only check query params
-                        if (/\{[^}]+\}/.test(routePath)) {
-                            return checkQueryParams(currentUrlObj, routeName, params, namedRoutes);
-                        }
-                        // For routes without parameters, if we have arrays, only check query params
-                        return checkQueryParams(currentUrlObj, routeName, params, namedRoutes);
-                    }
+                // Handle arrays - treat as query parameters only
+                if (hasArrayParams(params)) {
+                    return checkQueryParams(currentUrlObj, routeName, params, namedRoutes);
                 }
                 
                 if (params === undefined) {
@@ -488,46 +549,16 @@ class CurrentRouteService
                     const nRoute = normalize(routePath);
                     if (nCurrent === nRoute) return true;
                     
-                    if (/\{[^}]+\}/.test(routePath)) {
-                        const extracted = extractParamsFromPath(nCurrent, nRoute);
-                        if (extracted !== null) {
-                            let reconstructed = routeUrl;
-                            for (const [key, value] of Object.entries(extracted)) {
-                                const encoded = encodeURIComponent(value);
-                                reconstructed = reconstructed.replace(new RegExp(`\\{${key}\\}`, 'g'), encoded);
-                                reconstructed = reconstructed.replace(new RegExp(`\\{${key}\\?\\}`, 'g'), encoded);
-                            }
-                            reconstructed = reconstructed.replace(/\/\{[^}]+\?\}/g, '').replace(/\{[^}]+\?\}/g, '');
-                            const reconstructedPath = decodeURIComponent(reconstructed.replace(/\/$/, ''));
-                            return normalize(nCurrent) === normalize(reconstructedPath);
-                        }
+                    if (hasRouteParams(routePath)) {
+                        return matchPathWithParams(currentPath, routePath, routeUrl);
                     }
                     return false;
                 }
 
-                if (/\{[^}]+\}/.test(routePath)) {
+                if (hasRouteParams(routePath)) {
                     const extracted = extractParamsFromPath(normalize(currentPath), normalize(routePath));
                     if (extracted === null) return false;
-
-                    if (typeof params === 'string' || typeof params === 'number' || typeof params === 'boolean') {
-                        const firstMatch = routePath.match(/\{([^}]+)\}/);
-                        if (!firstMatch || firstMatch[1] === undefined) return false;
-                        return extracted[firstMatch[1].replace(/\?$/, '')] === String(params);
-                    }
-
-                    if (typeof params === 'object' && params !== null) {
-                        for (const [key, value] of Object.entries(params)) {
-                            // Skip arrays when checking route parameters - they should be query parameters
-                            if (Array.isArray(value)) {
-                                continue;
-                            }
-                            if (namedRoutes[routeName] && (namedRoutes[routeName].includes(`{${key}}`) || namedRoutes[routeName].includes(`{${key}?}`))) {
-                                if ((extracted[key] ?? null) !== String(value)) return false;
-                            }
-                        }
-                        return checkQueryParams(currentUrlObj, routeName, params, namedRoutes);
-                    }
-                    return false;
+                    return validateRouteParams(routeName, extracted);
                 }
 
                 const urlWithParams = replaceRouteParams(routeUrl, params);
@@ -550,12 +581,22 @@ class CurrentRouteService
                 if (!isValidWildcardPattern(name)) return false;
 
                 let matchingRoutes: string[] = [];
+                const namedRoutesKeys = Object.keys(namedRoutes);
+                
                 if (name.startsWith('*.')) {
                     const suffix = name.substring(2);
-                    matchingRoutes = Object.keys(namedRoutes).filter(route => route.endsWith('.' + suffix));
+                    matchingRoutes = namedRoutesKeys.filter(route => route.endsWith('.' + suffix));
                 } else if (name.endsWith('.*')) {
                     const prefix = name.substring(0, name.length - 2);
-                    matchingRoutes = Object.keys(namedRoutes).filter(route => route.startsWith(prefix + '.'));
+                    matchingRoutes = namedRoutesKeys.filter(route => route.startsWith(prefix + '.'));
+                } else if (name.includes('.*.')) {
+                    matchingRoutes = namedRoutesKeys.filter(route => {
+                        const parts = route.split('.');
+                        const patternParts = name.split('.');
+                        if (parts.length !== patternParts.length) return false;
+                        
+                        return patternParts.every((part, index) => part === '*' || part === parts[index]);
+                    });
                 }
                 
                 return matchingRoutes.some(routeName => {
@@ -565,7 +606,7 @@ class CurrentRouteService
                     if (params === undefined) {
                         const routePath = decodeURIComponent(routeUrl.replace(/\/$/, ''));
                         if (normalize(currentPath) === normalize(routePath)) return true;
-                        if (/\{[^}]+\}/.test(routePath)) {
+                        if (hasRouteParams(routePath)) {
                             return extractParamsFromPath(currentPath, routePath) !== null;
                         }
                         return currentPath.startsWith(normalize(routePath));
