@@ -54,20 +54,22 @@ export const queryParams = (options?: RouteQueryOptions) => {
     );
 
     for (const key in query) {
-        if (query[key] === undefined || query[key] === null) {
+        const qryKey = query[key];
+
+        if (qryKey === undefined || qryKey === null) {
             params.delete(key);
             continue;
         }
 
-        if (Array.isArray(query[key])) {
+        if (Array.isArray(qryKey)) {
             if (params.has(`${key}[]`)) {
                 params.delete(`${key}[]`);
             }
 
-            query[key].forEach((value) => {
+            qryKey.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
-        } else if (typeof query[key] === "object") {
+        } else if (typeof qryKey === "object") {
             params.forEach((_, paramKey) => {
                 if (paramKey.startsWith(`${key}[`)) {
                     params.delete(paramKey);
@@ -97,9 +99,9 @@ export const queryParams = (options?: RouteQueryOptions) => {
                 });
             };
 
-            addNestedParams(query[key], key);
+            addNestedParams(qryKey, key);
         } else {
-            params.set(key, getValue(query[key]));
+            params.set(key, getValue(qryKey));
         }
     }
 
