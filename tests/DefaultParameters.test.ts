@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
+import { setUrlDefaults } from "../workbench/resources/js/wayfinder";
 import {
     defaultParametersDomain,
     fixedDomain,
-} from "../workbench/resources/js/actions/App/Http/Controllers/DomainController";
-import { setUrlDefaults } from "../workbench/resources/js/wayfinder";
+} from "../workbench/resources/js/wayfinder/App/Http/Controllers/DomainController";
 
 test("it can generate urls without default parameters set", () => {
     expect(fixedDomain.url({ param: "foo" })).toBe(
-        "//example.test/fixed-domain/foo",
+        "//example.test/fixed-domain/foo"
     );
 });
 
@@ -19,6 +19,6 @@ test("it can generate urls with default URL parameters set on backend and fronte
     expect(
         defaultParametersDomain.url({
             param: "foo",
-        }),
+        })
     ).toBe("//tim.macdonald.au/default-parameters-domain/foo");
 });

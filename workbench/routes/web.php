@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AnonymousMiddlewareController;
+use App\Http\Controllers\ApiController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
+use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
@@ -88,3 +90,10 @@ Route::prefix('/api/v1')->name('api.v1.')->group(function () {
         Route::get('/', fn () => 'ok')->name('index');
     });
 });
+
+Route::get('/inertia/dashboard', [InertiaController::class, 'dashboard'])->name('inertia.dashboard');
+Route::get('/inertia/settings', [InertiaController::class, 'settings'])->name('inertia.settings');
+Route::get('/inertia/profile', [InertiaController::class, 'profile'])->name('inertia.profile');
+
+Route::get('/api/status', [ApiController::class, 'status'])->name('api.status');
+Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');

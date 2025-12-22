@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import InvokablePlusController from "../workbench/resources/js/actions/App/Http/Controllers/InvokablePlusController";
+import InvokablePlusController from "../workbench/resources/js/wayfinder/App/Http/Controllers/InvokablePlusController";
 
 it("exports default and methods for invokable controllers", () => {
     expect(InvokablePlusController.url()).toBe("/invokable-plus-controller");
@@ -9,7 +9,7 @@ it("exports default and methods for invokable controllers", () => {
     });
 
     expect(InvokablePlusController.store.url()).toBe(
-        "/invokable-plus-controller",
+        "/invokable-plus-controller"
     );
     expect(InvokablePlusController.store()).toEqual({
         url: "/invokable-plus-controller",

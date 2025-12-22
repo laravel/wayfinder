@@ -2,7 +2,7 @@ import { describe, expect, it, test } from "vitest";
 import {
     manyOptional,
     optional,
-} from "../workbench/resources/js/actions/App/Http/Controllers/OptionalController";
+} from "../workbench/resources/js/wayfinder/App/Http/Controllers/OptionalController";
 
 describe("optional", async () => {
     test("url", () => {
@@ -20,10 +20,10 @@ describe("manyOptional", async () => {
         expect(manyOptional.url()).toBe("/many-optional");
         expect(manyOptional.url({ one: "1" })).toBe("/many-optional/1");
         expect(manyOptional.url({ one: "1", two: "2" })).toBe(
-            "/many-optional/1/2",
+            "/many-optional/1/2"
         );
         expect(manyOptional.url({ one: "1", two: "2", three: "3" })).toBe(
-            "/many-optional/1/2/3",
+            "/many-optional/1/2/3"
         );
     });
 
@@ -35,7 +35,7 @@ describe("manyOptional", async () => {
 
     test("definition", () => {
         expect(manyOptional.definition.url).toBe(
-            "/many-optional/{one?}/{two?}/{three?}",
+            "/many-optional/{one?}/{two?}/{three?}"
         );
     });
 });

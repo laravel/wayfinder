@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { store } from "../workbench/resources/js/routes/namespaced/my-package";
+import { store } from "../workbench/resources/js/wayfinder/routes/namespaced/my-package";
 
 it("can access a namespaced route", () => {
     expect(store.url()).toBe("/package-route");

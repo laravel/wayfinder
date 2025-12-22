@@ -4,12 +4,12 @@ import {
     screamingSnake,
     snake,
     studly,
-} from "../workbench/resources/js/actions/App/Http/Controllers/ParameterNameController";
+} from "../workbench/resources/js/wayfinder/App/Http/Controllers/ParameterNameController";
 
 describe("camel", () => {
     test("url", () => {
         expect(camel.url({ camelCase: "casing" })).toBe(
-            "/parameter-names/casing/camel",
+            "/parameter-names/casing/camel"
         );
     });
 
@@ -21,13 +21,13 @@ describe("camel", () => {
 describe("studly", () => {
     test("url", () => {
         expect(studly.url({ StudlyCase: "casing" })).toBe(
-            "/parameter-names/casing/studly",
+            "/parameter-names/casing/studly"
         );
     });
 
     test("definition", () => {
         expect(studly.definition.url).toBe(
-            "/parameter-names/{StudlyCase}/studly",
+            "/parameter-names/{StudlyCase}/studly"
         );
     });
 });
@@ -35,13 +35,13 @@ describe("studly", () => {
 describe("snake", () => {
     test("url", () => {
         expect(snake.url({ snake_case: "casing" })).toBe(
-            "/parameter-names/casing/snake",
+            "/parameter-names/casing/snake"
         );
     });
 
     test("definition", () => {
         expect(snake.definition.url).toBe(
-            "/parameter-names/{snake_case}/snake",
+            "/parameter-names/{snake_case}/snake"
         );
     });
 });
@@ -49,13 +49,13 @@ describe("snake", () => {
 describe("screaming snake", () => {
     test("url", () => {
         expect(screamingSnake.url({ SCREAMING_SNAKE_CASE: "casing" })).toBe(
-            "/parameter-names/casing/screaming-snake",
+            "/parameter-names/casing/screaming-snake"
         );
     });
 
     test("definition", () => {
         expect(screamingSnake.definition.url).toBe(
-            "/parameter-names/{SCREAMING_SNAKE_CASE}/screaming-snake",
+            "/parameter-names/{SCREAMING_SNAKE_CASE}/screaming-snake"
         );
     });
 });

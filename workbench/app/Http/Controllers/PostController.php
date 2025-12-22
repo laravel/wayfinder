@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
+
 class PostController
 {
     public function index()
@@ -14,7 +16,7 @@ class PostController
         //
     }
 
-    public function store()
+    public function store(StorePostRequest $request)
     {
         //
     }

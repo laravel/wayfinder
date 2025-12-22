@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
     mixedDefaults,
     onlyDefaults,
-} from "../workbench/resources/js/actions/App/Http/Controllers/UrlDefaultsController";
+} from "../workbench/resources/js/wayfinder/App/Http/Controllers/UrlDefaultsController";
 
 describe("onlyDefault", async () => {
     test("url", () => {
@@ -26,10 +26,10 @@ describe("onlyDefault", async () => {
 describe("mixedDefault", async () => {
     test("url", () => {
         expect(mixedDefaults.url({ timezone: "UTC" })).toBe(
-            "/with-defaults/en/also/UTC",
+            "/with-defaults/en/also/UTC"
         );
         expect(mixedDefaults.url({ timezone: "UTC", locale: "es" })).toBe(
-            "/with-defaults/es/also/UTC",
+            "/with-defaults/es/also/UTC"
         );
     });
 

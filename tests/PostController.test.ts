@@ -7,7 +7,7 @@ import {
     show,
     store,
     update,
-} from "../workbench/resources/js/actions/App/Http/Controllers/PostController";
+} from "../workbench/resources/js/wayfinder/App/Http/Controllers/PostController";
 
 describe("index", async () => {
     test("properties", () => {

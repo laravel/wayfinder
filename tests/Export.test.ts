@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { exportMethod } from "../workbench/resources/js/routes/index";
+import { exportMethod } from "../workbench/resources/js/wayfinder/routes/index";
 
 test("export param", () => {
     expect(exportMethod.url({ report: "a", export: "b" })).toBe("/export/a/b");

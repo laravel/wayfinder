@@ -9,7 +9,8 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
-type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
+type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
+type ParamValue = string | number | boolean;
 
 let urlDefaults: Record<string, unknown> = {};
 
@@ -27,6 +28,16 @@ export type RouteQueryOptions = {
     mergeQuery?: QueryParams;
 };
 
+export const formSafeOptions = (
+    method: Method,
+    options?: RouteQueryOptions
+): RouteQueryOptions => ({
+    [options?.mergeQuery ? "mergeQuery" : "query"]: {
+        _method: method.toUpperCase(),
+        ...(options?.query ?? options?.mergeQuery),
+    },
+});
+
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
@@ -35,7 +46,7 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const query = options.query ?? options.mergeQuery;
     const includeExisting = options.mergeQuery !== undefined;
 
-    const getValue = (value: string | number | boolean) => {
+    const getValue = (value: ParamValue) => {
         if (value === true) {
             return "1";
         }
@@ -50,7 +61,7 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const params = new URLSearchParams(
         includeExisting && typeof window !== "undefined"
             ? window.location.search
-            : "",
+            : ""
     );
 
     for (const key in query) {
@@ -75,18 +86,14 @@ export const queryParams = (options?: RouteQueryOptions) => {
             });
 
             for (const subKey in query[key]) {
-                if (typeof query[key][subKey] === "undefined") {
-                    continue;
-                }
-
                 if (
                     ["string", "number", "boolean"].includes(
-                        typeof query[key][subKey],
+                        typeof query[key][subKey]
                     )
                 ) {
                     params.set(
                         `${key}[${subKey}]`,
-                        getValue(query[key][subKey]),
+                        getValue(query[key][subKey] as ParamValue)
                     );
                 }
             }
@@ -100,19 +107,35 @@ export const queryParams = (options?: RouteQueryOptions) => {
     return str.length > 0 ? `?${str}` : "";
 };
 
+export const validateParameters = (
+    args: Record<string, unknown> | undefined,
+    optional: string[]
+) => {
+    const missing = optional.filter((key) => !args?.[key]);
+    const expectedMissing = optional.slice(missing.length * -1);
+
+    for (let i = 0; i < missing.length; i++) {
+        if (missing[i] !== expectedMissing[i]) {
+            throw Error(
+                "Unexpected optional parameters missing. Unable to generate a URL."
+            );
+        }
+    }
+};
+
 export const setUrlDefaults = (params: Record<string, unknown>) => {
     urlDefaults = params;
 };
 
 export const addUrlDefault = (
     key: string,
-    value: string | number | boolean,
+    value: string | number | boolean
 ) => {
     urlDefaults[key] = value;
 };
 
 export const applyUrlDefaults = <T extends Record<string, unknown> | undefined>(
-    existing: T,
+    existing: T
 ): T => {
     const existingParams = { ...(existing ?? ({} as Record<string, unknown>)) };
 
@@ -126,20 +149,4 @@ export const applyUrlDefaults = <T extends Record<string, unknown> | undefined>(
     }
 
     return existingParams as T;
-};
-
-export const validateParameters = (
-    args: Record<string, unknown> | undefined,
-    optional: string[],
-) => {
-    const missing = optional.filter((key) => !args?.[key]);
-    const expectedMissing = optional.slice(missing.length * -1);
-
-    for (let i = 0; i < missing.length; i++) {
-        if (missing[i] !== expectedMissing[i]) {
-            throw Error(
-                "Unexpected optional parameters missing. Unable to generate a URL.",
-            );
-        }
-    }
 };

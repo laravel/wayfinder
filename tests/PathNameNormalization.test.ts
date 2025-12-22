@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import api from "../workbench/resources/js/routes/api";
-import v1 from "../workbench/resources/js/routes/api/v1";
+import api from "../workbench/resources/js/wayfinder/routes/api";
+import v1 from "../workbench/resources/js/wayfinder/routes/api/v1";
 
 it("can normalize to camel case", () => {
     expect(v1.taskStatus.index(1).url).toBe("/api/v1/tasks/1/task-status");
