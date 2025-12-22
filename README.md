@@ -52,6 +52,7 @@ This version of Wayfinder generates _way_ more TypeScript than the previous beta
     -   `--skip-actions`
     -   `--skip-routes`
     -   `--with-form`
+-   If you are using the Wayfinder Vite plugin, remove the `routes`, `actions`, and `withForm` arguments
 
 ## Generating TypeScript
 
