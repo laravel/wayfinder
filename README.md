@@ -41,6 +41,18 @@ After installation, you may publish the configuration file:
 php artisan vendor:publish --tag=wayfinder-config
 ```
 
+## Upgrading from Previous Beta
+
+This version of Wayfinder generates _way_ more TypeScript than the previous beta. If you are upgrading from the previous beta version, please note the following changes:
+
+-   All files are generated, by default, under `resources/js/wayfinder`. Previously they were broken up between `actions` and `routes`.
+-   `types.ts` is now `types.d.ts`
+-   There is still a `routes` subdirectory for named routes, but there is no more `actions` subdirectory, the generated files simply follow the PHP namespace.
+-   The following command line flags have been removed and replaced with corresponding config values in the `wayfinder` config:
+    -   `--skip-actions`
+    -   `--skip-routes`
+    -   `--with-form`
+
 ## Generating TypeScript
 
 To generate TypeScript files from your Laravel application, run the `wayfinder:generate` command:
@@ -438,7 +450,7 @@ Echo.private(BroadcastChannels.user(userId).notifications).listen(
     "NewNotification",
     (e) => {
         // ...
-    }
+    },
 );
 ```
 
