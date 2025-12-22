@@ -32,7 +32,7 @@ Wayfinder generates TypeScript for:
 You may install Wayfinder via Composer:
 
 ```bash
-composer require laravel/wayfinder
+composer require laravel/wayfinder:dev-next
 ```
 
 After installation, you may publish the configuration file:
