@@ -94,6 +94,7 @@ Route::prefix('/api/v1')->name('api.v1.')->group(function () {
 Route::get('/inertia/dashboard', [InertiaController::class, 'dashboard'])->name('inertia.dashboard');
 Route::get('/inertia/settings', [InertiaController::class, 'settings'])->name('inertia.settings');
 Route::get('/inertia/profile', [InertiaController::class, 'profile'])->name('inertia.profile');
+Route::get('/inertia/unsafe', [InertiaController::class, 'unsafe'])->name('inertia.unsafe');
 
 Route::get('/api/status', [ApiController::class, 'status'])->name('api.status');
 Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
