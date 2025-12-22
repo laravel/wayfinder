@@ -2,20 +2,26 @@
 
 namespace Laravel\Wayfinder\Converters;
 
-use Laravel\Wayfinder\Langs\TypeScript;
+use Illuminate\Support\Str;
 use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
+use Laravel\Wayfinder\Langs\TypeScript;
 
 class InertiaData extends Converter
 {
     public function convert(InertiaResponse $response, Route $route): ?string
     {
         $fqn = str($response->component)
-            ->replace(DIRECTORY_SEPARATOR, '.')
-            ->prepend('Inertia.Pages.');
+            ->explode(DIRECTORY_SEPARATOR)
+            ->map(fn ($part) => Str::studly($part))
+            ->prepend('Inertia.Pages')
+            ->join('.');
         $name = str($response->component)
             ->afterLast(DIRECTORY_SEPARATOR)
-            ->afterLast('.');
+            ->afterLast('.')
+            ->explode(DIRECTORY_SEPARATOR)
+            ->map(fn ($part) => Str::studly($part))
+            ->join(DIRECTORY_SEPARATOR);
         $type = $this->getType($response);
 
         TypeScript::addFqnToNamespaced($fqn, TypeScript::type($name, $type)->export())
@@ -32,6 +38,6 @@ class InertiaData extends Converter
             return $sharedData;
         }
 
-        return $sharedData . ' & ' . TypeScript::objectToTypeObject($response->data, false);
+        return $sharedData.' & '.TypeScript::objectToTypeObject($response->data, false);
     }
 }

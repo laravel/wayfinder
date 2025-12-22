@@ -42,4 +42,14 @@ class InertiaController
             ],
         ]);
     }
+
+    public function unsafe(): Response
+    {
+        return Inertia::render('settings/two-factor', [
+            'user' => [
+                'name' => 'Jane Doe',
+                'email' => 'jane@doe.co',
+            ],
+        ]);
+    }
 }
