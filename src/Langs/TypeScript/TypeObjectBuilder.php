@@ -31,6 +31,6 @@ class TypeObjectBuilder implements Stringable
 
     public function __toString(): string
     {
-        return '{ ' . implode(', ', $this->keyValuePairs) . ' }';
+        return '{ '.implode(', ', $this->keyValuePairs).' }';
     }
 }

@@ -2,12 +2,12 @@
 
 namespace Laravel\Wayfinder\Registry;
 
-use Laravel\Wayfinder\Langs\TypeScript;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
 use InvalidArgumentException;
 use Laravel\Surveyor\Types;
 use Laravel\Surveyor\Types\Contracts\Type;
+use Laravel\Wayfinder\Langs\TypeScript;
 
 class TypeScriptConverter extends AbstractConverter
 {
@@ -25,7 +25,7 @@ class TypeScriptConverter extends AbstractConverter
             Types\StringType::class => $this->convertStringResult($result),
             Types\UnionType::class => $this->convertUnionResult($result),
             Types\CallableType::class => $this->convertCallableResult($result),
-            default => throw new InvalidArgumentException('Unsupported result type: ' . get_class($result)),
+            default => throw new InvalidArgumentException('Unsupported result type: '.get_class($result)),
         };
     }
 
@@ -48,13 +48,13 @@ class TypeScriptConverter extends AbstractConverter
             $types = TypeScript::union(array_map($this->convert(...), $value));
 
             if (str_contains($types, '|')) {
-                return '(' . $types . ')[]' . $nullSuffix;
+                return '('.$types.')[]'.$nullSuffix;
             }
 
-            return $types . '[]' . $nullSuffix;
+            return $types.'[]'.$nullSuffix;
         }
 
-        return TypeScript::objectToRecord($value, false) . $nullSuffix;
+        return TypeScript::objectToRecord($value, false).$nullSuffix;
     }
 
     protected function convertArrayShapeResult(Types\ArrayShapeType $result): string
@@ -142,8 +142,8 @@ class TypeScriptConverter extends AbstractConverter
             ->filter()
             ->unique();
 
-        if ($result->count() > 1 && $result->contains(fn($type) => $type === 'unknown')) {
-            $newResult = $result->filter(fn($type) => $type !== 'unknown');
+        if ($result->count() > 1 && $result->contains(fn ($type) => $type === 'unknown')) {
+            $newResult = $result->filter(fn ($type) => $type !== 'unknown');
 
             if ($newResult->count() === 1 && $newResult->first() === 'null') {
                 return 'unknown';
@@ -152,7 +152,7 @@ class TypeScriptConverter extends AbstractConverter
             $result = $newResult;
         }
 
-        return $result->implode(' ' . $glue . ' ');
+        return $result->implode(' '.$glue.' ');
     }
 
     protected function convertMixedResult(Types\MixedType $result): string

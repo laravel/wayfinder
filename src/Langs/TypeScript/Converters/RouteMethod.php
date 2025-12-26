@@ -2,9 +2,9 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript\Converters;
 
-use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\Verb;
+use Laravel\Wayfinder\Langs\TypeScript;
 
 class RouteMethod
 {
@@ -39,7 +39,7 @@ class RouteMethod
             return $this->multiRouteControllerMethod();
         }
 
-        return implode(PHP_EOL . PHP_EOL, array_map(fn($line) => trim($line), [
+        return implode(PHP_EOL.PHP_EOL, array_map(fn ($line) => trim($line), [
             $this->base(),
             $this->definition(),
             $this->url(),
@@ -88,7 +88,7 @@ class RouteMethod
 
         $output[] = (string) $const;
 
-        return implode(PHP_EOL . PHP_EOL, $output);
+        return implode(PHP_EOL.PHP_EOL, $output);
     }
 
     protected function base(): string
@@ -99,7 +99,7 @@ class RouteMethod
 
         $object
             ->key('url')
-            ->value($this->name . '.url(' . implode(', ', $urlArgs) . ')');
+            ->value($this->name.'.url('.implode(', ', $urlArgs).')');
         $object
             ->key('method')
             ->value($this->route->verbs()->first()->actual)
@@ -107,7 +107,7 @@ class RouteMethod
 
         $func = TypeScript::arrowFunction($this->name)
             ->export($this->named || ! $this->route->hasInvokableController())
-            ->returnType('RouteDefinition<"' . $this->route->verbs()->first()->actual . '">')
+            ->returnType('RouteDefinition<"'.$this->route->verbs()->first()->actual.'">')
             ->body($object);
 
         if ($this->hasParameters) {
@@ -135,7 +135,7 @@ class RouteMethod
             }
         }
 
-        $block->annotation('route', '"' . $this->route->uri() . '"');
+        $block->annotation('route', '"'.$this->route->uri().'"');
     }
 
     protected function collectArgTypes(): array
@@ -148,7 +148,7 @@ class RouteMethod
         $tuple = TypeScript::tuple();
 
         foreach ($this->route->parameters() as $parameter) {
-            $types = array_map(fn($type) => TypeScript::fromSurveyorType($type), $parameter->types);
+            $types = array_map(fn ($type) => TypeScript::fromSurveyorType($type), $parameter->types);
             $baseTypes = $types;
 
             if ($parameter->key) {
@@ -181,7 +181,7 @@ class RouteMethod
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
         $def->key('url')->value($this->route->uri())->quote();
-        $def->satisfies('RouteDefinition<' . $verbs . '>');
+        $def->satisfies('RouteDefinition<'.$verbs.'>');
 
         return "{$this->name}.definition = {$def}";
     }
@@ -287,10 +287,10 @@ class RouteMethod
 
             $urlReplace = implode(
                 PHP_EOL,
-                array_map(fn($line) => TypeScript::indent($line), $urlReplace),
+                array_map(fn ($line) => TypeScript::indent($line), $urlReplace),
             );
 
-            $return .= PHP_EOL . $urlReplace;
+            $return .= PHP_EOL.$urlReplace;
         }
 
         $return .= ' + queryParams(options)';
@@ -329,7 +329,7 @@ class RouteMethod
         }
 
         $func->argument('options', 'RouteQueryOptions', true);
-        $func->returnType('RouteDefinition<"' . $verb->actual . '">');
+        $func->returnType('RouteDefinition<"'.$verb->actual.'">');
 
         $body = TypeScript::object();
 
@@ -337,7 +337,7 @@ class RouteMethod
 
         $body
             ->key('url')
-            ->value($this->name . '.url(' . implode(', ', $urlArgs) . ')');
+            ->value($this->name.'.url('.implode(', ', $urlArgs).')');
         $body
             ->key('method')
             ->value($verb->actual)
@@ -372,7 +372,7 @@ class RouteMethod
         }
 
         $func->argument('options', 'RouteQueryOptions', true);
-        $func->returnType('RouteFormDefinition<"' . $verb->formSafe . '">');
+        $func->returnType('RouteFormDefinition<"'.$verb->formSafe.'">');
 
         $body = TypeScript::object();
 
@@ -385,12 +385,12 @@ class RouteMethod
         if ($verb->formSafe === $verb->actual) {
             $urlArgs[] = 'options';
         } else {
-            $urlArgs[] = 'formSafeOptions("' . strtolower($verb->actual) . '", options)';
+            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", options)';
         }
 
         $body
             ->key('action')
-            ->value($this->name . '.url(' . implode(', ', $urlArgs) . ')');
+            ->value($this->name.'.url('.implode(', ', $urlArgs).')');
 
         $body
             ->key('method')
@@ -419,7 +419,7 @@ class RouteMethod
 
     protected function tmpMethod(Route $route): string
     {
-        return $this->jsMethod($route) . hash('xxh128', $route->uri());
+        return $this->jsMethod($route).hash('xxh128', $route->uri());
     }
 
     protected function jsMethod(Route $route): string

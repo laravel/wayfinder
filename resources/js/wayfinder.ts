@@ -30,7 +30,7 @@ export type RouteQueryOptions = {
 
 export const formSafeOptions = (
     method: Method,
-    options?: RouteQueryOptions
+    options?: RouteQueryOptions,
 ): RouteQueryOptions => ({
     [options?.mergeQuery ? "mergeQuery" : "query"]: {
         _method: method.toUpperCase(),
@@ -61,7 +61,7 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const params = new URLSearchParams(
         includeExisting && typeof window !== "undefined"
             ? window.location.search
-            : ""
+            : "",
     );
 
     for (const key in query) {
@@ -88,12 +88,12 @@ export const queryParams = (options?: RouteQueryOptions) => {
             for (const subKey in query[key]) {
                 if (
                     ["string", "number", "boolean"].includes(
-                        typeof query[key][subKey]
+                        typeof query[key][subKey],
                     )
                 ) {
                     params.set(
                         `${key}[${subKey}]`,
-                        getValue(query[key][subKey] as ParamValue)
+                        getValue(query[key][subKey] as ParamValue),
                     );
                 }
             }
@@ -109,7 +109,7 @@ export const queryParams = (options?: RouteQueryOptions) => {
 
 export const validateParameters = (
     args: Record<string, unknown> | undefined,
-    optional: string[]
+    optional: string[],
 ) => {
     const missing = optional.filter((key) => !args?.[key]);
     const expectedMissing = optional.slice(missing.length * -1);
@@ -117,7 +117,7 @@ export const validateParameters = (
     for (let i = 0; i < missing.length; i++) {
         if (missing[i] !== expectedMissing[i]) {
             throw Error(
-                "Unexpected optional parameters missing. Unable to generate a URL."
+                "Unexpected optional parameters missing. Unable to generate a URL.",
             );
         }
     }
@@ -129,13 +129,13 @@ export const setUrlDefaults = (params: Record<string, unknown>) => {
 
 export const addUrlDefault = (
     key: string,
-    value: string | number | boolean
+    value: string | number | boolean,
 ) => {
     urlDefaults[key] = value;
 };
 
 export const applyUrlDefaults = <T extends Record<string, unknown> | undefined>(
-    existing: T
+    existing: T,
 ): T => {
     const existingParams = { ...(existing ?? ({} as Record<string, unknown>)) };
 

@@ -2,6 +2,13 @@
 
 namespace Laravel\Wayfinder\Console;
 
+use Illuminate\Config\Repository;
+use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\File;
+use Laravel\Ranger\Ranger;
+use Laravel\Ranger\Support\Config as RangerConfig;
+use Laravel\Surveyor\Analyzer\AnalyzedCache;
 use Laravel\Wayfinder\Converters\BroadcastChannels;
 use Laravel\Wayfinder\Converters\BroadcastEvents;
 use Laravel\Wayfinder\Converters\Enums;
@@ -15,13 +22,6 @@ use Laravel\Wayfinder\Langs\TypeScript\Imports;
 use Laravel\Wayfinder\Registry\ResultConverter;
 use Laravel\Wayfinder\Registry\TypeScriptConverter;
 use Laravel\Wayfinder\Support\Path;
-use Illuminate\Config\Repository;
-use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\File;
-use Laravel\Ranger\Ranger;
-use Laravel\Ranger\Support\Config as RangerConfig;
-use Laravel\Surveyor\Analyzer\AnalyzedCache;
 use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 
@@ -81,22 +81,22 @@ class GenerateCommand extends Command
         Path::setAppPaths(...$appPaths);
 
         if ($this->config->get('wayfinder.generate.models', true)) {
-            $this->ranger->onModel(fn($model) => $this->results[] = $modelConverter->convert($model));
+            $this->ranger->onModel(fn ($model) => $this->results[] = $modelConverter->convert($model));
         }
 
         if ($this->config->get('wayfinder.generate.inertia.shared_data', true)) {
-            $this->ranger->onInertiaSharedData(fn($data) => $this->results[] = $inertiaSharedDataConverter->convert($data));
+            $this->ranger->onInertiaSharedData(fn ($data) => $this->results[] = $inertiaSharedDataConverter->convert($data));
         }
 
         if ($this->config->get('wayfinder.generate.broadcast.channels', true)) {
             $this->ranger->onBroadcastChannels(
-                fn($channels) => $this->results[] = $broadcastChannelsConverter->convert($channels),
+                fn ($channels) => $this->results[] = $broadcastChannelsConverter->convert($channels),
             );
         }
 
         if ($this->config->get('wayfinder.generate.broadcast.events', true)) {
             $this->ranger->onBroadcastEvents(
-                fn($events) => array_push(
+                fn ($events) => array_push(
                     $this->results,
                     ...$broadcastEventsConverter->convert($events),
                 ),
@@ -105,12 +105,12 @@ class GenerateCommand extends Command
 
         if ($this->config->get('wayfinder.generate.environment_variables', true)) {
             $this->ranger->onEnvironmentVariables(
-                fn($channels) => $this->results[] = $environmentVariablesConverter->convert($channels),
+                fn ($channels) => $this->results[] = $environmentVariablesConverter->convert($channels),
             );
         }
 
         if ($this->config->get('wayfinder.generate.enums', true)) {
-            $this->ranger->onEnum(fn($enum) => $this->results[] = $enumConverter->convert($enum));
+            $this->ranger->onEnum(fn ($enum) => $this->results[] = $enumConverter->convert($enum));
         }
 
         $routesConverter->generateRoutes($this->config->get('wayfinder.generate.route.named', true));
@@ -120,7 +120,7 @@ class GenerateCommand extends Command
         RangerConfig::set('routes.ignore_urls', $this->config->get('wayfinder.generate.route.ignore.urls', []));
 
         $this->ranger->onRoutes(
-            fn($routes) => array_push(
+            fn ($routes) => array_push(
                 $this->results,
                 ...$routesConverter->convert($routes),
             ),
@@ -193,11 +193,11 @@ class GenerateCommand extends Command
             $this->writeBarrelFile($dir);
         }
 
-        $this->files->copy(__DIR__ . '/../../resources/js/wayfinder.ts', join_paths($this->generatedDirectory, 'index.ts'));
+        $this->files->copy(__DIR__.'/../../resources/js/wayfinder.ts', join_paths($this->generatedDirectory, 'index.ts'));
 
         if ($this->config->get('wayfinder.format.enabled', false)) {
             info('Formatting...');
-            exec('npx @biomejs/biome format --write ' . escapeshellarg($this->generatedDirectory) . ' --indent-width 4 --indent-style space > /dev/null 2>&1 &');
+            exec('npx @biomejs/biome format --write '.escapeshellarg($this->generatedDirectory).' --indent-width 4 --indent-style space > /dev/null 2>&1 &');
         }
     }
 
@@ -212,7 +212,7 @@ class GenerateCommand extends Command
         if ($key !== $dotBase) {
             File::ensureDirectoryExists(dirname($path));
 
-            $safeKey = collect(explode('.', $key))->map(fn($k) => TypeScript::safeMethod($k, '_'))->implode('.');
+            $safeKey = collect(explode('.', $key))->map(fn ($k) => TypeScript::safeMethod($k, '_'))->implode('.');
             $safeDotEnd = TypeScript::safeMethod($dotEnd, '_');
 
             if (! file_exists($path)) {
@@ -228,7 +228,7 @@ class GenerateCommand extends Command
 
         if (! array_is_list($lines)) {
             foreach ($lines as $k => $line) {
-                $this->writeTypeBarrelFile($line, $key . '.' . $k);
+                $this->writeTypeBarrelFile($line, $key.'.'.$k);
             }
         }
     }
@@ -250,7 +250,7 @@ class GenerateCommand extends Command
         $fileList = Finder::create()
             ->files()
             ->depth(0)
-            ->filter(fn(SplFileInfo $f) => $f->getExtension() === 'ts')
+            ->filter(fn (SplFileInfo $f) => $f->getExtension() === 'ts')
             ->in($dir->getPathname());
 
         $dirList = Finder::create()
@@ -259,12 +259,12 @@ class GenerateCommand extends Command
             ->in($dir->getPathname());
 
         $files = collect($fileList)->map(
-            fn(SplFileInfo $file) => str($file->getBasename())
-                ->replaceLast('.' . $file->getExtension(), '')
+            fn (SplFileInfo $file) => str($file->getBasename())
+                ->replaceLast('.'.$file->getExtension(), '')
                 ->toString()
-        )->filter(fn($f) => $f !== 'index');
+        )->filter(fn ($f) => $f !== 'index');
 
-        $dirs = collect($dirList)->map(fn(SplFileInfo $file) => $file->getBasename());
+        $dirs = collect($dirList)->map(fn (SplFileInfo $file) => $file->getBasename());
 
         if ($files->isEmpty() && $dirs->isEmpty()) {
             return;
@@ -305,6 +305,6 @@ class GenerateCommand extends Command
         // Do not edit this file directly, any changes will be overwritten.
         COMMENT;
 
-        $this->files->put($path, $comment . PHP_EOL . PHP_EOL . $content);
+        $this->files->put($path, $comment.PHP_EOL.PHP_EOL.$content);
     }
 }

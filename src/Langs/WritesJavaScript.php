@@ -6,7 +6,7 @@ trait WritesJavaScript
 {
     public static function indent(string $string, int $level = 1): string
     {
-        return collect(explode(PHP_EOL, $string))->map(fn($line) => str_repeat(' ', $level * 4) . $line)->implode(PHP_EOL);
+        return collect(explode(PHP_EOL, $string))->map(fn ($line) => str_repeat(' ', $level * 4).$line)->implode(PHP_EOL);
     }
 
     public static function quote(string $string): string
@@ -17,7 +17,7 @@ trait WritesJavaScript
             }
         }
 
-        return '"' . $string . '"';
+        return '"'.$string.'"';
     }
 
     public static function quoteKey(string $key): string

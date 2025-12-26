@@ -22,7 +22,7 @@ class Result
             return $this->content;
         }
 
-        return implode(PHP_EOL . PHP_EOL, [
+        return implode(PHP_EOL.PHP_EOL, [
             implode(PHP_EOL, $importLines),
             $this->content,
         ]);

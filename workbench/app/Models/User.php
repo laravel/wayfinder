@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -20,6 +21,11 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $with = ['ownedProducts', 'favoriteCategories'];
 
     /**
      * The attributes that are mass assignable.
@@ -51,4 +57,20 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * @return HasMany<Product, $this>
+     */
+    public function ownedProducts(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * @return HasMany<Category, $this>
+     */
+    public function favoriteCategories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
 }

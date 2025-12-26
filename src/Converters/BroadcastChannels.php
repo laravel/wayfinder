@@ -2,11 +2,11 @@
 
 namespace Laravel\Wayfinder\Converters;
 
+use Illuminate\Support\Collection;
+use Laravel\Ranger\Components\BroadcastChannel;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
 use Laravel\Wayfinder\Support\Path;
-use Illuminate\Support\Collection;
-use Laravel\Ranger\Components\BroadcastChannel;
 
 class BroadcastChannels extends Converter
 {
@@ -22,7 +22,7 @@ class BroadcastChannels extends Converter
         }
 
         $types = $channels->map(
-            fn(BroadcastChannel $channel) => TypeScript::backtick(
+            fn (BroadcastChannel $channel) => TypeScript::backtick(
                 preg_replace(
                     self::PARAM_PATTERN,
                     TypeScript::templateString(TypeScript::union(['string', 'number'])),
@@ -34,7 +34,7 @@ class BroadcastChannels extends Converter
         $js = $channels
             ->map($this->toConstData(...))
             ->values()
-            ->flatMap(fn($i) => $i)
+            ->flatMap(fn ($i) => $i)
             ->undot()
             ->map($this->channelChain(...));
 
@@ -46,7 +46,7 @@ class BroadcastChannels extends Converter
             )->export(),
         ];
 
-        return new Result('broadcast-channels.ts', implode(PHP_EOL . PHP_EOL, $content));
+        return new Result('broadcast-channels.ts', implode(PHP_EOL.PHP_EOL, $content));
     }
 
     protected function toConstData(BroadcastChannel $channel): array
@@ -84,7 +84,7 @@ class BroadcastChannels extends Converter
 
         foreach ($parts as $part) {
             if (($chain[$part] ?? false) !== false) {
-                $key .= '.' . $part;
+                $key .= '.'.$part;
                 $key = ltrim($key, '.');
                 $nested[$key] = $chain[$part];
             }
@@ -149,7 +149,7 @@ class BroadcastChannels extends Converter
 
     protected function toTypeScriptParams(array $params): string
     {
-        return collect($params)->map(fn($p) => "{$p}: string | number")->implode(', ');
+        return collect($params)->map(fn ($p) => "{$p}: string | number")->implode(', ');
     }
 
     protected function convertTemplateString(string $templateString): string

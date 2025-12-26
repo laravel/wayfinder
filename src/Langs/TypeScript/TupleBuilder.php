@@ -23,12 +23,12 @@ class TupleBuilder implements Stringable
             $i = '';
 
             if ($item[1]) {
-                $i .= $item[1] . ': ';
+                $i .= $item[1].': ';
             }
 
-            $items[] = $i . implode(' | ', $item[0]);
+            $items[] = $i.implode(' | ', $item[0]);
         }
 
-        return '[ ' . implode(', ', $items) . ' ]';
+        return '[ '.implode(', ', $items).' ]';
     }
 }

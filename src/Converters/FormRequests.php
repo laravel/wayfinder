@@ -2,11 +2,11 @@
 
 namespace Laravel\Wayfinder\Converters;
 
-use Laravel\Wayfinder\Langs\TypeScript;
-use Laravel\Wayfinder\Validation\Rules;
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Components\Validator;
+use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Validation\Rules;
 use ReflectionClass;
 
 class FormRequests extends Converter
@@ -77,7 +77,7 @@ class FormRequests extends Converter
             return self::DEFAULT;
         }
 
-        return '{' . $internalDefinition . '}';
+        return '{'.$internalDefinition.'}';
     }
 
     protected function routeControllerRequestKey(Route $route): string
@@ -122,7 +122,7 @@ class FormRequests extends Converter
                 $def .= '?: ';
             }
 
-            $def .= $rulesHelper->resolveFieldType() . ';';
+            $def .= $rulesHelper->resolveFieldType().';';
 
             return $def;
         }
@@ -133,10 +133,10 @@ class FormRequests extends Converter
         foreach ($rules as $subKey => $subRules) {
             if ($subKey === '*') {
                 foreach ($subRules as $grandKey => $subRule) {
-                    $subDef .= PHP_EOL . $this->toDefinition($subRule, $grandKey, $indent + 1);
+                    $subDef .= PHP_EOL.$this->toDefinition($subRule, $grandKey, $indent + 1);
                 }
             } else {
-                $subDef .= PHP_EOL . $this->toDefinition($subRules, $subKey, $indent + 1);
+                $subDef .= PHP_EOL.$this->toDefinition($subRules, $subKey, $indent + 1);
             }
         }
 
@@ -152,9 +152,9 @@ class FormRequests extends Converter
         $def .= $subDef;
 
         if ($wildcard) {
-            $def .= PHP_EOL . TypeScript::indent('}[]');
+            $def .= PHP_EOL.TypeScript::indent('}[]');
         } else {
-            $def .= PHP_EOL . TypeScript::indent('}');
+            $def .= PHP_EOL.TypeScript::indent('}');
         }
 
         return $def;

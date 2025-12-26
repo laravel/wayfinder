@@ -54,6 +54,6 @@ class VariableBuilder implements Stringable
             $this->content .= ' as const';
         }
 
-        return $block . $this->content;
+        return $block.$this->content;
     }
 }

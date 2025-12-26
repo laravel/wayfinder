@@ -2,13 +2,13 @@
 
 namespace Laravel\Wayfinder\Converters;
 
+use Illuminate\Support\Collection;
+use Laravel\Ranger\Components\BroadcastEvent;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Langs\TypeScript\Imports;
 use Laravel\Wayfinder\Langs\TypeScript\VariableBuilder;
 use Laravel\Wayfinder\Results\Result;
 use Laravel\Wayfinder\Support\Npm;
-use Illuminate\Support\Collection;
-use Laravel\Ranger\Components\BroadcastEvent;
 
 class BroadcastEvents extends Converter
 {
@@ -23,14 +23,14 @@ class BroadcastEvents extends Converter
 
         $results = [];
 
-        $namespacedEvents = $events->filter(fn($event) => str_contains($event->name, '\\'));
+        $namespacedEvents = $events->filter(fn ($event) => str_contains($event->name, '\\'));
         $namespaceRoots = $namespacedEvents
-            ->map(fn(BroadcastEvent $event) => str($event->name)->before('\\')->toString())
+            ->map(fn (BroadcastEvent $event) => str($event->name)->before('\\')->toString())
             ->unique();
-        $grouped = $events->groupBy(fn(BroadcastEvent $event) => $event->name);
+        $grouped = $events->groupBy(fn (BroadcastEvent $event) => $event->name);
 
         $namespacedEvents->each(
-            fn(BroadcastEvent $event) => TypeScript::addFqnToNamespaced(
+            fn (BroadcastEvent $event) => TypeScript::addFqnToNamespaced(
                 $event->name,
                 TypeScript::type(
                     str($event->name)->afterLast('\\'),
@@ -51,14 +51,14 @@ class BroadcastEvents extends Converter
     protected function echoFileContent(Collection $grouped, Collection $namespaceRoots): ?string
     {
         $echoPackage = collect(['@laravel/echo-vue', '@laravel/echo-react'])
-            ->first(fn($package) => Npm::isInstalled($package));
+            ->first(fn ($package) => Npm::isInstalled($package));
 
         if (! $echoPackage) {
             return null;
         }
 
         $eventsInterface = $grouped->map(
-            fn($events, $key) => (string) TypeScript::objectKeyValue(
+            fn ($events, $key) => (string) TypeScript::objectKeyValue(
                 $this->toEventName($key),
                 TypeScript::objectToTypeObject($events->first()->data->value, false)
             ),
@@ -71,7 +71,7 @@ class BroadcastEvents extends Converter
             $content[] = '';
         }
 
-        return implode(PHP_EOL, $content) . PHP_EOL . TypeScript::module(
+        return implode(PHP_EOL, $content).PHP_EOL.TypeScript::module(
             $echoPackage,
             TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL))
         );
@@ -117,6 +117,6 @@ class BroadcastEvents extends Converter
 
     protected function toEventName(string $name)
     {
-        return '.' . str_replace('\\', '.', $name);
+        return '.'.str_replace('\\', '.', $name);
     }
 }

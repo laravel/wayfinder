@@ -30,7 +30,7 @@ class Import
         $path = ltrim($path, DIRECTORY_SEPARATOR);
         $count = substr_count($path, DIRECTORY_SEPARATOR);
 
-        $final = '.' . DIRECTORY_SEPARATOR . ltrim(str_repeat(DIRECTORY_SEPARATOR . '..', $count), DIRECTORY_SEPARATOR);
+        $final = '.'.DIRECTORY_SEPARATOR.ltrim(str_repeat(DIRECTORY_SEPARATOR.'..', $count), DIRECTORY_SEPARATOR);
 
         if ($suffix) {
             return join_paths($final, $suffix);
