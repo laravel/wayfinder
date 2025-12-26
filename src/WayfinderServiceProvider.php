@@ -17,7 +17,7 @@ class WayfinderServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->mergeConfigFrom(__DIR__ . '/../config/wayfinder.php', 'wayfinder');
+        $this->mergeConfigFrom(__DIR__.'/../config/wayfinder.php', 'wayfinder');
     }
 
     /**
@@ -41,7 +41,7 @@ class WayfinderServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes(
                 [
-                    __DIR__ . '/../config/wayfinder.php' => config_path(
+                    __DIR__.'/../config/wayfinder.php' => config_path(
                         'wayfinder.php',
                     ),
                 ],

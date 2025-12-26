@@ -14,7 +14,7 @@ class ConverterRegistry
         $instance = app($converter);
 
         if (! ($instance instanceof ConverterInterface)) {
-            throw new InvalidArgumentException("Converter {$converter} must implement " . ConverterInterface::class);
+            throw new InvalidArgumentException("Converter {$converter} must implement ".ConverterInterface::class);
         }
 
         if ($this->hasConverter($converter)) {

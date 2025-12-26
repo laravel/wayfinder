@@ -2,6 +2,8 @@
 
 namespace Laravel\Wayfinder\Langs;
 
+use Illuminate\Support\Collection;
+use Laravel\Surveyor\Types\Contracts\Type;
 use Laravel\Wayfinder\Langs\TypeScript\ArrowFunctionBuilder;
 use Laravel\Wayfinder\Langs\TypeScript\ObjectBuilder;
 use Laravel\Wayfinder\Langs\TypeScript\TupleBuilder;
@@ -9,8 +11,6 @@ use Laravel\Wayfinder\Langs\TypeScript\TypeObjectBuilder;
 use Laravel\Wayfinder\Langs\TypeScript\VariableBuilder;
 use Laravel\Wayfinder\Registry\ResultConverter;
 use Laravel\Wayfinder\Registry\TypeScriptConverter;
-use Illuminate\Support\Collection;
-use Laravel\Surveyor\Types\Contracts\Type;
 
 class TypeScript
 {
@@ -64,12 +64,12 @@ class TypeScript
             $values = collect($values);
         }
 
-        return self::type($type, $values->map(fn($v) => self::quote($v))->implode(' | '));
+        return self::type($type, $values->map(fn ($v) => self::quote($v))->implode(' | '));
     }
 
     public static function backtick(string $content): string
     {
-        return '`' . $content . '`';
+        return '`'.$content.'`';
     }
 
     public static function block(string $content): VariableBuilder
@@ -79,7 +79,7 @@ class TypeScript
 
     public static function templateString(string $content): string
     {
-        return '${' . $content . '}';
+        return '${'.$content.'}';
     }
 
     public static function module(string $name, string|array $content)
@@ -110,7 +110,7 @@ class TypeScript
         }
 
         return collect($type)
-            ->map(fn($type) => trim($type))
+            ->map(fn ($type) => trim($type))
             ->filter()
             ->unique()
             ->implode(' | ');
@@ -138,7 +138,7 @@ class TypeScript
 
     public static function interface($name, $content): VariableBuilder
     {
-        return self::block("interface {$name} {" . PHP_EOL . $content . PHP_EOL . '}');
+        return self::block("interface {$name} {".PHP_EOL.$content.PHP_EOL.'}');
     }
 
     // public static function exportedObjectToRecord(string $name, array|Collection $values, $quote = true): string
@@ -156,7 +156,7 @@ class TypeScript
             return self::block($key);
         }
 
-        return self::block($key . ': ' . $value);
+        return self::block($key.': '.$value);
     }
 
     public static function objectToRecord(array|Collection $values, $quote = true, $inline = false): ObjectBuilder|VariableBuilder
@@ -241,7 +241,7 @@ class TypeScript
             $obj[] = $flat ? "{$key}{$colon} {$formatted}" : self::indent("{$key}{$colon} {$formatted}");
         }
 
-        $type = ['{', implode($flat ? ' ' : ',' . PHP_EOL, $obj), '}'];
+        $type = ['{', implode($flat ? ' ' : ','.PHP_EOL, $obj), '}'];
 
         return self::block(implode($flat ? ' ' : PHP_EOL, $type));
     }
@@ -250,7 +250,7 @@ class TypeScript
     {
         $keys = is_array($keys) ? collect($keys) : $keys;
 
-        return '{ ' . $keys->implode(', ') . ' }';
+        return '{ '.$keys->implode(', ').' }';
     }
 
     public static function fqn(...$parts): string
@@ -276,9 +276,9 @@ class TypeScript
 
     public static function dockblock(array $meta): string
     {
-        $lines = collect($meta)->map(fn($line) => " * {$line}");
+        $lines = collect($meta)->map(fn ($line) => " * {$line}");
 
-        return '/**' . PHP_EOL . $lines->implode(PHP_EOL) . PHP_EOL . ' */';
+        return '/**'.PHP_EOL.$lines->implode(PHP_EOL).PHP_EOL.' */';
     }
 
     public static function getNamespaced(): Collection
@@ -298,7 +298,7 @@ class TypeScript
             }
 
             if (str_contains($line, 'export namespace') || str_contains($line, 'export type')) {
-                return PHP_EOL . $line;
+                return PHP_EOL.$line;
             }
 
             return $line;
@@ -310,7 +310,7 @@ class TypeScript
         return $namespaced->map(function ($content, $key) use ($indent) {
             if (array_is_list($content)) {
                 return collect($content)->map(
-                    fn($c) => collect(explode(PHP_EOL, $c))->map(fn($line) => self::indent($line, $indent))->implode(PHP_EOL)
+                    fn ($c) => collect(explode(PHP_EOL, $c))->map(fn ($line) => self::indent($line, $indent))->implode(PHP_EOL)
                 )->implode(PHP_EOL);
             }
 
@@ -326,7 +326,7 @@ class TypeScript
 
     public static function safeImport(string $import): string
     {
-        self::$safeImports[$import] ??= $import . ucfirst(substr(hash('xxh128', $import), 0, 7));
+        self::$safeImports[$import] ??= $import.ucfirst(substr(hash('xxh128', $import), 0, 7));
 
         return self::$safeImports[$import];
     }

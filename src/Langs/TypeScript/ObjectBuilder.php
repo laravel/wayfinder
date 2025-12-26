@@ -56,17 +56,17 @@ class ObjectBuilder implements Stringable
         $pairs = $this->inline
             ? $this->keyValuePairs
             : array_map(
-                fn($pair) => TypeScript::indent($pair),
+                fn ($pair) => TypeScript::indent($pair),
                 $this->keyValuePairs,
             );
 
-        $glue = $this->inline ? ', ' : ',' . PHP_EOL;
+        $glue = $this->inline ? ', ' : ','.PHP_EOL;
         $object .= implode($glue, $pairs);
-        $object .= $this->inline ? ' ' : ',' . PHP_EOL;
+        $object .= $this->inline ? ' ' : ','.PHP_EOL;
         $object .= '}';
 
         if ($this->satisfies) {
-            $object .= ' satisfies ' . $this->satisfies;
+            $object .= ' satisfies '.$this->satisfies;
         }
 
         return $object;

@@ -2,10 +2,10 @@
 
 namespace Laravel\Wayfinder\Converters;
 
-use Laravel\Wayfinder\Langs\TypeScript;
-use Laravel\Wayfinder\Results\Result;
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\EnvironmentVariable;
+use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Results\Result;
 
 class EnvironmentVariables extends Converter
 {
@@ -15,7 +15,7 @@ class EnvironmentVariables extends Converter
     public function convert(Collection $vars): ?Result
     {
         $viteVars = $vars->filter(
-            fn(EnvironmentVariable $var) => str_starts_with($var->key, 'VITE_'),
+            fn (EnvironmentVariable $var) => str_starts_with($var->key, 'VITE_'),
         );
 
         if ($viteVars->isEmpty()) {
@@ -23,8 +23,8 @@ class EnvironmentVariables extends Converter
         }
 
         $viteVars = $viteVars
-            ->map(fn(EnvironmentVariable $var) => TypeScript::indent(
-                "readonly {$var->key}: " . TypeScript::fromPhpType(gettype($var->value))
+            ->map(fn (EnvironmentVariable $var) => TypeScript::indent(
+                "readonly {$var->key}: ".TypeScript::fromPhpType(gettype($var->value))
             ))
             ->join(PHP_EOL);
 

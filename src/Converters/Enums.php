@@ -2,9 +2,9 @@
 
 namespace Laravel\Wayfinder\Converters;
 
+use Laravel\Ranger\Components\Enum;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
-use Laravel\Ranger\Components\Enum;
 
 class Enums extends Converter
 {
@@ -19,7 +19,7 @@ class Enums extends Converter
                 $name,
                 TypeScript::union(
                     collect($enum->cases)
-                        ->map(fn($case) => "'{$case}'")
+                        ->map(fn ($case) => "'{$case}'")
                         ->values()
                         ->all(),
                 ),
@@ -44,6 +44,6 @@ class Enums extends Converter
         $content[] = '';
         $content[] = TypeScript::block($name)->exportDefault();
 
-        return new Result($path . '.ts', implode(PHP_EOL, $content));
+        return new Result($path.'.ts', implode(PHP_EOL, $content));
     }
 }

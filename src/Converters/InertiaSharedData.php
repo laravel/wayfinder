@@ -2,9 +2,9 @@
 
 namespace Laravel\Wayfinder\Converters;
 
+use Laravel\Ranger\Components\InertiaSharedData as SharedDataComponent;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
-use Laravel\Ranger\Components\InertiaSharedData as SharedDataComponent;
 
 class InertiaSharedData extends Converter
 {

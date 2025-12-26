@@ -2,10 +2,10 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript;
 
+use Laravel\Surveyor\Types\Type;
 use Laravel\Wayfinder\Langs\Concerns\CanExport;
 use Laravel\Wayfinder\Langs\Concerns\HasMeta;
 use Laravel\Wayfinder\Langs\TypeScript;
-use Laravel\Surveyor\Types\Type;
 use Stringable;
 
 class ArrowFunctionBuilder implements Stringable
@@ -43,7 +43,7 @@ class ArrowFunctionBuilder implements Stringable
 
     public function body(string|array $body): static
     {
-        $this->body = is_array($body) ? implode(PHP_EOL . PHP_EOL, $body) : $body;
+        $this->body = is_array($body) ? implode(PHP_EOL.PHP_EOL, $body) : $body;
 
         return $this;
     }
@@ -63,7 +63,7 @@ class ArrowFunctionBuilder implements Stringable
             $arg .= '?';
         }
 
-        return $arg . ': ' . implode(' | ', $types);
+        return $arg.': '.implode(' | ', $types);
     }
 
     public function __toString(): string
@@ -76,21 +76,21 @@ class ArrowFunctionBuilder implements Stringable
 
         if ($this->name) {
             $block .= $this->exportFormatted();
-            $block .= 'const ' . $this->name . ' = ';
+            $block .= 'const '.$this->name.' = ';
         }
 
-        $block .= '(' . implode(', ', $this->formattedArguments()) . ')';
+        $block .= '('.implode(', ', $this->formattedArguments()).')';
 
         if ($this->returnType) {
-            $block .= ': ' . $this->returnType;
+            $block .= ': '.$this->returnType;
         }
 
         $block .= ' => ';
 
         if (str_starts_with($this->body, '{') && str_ends_with($this->body, '}')) {
-            $block .= '(' . $this->body . ')';
+            $block .= '('.$this->body.')';
         } elseif ($this->body !== '') {
-            $block .= '{' . PHP_EOL . TypeScript::indent($this->body) . PHP_EOL . '}';
+            $block .= '{'.PHP_EOL.TypeScript::indent($this->body).PHP_EOL.'}';
         } else {
             $block .= '{}';
         }

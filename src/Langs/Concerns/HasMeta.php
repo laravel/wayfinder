@@ -30,7 +30,7 @@ trait HasMeta
             $path = $this->prepPath($path);
             $this->link($class, $path);
         } else {
-            $this->meta[] = '@see ' . $class;
+            $this->meta[] = '@see '.$class;
         }
 
         return $this;

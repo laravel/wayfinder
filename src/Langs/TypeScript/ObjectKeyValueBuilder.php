@@ -84,9 +84,9 @@ class ObjectKeyValueBuilder implements Stringable
         }
 
         if ($this->optional) {
-            return $key . '?: ' . $value;
+            return $key.'?: '.$value;
         }
 
-        return $key . ': ' . $value;
+        return $key.': '.$value;
     }
 }

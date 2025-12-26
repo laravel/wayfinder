@@ -2,9 +2,9 @@
 
 namespace Laravel\Wayfinder\Converters;
 
-use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Ranger\Components\JsonResponse;
 use Laravel\Ranger\Components\Route;
+use Laravel\Wayfinder\Langs\TypeScript;
 
 class JsonData extends Converter
 {

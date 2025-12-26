@@ -2,8 +2,8 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript;
 
-use Laravel\Wayfinder\Langs\TypeScript;
 use InvalidArgumentException;
+use Laravel\Wayfinder\Langs\TypeScript;
 use Stringable;
 
 class Imports implements Stringable
@@ -20,7 +20,7 @@ class Imports implements Stringable
         $this->imports[$import->from] ??= [];
 
         $exists = collect($this->imports[$import->from])->first(
-            fn($i) => $i->import === $import->import && $i->isType() === $import->isType() && $i->isDefault() === $import->isDefault(),
+            fn ($i) => $i->import === $import->import && $i->isType() === $import->isType() && $i->isDefault() === $import->isDefault(),
         );
 
         if (! $exists) {
@@ -63,7 +63,7 @@ class Imports implements Stringable
 
         foreach ($imports as $import) {
             $exists = collect($this->imports[$from])->first(
-                fn($i) => $i->import === $import && $i->isType() === $type && $i->isDefault() === $default,
+                fn ($i) => $i->import === $import && $i->isType() === $type && $i->isDefault() === $default,
             );
 
             if (! $exists) {
@@ -165,14 +165,14 @@ class Imports implements Stringable
 
             $collection = collect($imports);
 
-            [$wildcardImports, $regularImports] = $collection->partition(fn($i) => $i->isWildcard());
-            $typeImports = $regularImports->filter(fn($i) => $i->isType())->map(fn($i) => $i->get());
-            $defaultImports = $regularImports->filter(fn($i) => $i->isDefault())->map(fn($i) => $i->get());
-            $namedImports = $regularImports->filter(fn($i) => $i->isNamed())->map(fn($i) => $i->get());
-            $wildcardImports = $wildcardImports->map(fn($i) => $i->get());
+            [$wildcardImports, $regularImports] = $collection->partition(fn ($i) => $i->isWildcard());
+            $typeImports = $regularImports->filter(fn ($i) => $i->isType())->map(fn ($i) => $i->get());
+            $defaultImports = $regularImports->filter(fn ($i) => $i->isDefault())->map(fn ($i) => $i->get());
+            $namedImports = $regularImports->filter(fn ($i) => $i->isNamed())->map(fn ($i) => $i->get());
+            $wildcardImports = $wildcardImports->map(fn ($i) => $i->get());
 
             $allNamedImports = $namedImports->sort()->merge(
-                $typeImports->sort()->map(fn($i) => "type {$i}")
+                $typeImports->sort()->map(fn ($i) => "type {$i}")
             );
 
             if ($wildcardImports->isNotEmpty()) {
@@ -184,7 +184,7 @@ class Imports implements Stringable
             }
 
             if ($allNamedImports->isNotEmpty()) {
-                $named = '{ ' . $allNamedImports->implode(', ') . ' }';
+                $named = '{ '.$allNamedImports->implode(', ').' }';
             }
 
             if ($default || $named) {
