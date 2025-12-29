@@ -10,16 +10,18 @@ const artisan = (command: string): void =>
 
 export function setup(): void {
     try {
+        process.env.VITE_APP_NAME = "Workbench";
+
         process.env.WAYFINDER_CACHE_ROUTES
             ? artisan("route:cache")
             : artisan("route:clear");
 
         artisan(
-            `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`
+            `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`,
         );
     } catch (error) {
         console.error(
-            `Wayfinder build error\n----------${error.output}\n----------`
+            `Wayfinder build error\n----------${error.output}\n----------`,
         );
 
         process.exit(1);
