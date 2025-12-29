@@ -79,6 +79,11 @@ class BroadcastEvents extends Converter
 
     protected function fileContent(Collection $grouped): string
     {
+        $undotted = $grouped
+            ->mapWithKeys(fn ($events, $key) => [
+                str_replace('\\', '.', $key) => $events,
+            ])->undot();
+
         $content = [
             TypeScript::literalUnion(
                 'BroadcastEvent',
@@ -87,23 +92,34 @@ class BroadcastEvents extends Converter
             '',
         ];
 
-        $obj = [];
-
-        foreach ($grouped as $key => $subEvents) {
-            $objectKeyValue = TypeScript::objectKeyValue(
-                str_replace('\\', '.', $key),
-                TypeScript::quote($this->toEventName($key)),
-            );
-
-            $obj[] = (string) $this->withLinks($objectKeyValue, $subEvents);
-        }
-
-        $content[] = TypeScript::constant(
-            'BroadcastEvents',
-            TypeScript::objectWithOnlyKeys($obj),
-        )->asConst()->export();
+        $content[] = TypeScript::constant('BroadcastEvents', $this->toObject($undotted))->asConst()->export();
 
         return implode(PHP_EOL, $content);
+    }
+
+    protected function toObject(Collection|array $undotted): string
+    {
+        $obj = [];
+
+        foreach ($undotted as $key => $subEvents) {
+            if ($subEvents instanceof Collection) {
+                $objectKeyValue = TypeScript::objectKeyValue(
+                    $key,
+                    TypeScript::quote($this->toEventName($subEvents->first()->name)),
+                );
+
+                $obj[] = (string) $this->withLinks($objectKeyValue, $subEvents);
+            } else {
+                $objectKeyValue = TypeScript::objectKeyValue(
+                    $key,
+                    $this->toObject($subEvents),
+                );
+
+                $obj[] = (string) $objectKeyValue;
+            }
+        }
+
+        return TypeScript::objectWithOnlyKeys($obj);
     }
 
     protected function withLinks(VariableBuilder $block, Collection $events): VariableBuilder
