@@ -73,14 +73,14 @@ describe("Snake Case Model Properties", () => {
             let match;
 
             while ((match = modelTypePattern.exec(content)) !== null) {
-                const typeName = match[1];
-                const typeBody = match[2];
+                const typeName = match[1]!;
+                const typeBody = match[2]!;
 
                 // Extract property names from the type body
                 const propertyPattern = /(\w+):/g;
                 let propMatch;
                 while ((propMatch = propertyPattern.exec(typeBody)) !== null) {
-                    const propName = propMatch[1];
+                    const propName = propMatch[1]!;
 
                     // Check that property names follow snake_case convention
                     // snake_case properties should not have uppercase letters in the middle
@@ -214,7 +214,7 @@ describe("Events vs Models property format comparison", () => {
         if (userModelMatch && userNotificationMatch) {
             // Model property NAMES should be snake_case (no camelCase in property names)
             // We need to extract just the property names, not the type references
-            const modelProps = userModelMatch[1];
+            const modelProps = userModelMatch[1]!;
             const propertyNames = modelProps.match(/(\w+)\??:/g) || [];
 
             // Verify property names are snake_case (no camelCase pattern in property names)
