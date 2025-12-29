@@ -1,9 +1,6 @@
 providers:
   - App\Providers\WorkbenchServiceProvider
 
-env:
-  - VITE_APP_NAME=Workbench
-
 workbench:
   start: '/'
   install: true
