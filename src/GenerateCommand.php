@@ -295,6 +295,7 @@ class GenerateCommand extends Command
 
             return [
                 $child => [
+                    'safeMethod' => $safeMethod,
                     'safe' => $safe,
                     'safeAssign' => "Object.assign({$safeMethod}, {$safe})",
                     'normalized' => str($child)->whenContains('-', fn ($s) => $s->camel())->toString(),
@@ -315,6 +316,23 @@ class GenerateCommand extends Command
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safeAssign'] ?? $alias['safe']])))->implode(', '.PHP_EOL);
 
         $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
+        $reserved = $childKeys
+            ->flatMap(fn ($alias) => [$alias['safeMethod'], $alias['safe']])
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (in_array($varExport, $reserved, true)) {
+            $baseExport = $varExport.'Namespace';
+            $varExport = TypeScript::safeMethod($baseExport, 'Method');
+            $suffix = 2;
+
+            while (in_array($varExport, $reserved, true)) {
+                $varExport = TypeScript::safeMethod($baseExport.$suffix, 'Method');
+                $suffix++;
+            }
+        }
 
         $this->appendContent($indexPath, <<<JAVASCRIPT
 
