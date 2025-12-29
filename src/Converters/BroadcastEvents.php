@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\BroadcastEvent;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Langs\TypeScript\Imports;
-use Laravel\Wayfinder\Langs\TypeScript\VariableBuilder;
+use Laravel\Wayfinder\Langs\TypeScript\ObjectKeyValueBuilder;
 use Laravel\Wayfinder\Results\Result;
 use Laravel\Wayfinder\Support\Npm;
 
@@ -35,7 +35,9 @@ class BroadcastEvents extends Converter
                 TypeScript::type(
                     str($event->name)->afterLast('\\'),
                     TypeScript::objectToTypeObject($event->data->value, false),
-                )->export(),
+                )
+                    ->referenceClass($event->className, $event->filePath())
+                    ->export(),
             ),
         );
 
@@ -99,30 +101,23 @@ class BroadcastEvents extends Converter
 
     protected function toObject(Collection|array $undotted): string
     {
-        $obj = [];
+        $obj = TypeScript::object();
 
         foreach ($undotted as $key => $subEvents) {
+            $keyValue = $obj->key($key);
+
             if ($subEvents instanceof Collection) {
-                $objectKeyValue = TypeScript::objectKeyValue(
-                    $key,
-                    TypeScript::quote($this->toEventName($subEvents->first()->name)),
-                );
-
-                $obj[] = (string) $this->withLinks($objectKeyValue, $subEvents);
+                $keyValue->value(TypeScript::quote($this->toEventName($subEvents->first()->name)));
+                $this->withLinks($keyValue, $subEvents);
             } else {
-                $objectKeyValue = TypeScript::objectKeyValue(
-                    $key,
-                    $this->toObject($subEvents),
-                );
-
-                $obj[] = (string) $objectKeyValue;
+                $keyValue->value($this->toObject($subEvents));
             }
         }
 
-        return TypeScript::objectWithOnlyKeys($obj);
+        return (string) $obj;
     }
 
-    protected function withLinks(VariableBuilder $block, Collection $events): VariableBuilder
+    protected function withLinks(ObjectKeyValueBuilder $block, Collection $events): ObjectKeyValueBuilder
     {
         foreach ($events as $event) {
             $block->referenceClass($event->className, $event->filePath());

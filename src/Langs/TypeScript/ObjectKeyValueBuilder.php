@@ -2,11 +2,14 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript;
 
+use Laravel\Wayfinder\Langs\Concerns\HasMeta;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Stringable;
 
 class ObjectKeyValueBuilder implements Stringable
 {
+    use HasMeta;
+
     protected ?string $value = null;
 
     protected bool $optional = false;
@@ -65,6 +68,12 @@ class ObjectKeyValueBuilder implements Stringable
 
     public function __toString(): string
     {
+        $block = $this->meta();
+
+        if ($block !== '') {
+            $block .= PHP_EOL;
+        }
+
         $key = $this->rawKey ? $this->key : TypeScript::quoteKey($this->key);
 
         if ($this->spread) {
@@ -76,17 +85,17 @@ class ObjectKeyValueBuilder implements Stringable
         }
 
         if ($this->value === null) {
-            return $key;
+            return $block.$key;
         }
 
         if (! $this->optional && ! str_contains($key, '"') && $key === $value) {
-            return $key;
+            return $block.$key;
         }
 
         if ($this->optional) {
-            return $key.'?: '.$value;
+            return $block.$key.'?: '.$value;
         }
 
-        return $key.': '.$value;
+        return $block.$key.': '.$value;
     }
 }
