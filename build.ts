@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { copyFileSync } from "node:fs";
 import path from "node:path";
 
 const testbenchDir = path.join(__dirname, "vendor", "bin", "testbench");
@@ -10,6 +11,11 @@ const artisan = (command: string): void =>
 
 export function setup(): void {
     try {
+        copyFileSync(
+            path.join(__dirname, "tests", "fixtures", "env.stub"),
+            path.join(baseDir, ".env"),
+        );
+
         process.env.WAYFINDER_CACHE_ROUTES
             ? artisan("route:cache")
             : artisan("route:clear");
