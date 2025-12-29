@@ -10,8 +10,6 @@ const artisan = (command: string): void =>
 
 export function setup(): void {
     try {
-        process.env.VITE_APP_NAME = "Workbench";
-
         process.env.WAYFINDER_CACHE_ROUTES
             ? artisan("route:cache")
             : artisan("route:clear");
