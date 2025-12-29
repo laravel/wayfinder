@@ -23,7 +23,9 @@ class Enums extends Converter
                         ->values()
                         ->all(),
                 ),
-            )->export(),
+            )
+                ->referenceClass($enum->name, $enum->filePath())
+                ->export(),
         );
 
         $content = [];

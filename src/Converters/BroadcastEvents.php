@@ -35,7 +35,9 @@ class BroadcastEvents extends Converter
                 TypeScript::type(
                     str($event->name)->afterLast('\\'),
                     TypeScript::objectToTypeObject($event->data->value, false),
-                )->export(),
+                )
+                    ->referenceClass($event->className, $event->filePath())
+                    ->export(),
             ),
         );
 

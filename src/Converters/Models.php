@@ -23,7 +23,9 @@ class Models extends Converter
             TypeScript::type(
                 str($model->name)->afterLast('\\'),
                 TypeScript::objectToTypeObject($properties, false),
-            )->export(),
+            )
+                ->referenceClass($model->name, $model->filePath())
+                ->export(),
         );
 
         return null;
