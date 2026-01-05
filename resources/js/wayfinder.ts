@@ -1,13 +1,13 @@
-export type QueryParams = Record<
-    string,
-    | string
-    | number
-    | boolean
-    | string[]
-    | null
-    | undefined
-    | Record<string, string | number | boolean>
->;
+export type QueryParams = {
+    [key: string]:
+        | string
+        | number
+        | boolean
+        | (string | number)[]
+        | null
+        | undefined
+        | QueryParams;
+};
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
 
@@ -54,44 +54,54 @@ export const queryParams = (options?: RouteQueryOptions) => {
     );
 
     for (const key in query) {
-        if (query[key] === undefined || query[key] === null) {
+        const qryKey = query[key];
+
+        if (qryKey === undefined || qryKey === null) {
             params.delete(key);
             continue;
         }
 
-        if (Array.isArray(query[key])) {
+        if (Array.isArray(qryKey)) {
             if (params.has(`${key}[]`)) {
                 params.delete(`${key}[]`);
             }
 
-            query[key].forEach((value) => {
+            qryKey.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
-        } else if (typeof query[key] === "object") {
+        } else if (typeof qryKey === "object") {
             params.forEach((_, paramKey) => {
                 if (paramKey.startsWith(`${key}[`)) {
                     params.delete(paramKey);
                 }
             });
 
-            for (const subKey in query[key]) {
-                if (typeof query[key][subKey] === "undefined") {
-                    continue;
-                }
+            const addNestedParams = (obj: QueryParams, prefix: string) => {
+                Object.entries(obj).forEach(([subKey, value]) => {
+                    if (value === undefined) return;
 
-                if (
-                    ["string", "number", "boolean"].includes(
-                        typeof query[key][subKey],
-                    )
-                ) {
-                    params.set(
-                        `${key}[${subKey}]`,
-                        getValue(query[key][subKey]),
-                    );
-                }
-            }
+                    const paramKey = `${prefix}[${subKey}]`;
+
+                    if (Array.isArray(value)) {
+                        value.forEach((v) =>
+                            params.append(`${paramKey}[]`, getValue(v)),
+                        );
+                    } else if (value !== null && typeof value === "object") {
+                        addNestedParams(value, paramKey);
+                    } else if (
+                        ["string", "number", "boolean"].includes(typeof value)
+                    ) {
+                        params.set(
+                            paramKey,
+                            getValue(value as string | number | boolean),
+                        );
+                    }
+                });
+            };
+
+            addNestedParams(qryKey, key);
         } else {
-            params.set(key, getValue(query[key]));
+            params.set(key, getValue(qryKey));
         }
     }
 
