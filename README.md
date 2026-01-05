@@ -7,6 +7,9 @@ Laravel Wayfinder bridges your Laravel backend and TypeScript frontend with zero
 > [!IMPORTANT]
 > Wayfinder is currently in Beta, the API is subject to change prior to the v1.0.0 release. All notable changes will be documented in the [changelog](./CHANGELOG.md).
 
+> [!NOTE]
+> Want to try the next version of Wayfinder? [You can find the beta here](https://github.com/laravel/wayfinder/tree/next).
+
 ## Installation
 
 To get started, install Wayfinder via the Composer package manager:
