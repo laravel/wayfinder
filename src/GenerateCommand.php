@@ -281,16 +281,27 @@ class GenerateCommand extends Command
         $indexPath = join_paths($this->base(), $parent, 'index.ts');
         $keysWithGrandkids = $children->filter(fn ($grandChildren) => ! array_is_list(collect($grandChildren)->all()));
 
-        $childKeys = $children->keys()->mapWithKeys(function ($child) use ($indexPath, $keysWithGrandkids) {
+        $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
+
+        $childKeys = $children->keys()->mapWithKeys(function ($child) use ($indexPath, $keysWithGrandkids, $varExport) {
             $safeMethod = TypeScript::safeMethod($child, 'Method');
             $safe = $safeMethod;
+
+            // Helper function to add hash suffix
+            $addHash = fn ($name) => $name.str(hash('xxh128', $name))->substr(0, 6)->ucfirst();
 
             if ($keysWithGrandkids->has($child)) {
                 foreach ($this->content[$indexPath] ?? [] as $content) {
                     if (str_contains((string) $content, 'const '.$safeMethod.' =')) {
-                        $safe .= str(hash('xxh128', $safe))->substr(0, 6)->ucfirst();
+                        $safe = $addHash($safe);
                     }
                 }
+            }
+
+            // Check if safe conflicts with varExport and add hash suffix
+            if ($safe === $varExport) {
+                $safe = $addHash($safe);
+                $safeMethod = $addHash($safeMethod);
             }
 
             return [
@@ -313,8 +324,6 @@ class GenerateCommand extends Command
         }
 
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safeAssign'] ?? $alias['safe']])))->implode(', '.PHP_EOL);
-
-        $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
 
         $this->appendContent($indexPath, <<<JAVASCRIPT
 

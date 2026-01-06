@@ -8,6 +8,7 @@ use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\ModelBindingController;
 use App\Http\Controllers\NamedInvokableController;
+use App\Http\Controllers\Nested\Nested;
 use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\ParameterNameController;
@@ -63,6 +64,7 @@ Route::get('/parameter-names/{SCREAMING_SNAKE_CASE}/screaming-snake', [Parameter
 Route::domain('example.test')->get('/fixed-domain/{param}', [DomainController::class, 'fixedDomain']);
 Route::domain('{defaultDomain}.au')->get('/default-parameters-domain/{param}', [DomainController::class, 'defaultParametersDomain']);
 
+Route::get('/nested', [Nested::class, 'nested']);
 Route::get('/nested/controller', [NestedController::class, 'nested']);
 Route::get('/nested/controller/child', [NestedController::class, 'child'])->name('nested.child');
 Route::get('/nested/controller/child/grandchild', [NestedController::class, 'grandchild'])->name('nested.child.grandchild');
