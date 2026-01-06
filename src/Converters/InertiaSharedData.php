@@ -8,7 +8,10 @@ use Laravel\Wayfinder\Results\Result;
 
 class InertiaSharedData extends Converter
 {
-    public function convert(SharedDataComponent $data): ?Result
+    /**
+     * @return array<Result>
+     */
+    public function convert(SharedDataComponent $data): array
     {
         TypeScript::addFqnToNamespaced(
             'Inertia.SharedData',
@@ -18,6 +21,25 @@ class InertiaSharedData extends Converter
             )->export(),
         );
 
-        return null;
+        $results = [];
+
+        if ($moduleOverrideResult = $this->moduleOverrideResult($data)) {
+            $results[] = $moduleOverrideResult;
+        }
+
+        return $results;
+    }
+
+    protected function moduleOverrideResult(SharedDataComponent $data): ?Result
+    {
+        $module = TypeScript::module(
+            '@inertiajs/core',
+            TypeScript::interface(
+                'InertiaConfig',
+                trim(TypeScript::objectToTypeObject(['sharedPageProps' => $data->data->value], false), '{}'),
+            )->export(),
+        );
+
+        return new Result('inertia-config.d.ts', $module);
     }
 }
