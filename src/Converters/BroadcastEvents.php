@@ -52,8 +52,7 @@ class BroadcastEvents extends Converter
 
     protected function echoFileContent(Collection $grouped, Collection $namespaceRoots): ?string
     {
-        $echoPackage = collect(['@laravel/echo-vue', '@laravel/echo-react'])
-            ->first(fn ($package) => Npm::isInstalled($package));
+        $echoPackage = Npm::findFirstInstalledPackage(['@laravel/echo-vue', '@laravel/echo-react']);
 
         if (! $echoPackage) {
             return null;
