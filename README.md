@@ -55,6 +55,12 @@ By default, Wayfinder generates files in three directories (`wayfinder`, `action
 php artisan wayfinder:generate --path=resources/js/wayfinder
 ```
 
+Use the `--with-vendor-routes` option to include TypeScript definitions for vendor routes as well:
+
+```
+php artisan wayfinder:generate --with-vendor-routes
+```
+
 The `--skip-actions` and `--skip-routes` options may be used to skip TypeScript definition generation for controller methods or routes, respectively:
 
 ```
@@ -238,6 +244,99 @@ const options = {
 };
 
 show.url(1, options); // "/posts/1?page=2&q=shirt"
+```
+
+## Current Route Detection
+
+Laravel Wayfinder provides a powerful `currentRoute` function that allows you to check if the current page matches a specific route or retrieve the current URL.
+
+### Basic Usage
+
+```ts
+import { currentRoute } from "@/wayfinder";
+
+// Get current URL
+const url = currentRoute(); // Returns: "https://example.com/posts/123"
+
+// Check if current route matches
+currentRoute("posts.index"); // Returns: true or false
+currentRoute("posts.show", 123); // Matches /posts/123
+```
+
+### Controller RouteDefinition Approach
+
+Use Wayfinder-generated controller methods directly:
+
+```ts
+import PostController from "@/actions/App/Http/Controllers/PostController";
+import { show } from "@/actions/App/Http/Controllers/PostController";
+
+// Using controller object
+currentRoute(PostController.show(123)); // true
+currentRoute(PostController.show.url({ post: 123 })); // true
+
+// Using imported method
+currentRoute(show({ post: 123 })); // true
+
+// With query parameters
+currentRoute(PostController.show({ post: 123 }, { query: { q: "test" } })); // true
+```
+
+### Invokable Controllers
+
+```ts
+import InvokableController from "@/actions/App/Http/Controllers/InvokableController";
+
+currentRoute(InvokableController()); // true
+```
+
+### Named Routes
+
+```ts
+// Direct named route matching
+currentRoute("posts.show", { post: 123 }); // true
+currentRoute("posts.index", { page: 2, sort: "name" }); // true
+
+// Wildcard matching
+currentRoute("posts.*"); // Matches posts.index, posts.show, etc.
+currentRoute("admin.*"); // Matches admin.dashboard, admin.users, etc.
+```
+
+### Query Parameters & Arrays
+
+```ts
+// Mixed route and query parameters
+currentRoute("posts.show", {
+    post: 123, // Route parameter
+    edit: true, // Query parameter
+    tags: ["red", "blue"], // Array query parameters
+});
+
+// Arrays are always query parameters, never route parameters
+currentRoute("posts.show", { post: ["12"] }); // false - arrays are query params only
+```
+
+### Advanced Features
+
+-   **URL encoding/decoding** for special characters
+-   **Optional parameters** in route definitions
+-   **Nested query parameters** with proper validation
+-   **Trailing slash normalization**
+-   **Array parameter handling** with both `param[]` and `param[0], param[1]` formats
+
+```ts
+// Handles encoded URLs and complex query structures
+currentRoute("pdf.download", {
+    pdfId: 42,
+    fileName: "my-file(1).pdf",
+}); // Works with encoded filenames
+
+currentRoute("posts.index", {
+    page: 2,
+    search: "hello world",
+    tags: ["a b", "c"],
+    filters: { category: "tech", status: "active" },
+}); // Matches nested query parameters
 ```
 
 ## Wayfinder and Inertia
