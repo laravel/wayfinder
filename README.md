@@ -620,6 +620,139 @@ return [
 | `cache.enabled`                  | Enable caching for faster regeneration | `true`                    |
 | `cache.directory`                | Directory for cache files              | `storage/wayfinder-cache` |
 
+## Syncing Across Repositories
+
+What if your Laravel API and your SPA/React Native/Front End application live in different repositories? Can you still use Wayfinder?
+
+Sure! Simply adjust this GitHub Action workflow accordingly to sync your generated Wayfinder files between repositories. This workflow creates a new PR in the target repository whenever generated files change in the source repository.
+
+> [!NOTE]
+> This only works when the generated files are _committed_ to the target repository, otherwise there is nothing to diff in the PR.
+
+```yaml
+# =============================================================================
+# WAYFINDER SYNC WORKFLOW
+# =============================================================================
+# This workflow syncs Wayfinder types from your Laravel API to another repo.
+#
+# SETUP:
+# 1. Configure the variables below
+# 2. Create a PAT with read/write repo access for both the source and target repos and add it as a secret named WAYFINDER_SYNC_PAT
+# =============================================================================
+
+name: Sync Wayfinder to Target Repo
+
+# =============================================================================
+# CONFIGURATION - Update these values for your project
+# =============================================================================
+env:
+    # The repository to sync Wayfinder types TO (owner/repo format)
+    TARGET_REPO: "your-org/your-repo"
+
+    # Where Wayfinder generates types in THIS repo
+    SOURCE_WAYFINDER_PATH: "resources/js/wayfinder"
+
+    # Where Wayfinder types should be placed in the TARGET repo
+    TARGET_WAYFINDER_PATH: "src/wayfinder"
+
+    # PHP version for your Laravel app
+    PHP_VERSION: "8.4"
+
+    # Node version for building assets
+    NODE_VERSION: "22"
+
+# =============================================================================
+# WORKFLOW - You probably don't need to modify anything below this line
+# =============================================================================
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    sync-wayfinder:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout API repo
+              uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ env.PHP_VERSION }}
+                  extensions: mbstring, xml, ctype, json, curl
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Install PHP dependencies
+              run: composer install --no-interaction --prefer-dist
+
+            - name: Create SQlite database
+              run: touch database/database.sqlite
+
+            - name: Run migrations
+              run: php artisan migrate --force
+
+            - name: Install Node dependencies
+              run: npm ci
+
+            - name: Generate Wayfinder types
+              run: npm run build
+
+            - name: Upload Wayfinder artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: wayfinder
+                  path: ${{ env.SOURCE_WAYFINDER_PATH }}
+                  retention-days: 30
+
+            - name: Checkout target repo
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ env.TARGET_REPO }}
+                  token: ${{ secrets.WAYFINDER_SYNC_PAT }}
+                  path: target-repo
+
+            - name: Check for Wayfinder changes
+              id: check-changes
+              run: |
+                  # Copy wayfinder files to target repo
+                  rm -rf target-repo/${{ env.TARGET_WAYFINDER_PATH }}
+                  mkdir -p target-repo/$(dirname ${{ env.TARGET_WAYFINDER_PATH }})
+                  cp -r ${{ env.SOURCE_WAYFINDER_PATH }} target-repo/${{ env.TARGET_WAYFINDER_PATH }}
+
+                  # Check if there are any changes
+                  cd target-repo
+                  git add -A
+                  if git diff --cached --quiet; then
+                    echo "has_changes=false" >> $GITHUB_OUTPUT
+                  else
+                    echo "has_changes=true" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Create Pull Request
+              if: steps.check-changes.outputs.has_changes == 'true'
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  token: ${{ secrets.WAYFINDER_SYNC_PAT }}
+                  path: target-repo
+                  commit-message: "chore: sync wayfinder types from API"
+                  title: "chore: Sync Wayfinder types from API"
+                  body: |
+                      This PR was automatically generated to sync Wayfinder types from the ${{ github.repository }} repository.
+
+                      **Triggered by:** ${{ github.event.head_commit.message }}
+                      **Commit:** ${{ github.repository }}@${{ github.sha }}
+                  branch: sync-wayfinder-${{ github.run_number }}
+                  base: main
+                  delete-branch: true
+```
+
 ## Contributing
 
 Thank you for considering contributing to Laravel Wayfinder! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
