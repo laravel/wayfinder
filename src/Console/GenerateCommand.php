@@ -85,7 +85,12 @@ class GenerateCommand extends Command
         }
 
         if ($this->config->get('wayfinder.generate.inertia.shared_data', true)) {
-            $this->ranger->onInertiaSharedData(fn ($data) => $this->results[] = $inertiaSharedDataConverter->convert($data));
+            $this->ranger->onInertiaSharedData(
+                fn ($data) => array_push(
+                    $this->results,
+                    ...$inertiaSharedDataConverter->convert($data),
+                ),
+            );
         }
 
         if ($this->config->get('wayfinder.generate.broadcast.channels', true)) {

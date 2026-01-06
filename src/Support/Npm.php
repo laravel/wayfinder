@@ -16,4 +16,9 @@ class Npm
 
         return isset($content['devDependencies'][$packageName]) || isset($content['dependencies'][$packageName]);
     }
+
+    public static function findFirstInstalledPackage(array $packageNames): ?string
+    {
+        return collect($packageNames)->first(fn ($package) => static::isInstalled($package));
+    }
 }
