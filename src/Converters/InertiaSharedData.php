@@ -3,6 +3,8 @@
 namespace Laravel\Wayfinder\Converters;
 
 use Laravel\Ranger\Components\InertiaSharedData as SharedDataComponent;
+use Laravel\Surveyor\Types\ArrayShapeType;
+use Laravel\Surveyor\Types\Type;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
 
@@ -32,11 +34,17 @@ class InertiaSharedData extends Converter
 
     protected function moduleOverrideResult(SharedDataComponent $data): ?Result
     {
+        $object = ['sharedPageProps' => $data->data->value];
+
+        if ($data->withAllErrors) {
+            $object['errorValueType'] = TypeScript::fromSurveyorType(new ArrayShapeType(Type::int(), Type::string()));
+        }
+
         $module = TypeScript::module(
             '@inertiajs/core',
             TypeScript::interface(
                 'InertiaConfig',
-                trim(TypeScript::objectToTypeObject(['sharedPageProps' => $data->data->value], false), '{}'),
+                trim(TypeScript::objectToTypeObject($object, false), '{}'),
             )->export(),
         );
 

@@ -1,16 +1,16 @@
-import { describe, expect, test } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { describe, expect, test } from "vitest";
 
 describe("InertiaSharedData", () => {
     const typesPath = join(
         __dirname,
-        "../workbench/resources/js/wayfinder/types.d.ts"
+        "../workbench/resources/js/wayfinder/types.d.ts",
     );
 
     const inertiaConfigPath = join(
         __dirname,
-        "../workbench/resources/js/wayfinder/inertia-config.d.ts"
+        "../workbench/resources/js/wayfinder/inertia-config.d.ts",
     );
 
     test("types.d.ts contains Inertia namespace", () => {
@@ -36,5 +36,10 @@ describe("InertiaSharedData", () => {
     test("inertia-config.d.ts contains sharedPageProps", () => {
         const content = readFileSync(inertiaConfigPath, "utf-8");
         expect(content).toContain("sharedPageProps");
+    });
+
+    test("inertia-config.d.ts contains errorValueType when withAllErrors is true", () => {
+        const content = readFileSync(inertiaConfigPath, "utf-8");
+        expect(content).toContain("errorValueType: string[]");
     });
 });

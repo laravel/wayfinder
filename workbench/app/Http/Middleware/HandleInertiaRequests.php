@@ -7,6 +7,8 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
+    protected $withAllErrors = true;
+
     /**
      * @return array{auth: array{user: array{id: int, name: string, email: string}|null}, flash: array{success: string|null, error: string|null}, appName: string}
      */
