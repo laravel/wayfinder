@@ -1,5 +1,8 @@
 import { expect, it } from "vitest";
-import { index } from "../workbench/resources/js/actions/App/Http/Controllers/PostController";
+import {
+    index,
+    show,
+} from "../workbench/resources/js/actions/App/Http/Controllers/PostController";
 
 it("can convert basic params", () => {
     expect(
@@ -169,6 +172,29 @@ it("can merge with the form method", () => {
     });
 });
 
+it("can pass nested query parameters", () => {
+    expect(
+        show(
+            { post: 1 },
+            {
+                query: {
+                    search: "Hello World",
+                    filters: {
+                        users: ["james", "michael", "john"],
+                        attributes: {
+                            visible: true,
+                            status: "example",
+                        },
+                    },
+                },
+            },
+        ),
+    ).toEqual({
+        url: "/posts/1?search=Hello+World&filters%5Busers%5D%5B%5D=james&filters%5Busers%5D%5B%5D=michael&filters%5Busers%5D%5B%5D=john&filters%5Battributes%5D%5Bvisible%5D=1&filters%5Battributes%5D%5Bstatus%5D=example",
+        method: "get",
+    });
+});
+
 it("ignores nested object values with unallowed types", () => {
     window.location.search = "?parent=og";
 
@@ -178,17 +204,17 @@ it("ignores nested object values with unallowed types", () => {
         boolean: boolean;
     } => {
         const obj = {
-            string: 'string',
+            string: "string",
             number: 5,
             boolean: true,
             undefined: undefined,
             null: null,
             array: [],
             object: {},
-        }
+        };
 
-        return obj
-    }
+        return obj;
+    };
 
     expect(
         index.form.head({
