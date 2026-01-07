@@ -6,6 +6,7 @@ use Laravel\Ranger\Components\InertiaSharedData as SharedDataComponent;
 use Laravel\Surveyor\Types\ArrayShapeType;
 use Laravel\Surveyor\Types\Type;
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Langs\TypeScript\Imports;
 use Laravel\Wayfinder\Results\Result;
 
 class InertiaSharedData extends Converter
@@ -40,14 +41,26 @@ class InertiaSharedData extends Converter
             $object['errorValueType'] = TypeScript::fromSurveyorType(new ArrayShapeType(Type::int(), Type::string()));
         }
 
+        $typeObject = TypeScript::objectToTypeObject($object, false);
+
+        preg_match_all('/(?<!\.)([A-Z][a-zA-Z0-9]*)(?=\.[A-Z])/', $typeObject, $matches);
+
+        $imports = [];
+
+        if (count($matches[0]) > 0) {
+            $imports[] = (string) Imports::create()->add('./types', $matches[0]);
+            $imports[] = '';
+            $imports[] = '';
+        }
+
         $module = TypeScript::module(
             '@inertiajs/core',
             TypeScript::interface(
                 'InertiaConfig',
-                trim(TypeScript::objectToTypeObject($object, false), '{}'),
+                trim($typeObject, '{}'),
             )->export(),
         );
 
-        return new Result('inertia-config.d.ts', $module);
+        return new Result('inertia-config.d.ts', implode(PHP_EOL, $imports).$module);
     }
 }
