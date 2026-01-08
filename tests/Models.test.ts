@@ -19,6 +19,16 @@ describe("Models", () => {
         expect(content).toContain("export type User");
     });
 
+    test("User model includes Attribute-based computed property", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        expect(content).toMatch(/formatted_name:\s*string/);
+    });
+
+    test("User model includes Attribute-based computed property", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        expect(content).toMatch(/without_doc:\s*unknown/);
+    });
+
     test.skip("User model types directory exists", () => {
         const userTypesPath = join(
             __dirname,
