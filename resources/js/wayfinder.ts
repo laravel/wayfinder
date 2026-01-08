@@ -9,7 +9,7 @@ export type QueryParams = Record<
     | Record<string, string | number | boolean>
 >;
 
-type Method = "get" | "post" | "put" | "delete" | "patch" | "head";
+type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
 type ParamValue = string | number | boolean;
 
 let urlDefaults: Record<string, unknown> = {};
