@@ -266,9 +266,15 @@ class TypeScript
 
         $path = str($path)->ltrim('/\\')->replace(['\\', '/'], '.')->toString();
 
-        $block = self::block($content);
-
         self::$namespaced[$path] ??= [];
+
+        // If this path already has a definition, return the existing block
+        // This allows multiple routes to reference the same component
+        if (! empty(self::$namespaced[$path])) {
+            return self::$namespaced[$path][0];
+        }
+
+        $block = self::block($content);
         self::$namespaced[$path][] = $block;
 
         return $block;
