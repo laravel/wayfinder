@@ -289,18 +289,8 @@ class GenerateCommand extends Command
             $object->key(TypeScript::safeMethod($d, 'Method'))->rawKey();
         }
 
-        $exportName = $dir->getBasename();
         $allImportNames = $files->merge($dirs)->map(fn ($name) => TypeScript::safeMethod($name, 'Method'));
-
-        if ($allImportNames->contains($exportName)) {
-            $exportName = $exportName.'Namespace';
-            $suffix = 2;
-
-            while ($allImportNames->contains($exportName)) {
-                $exportName = $exportName.$suffix;
-                $suffix++;
-            }
-        }
+        $exportName = TypeScript::uniqueNamespace($dir->getBasename(), $allImportNames->toArray());
 
         $exports = collect($imports->asLines())
             ->push('')

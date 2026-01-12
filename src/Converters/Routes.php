@@ -101,7 +101,6 @@ class Routes extends Converter
             }
 
             if (isset($this->exports[$path])) {
-                $defaultExportedVarName = TypeScript::safeMethod(str($path)->beforeLast(DIRECTORY_SEPARATOR)->afterLast(DIRECTORY_SEPARATOR)->toString(), 'Object');
                 $dir = dirname($path);
                 $object = TypeScript::object();
 
@@ -112,6 +111,8 @@ class Routes extends Converter
                         $object->key($export['originalMethod'])->rawKey();
                     }
                 }
+
+                $subDirImportNames = collect();
 
                 foreach ($this->exports as $exportPath => $exports) {
                     if ($dir === $this->baseDir || $exportPath === $path || ! str_starts_with($exportPath, $dir)) {
@@ -128,6 +129,8 @@ class Routes extends Converter
 
                     $resultImports->addDefault('./'.$firstSubDir, TypeScript::safeMethod($firstSubDir, 'Method'), safe: $inFile);
 
+                    $subDirImportNames->push(TypeScript::safeMethod($firstSubDir, 'Method'));
+
                     $keyValue = $object->key(TypeScript::safeMethod($firstSubDir, 'Method'));
 
                     if ($inFile) {
@@ -136,6 +139,17 @@ class Routes extends Converter
                         $keyValue->rawKey();
                     }
                 }
+
+                $defaultExportedVarName = TypeScript::uniqueNamespace(
+                    TypeScript::safeMethod(
+                        str($path)
+                            ->beforeLast(DIRECTORY_SEPARATOR)
+                            ->afterLast(DIRECTORY_SEPARATOR)
+                            ->toString(),
+                        'Object',
+                    ),
+                    $subDirImportNames->toArray()
+                );
 
                 $content[] = '';
                 $content[] = (string) TypeScript::constant($defaultExportedVarName, $object);
