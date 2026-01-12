@@ -119,7 +119,15 @@ class Route
 
     public function domain(): ?string
     {
-        return $this->base->getDomain() ?? $this->forcedRoot;
+        if ($this->base->getDomain()) {
+            return $this->base->getDomain();
+        }
+
+        if ($this->forcedRoot) {
+            return str_replace(['http://', 'https://'], '', $this->forcedRoot);
+        }
+
+        return null;
     }
 
     public function name(): ?string
