@@ -131,6 +131,23 @@ class TypeScript
         return new ArrowFunctionBuilder($name);
     }
 
+    public static function uniqueNamespace(string $name, array $existing): string
+    {
+        if (! in_array($name, $existing)) {
+            return $name;
+        }
+
+        $name = $name.'Namespace';
+        $suffix = 2;
+
+        while (in_array($name, $existing)) {
+            $name = $name.$suffix;
+            $suffix++;
+        }
+
+        return $name;
+    }
+
     public static function type(string $name, string $value): VariableBuilder
     {
         return self::block("type {$name} = {$value}");
