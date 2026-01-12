@@ -2,7 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.12...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.13...main)
+
+## [v0.1.13](https://github.com/laravel/wayfinder/compare/v0.1.12...v0.1.13) - 2026-01-12
+
+### What's Changed
+
+* Update README.md by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/129
+* Upgrade `happy-dom` by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/148
+* Upgrade `happy-dom`, again by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/149
+* Fix barrel name collisions for repeated namespace by [@cieplik206](https://github.com/cieplik206) in https://github.com/laravel/wayfinder/pull/127
+* fix(queryParams): Improve TypeScript strict compatibility (follow-up to PR #106) by [@DamienW-dev](https://github.com/DamienW-dev) in https://github.com/laravel/wayfinder/pull/118
+* Replaces invalid JS characters with underscore by [@OutlawPlz](https://github.com/OutlawPlz) in https://github.com/laravel/wayfinder/pull/109
+* Enables dynamic evaluation of url defaults at runtime by [@thaqebon](https://github.com/thaqebon) in https://github.com/laravel/wayfinder/pull/100
+* fix: improve domain method to handle forcedRoot and return cleaned URL by [@mrfade](https://github.com/mrfade) in https://github.com/laravel/wayfinder/pull/105
+
+### New Contributors
+
+* [@cieplik206](https://github.com/cieplik206) made their first contribution in https://github.com/laravel/wayfinder/pull/127
+* [@DamienW-dev](https://github.com/DamienW-dev) made their first contribution in https://github.com/laravel/wayfinder/pull/118
+* [@OutlawPlz](https://github.com/OutlawPlz) made their first contribution in https://github.com/laravel/wayfinder/pull/109
+* [@thaqebon](https://github.com/thaqebon) made their first contribution in https://github.com/laravel/wayfinder/pull/100
+* [@mrfade](https://github.com/mrfade) made their first contribution in https://github.com/laravel/wayfinder/pull/105
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.12...v0.1.13
 
 ## [v0.1.12](https://github.com/laravel/wayfinder/compare/v0.1.11...v0.1.12) - 2025-09-08
 
