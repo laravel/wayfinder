@@ -1,13 +1,13 @@
-export type QueryParams = Record<
-    string,
-    | string
-    | number
-    | boolean
-    | string[]
-    | null
-    | undefined
-    | Record<string, string | number | boolean>
->;
+export type QueryParams = {
+    [key: string]:
+        | string
+        | number
+        | boolean
+        | (string | number)[]
+        | null
+        | undefined
+        | QueryParams;
+};
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
 type ParamValue = string | number | boolean;
@@ -38,6 +38,40 @@ export const formSafeOptions = (
     },
 });
 
+const getValue = (value: ParamValue) => {
+    if (value === true) {
+        return "1";
+    }
+
+    if (value === false) {
+        return "0";
+    }
+
+    return value.toString();
+};
+
+const addNestedParams = (
+    obj: QueryParams,
+    prefix: string,
+    params: URLSearchParams,
+) => {
+    Object.entries(obj).forEach(([subKey, value]) => {
+        if (value === undefined) {
+            return;
+        }
+
+        const paramKey = `${prefix}[${subKey}]`;
+
+        if (Array.isArray(value)) {
+            value.forEach((v) => params.append(`${paramKey}[]`, getValue(v)));
+        } else if (value !== null && typeof value === "object") {
+            addNestedParams(value, paramKey, params);
+        } else if (["string", "number", "boolean"].includes(typeof value)) {
+            params.set(paramKey, getValue(value as string | number | boolean));
+        }
+    });
+};
+
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
@@ -46,18 +80,6 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const query = options.query ?? options.mergeQuery;
     const includeExisting = options.mergeQuery !== undefined;
 
-    const getValue = (value: ParamValue) => {
-        if (value === true) {
-            return "1";
-        }
-
-        if (value === false) {
-            return "0";
-        }
-
-        return value.toString();
-    };
-
     const params = new URLSearchParams(
         includeExisting && typeof window !== "undefined"
             ? window.location.search
@@ -65,40 +87,31 @@ export const queryParams = (options?: RouteQueryOptions) => {
     );
 
     for (const key in query) {
-        if (query[key] === undefined || query[key] === null) {
+        const queryValue = query[key];
+
+        if (queryValue === undefined || queryValue === null) {
             params.delete(key);
             continue;
         }
 
-        if (Array.isArray(query[key])) {
+        if (Array.isArray(queryValue)) {
             if (params.has(`${key}[]`)) {
                 params.delete(`${key}[]`);
             }
 
-            query[key].forEach((value) => {
+            queryValue.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
-        } else if (typeof query[key] === "object") {
+        } else if (typeof queryValue === "object") {
             params.forEach((_, paramKey) => {
                 if (paramKey.startsWith(`${key}[`)) {
                     params.delete(paramKey);
                 }
             });
 
-            for (const subKey in query[key]) {
-                if (
-                    ["string", "number", "boolean"].includes(
-                        typeof query[key][subKey],
-                    )
-                ) {
-                    params.set(
-                        `${key}[${subKey}]`,
-                        getValue(query[key][subKey] as ParamValue),
-                    );
-                }
-            }
+            addNestedParams(queryValue, key, params);
         } else {
-            params.set(key, getValue(query[key]));
+            params.set(key, getValue(queryValue));
         }
     }
 
