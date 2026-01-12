@@ -320,15 +320,14 @@ class GenerateCommand extends Command
             ->flatMap(fn ($alias) => [$alias['safeMethod'], $alias['safe']])
             ->filter()
             ->unique()
-            ->values()
-            ->all();
+            ->values();
 
-        if (in_array($varExport, $existingVars)) {
+        if ($existingVars->contains($varExport)) {
             $baseExport = $varExport.'Namespace';
             $varExport = TypeScript::safeMethod($baseExport, 'Method');
             $suffix = 2;
 
-            while (in_array($varExport, $existingVars)) {
+            while ($existingVars->contains($varExport)) {
                 $varExport = TypeScript::safeMethod($baseExport.$suffix, 'Method');
                 $suffix++;
             }
