@@ -14,6 +14,8 @@ use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\ParameterNameController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
+use App\Http\Controllers\Prism\PrismController;
 use App\Http\Controllers\TwoRoutesSameActionController;
 use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
@@ -98,3 +100,6 @@ Route::get('/inertia/unsafe', [InertiaController::class, 'unsafe'])->name('inert
 
 Route::get('/api/status', [ApiController::class, 'status'])->name('api.status');
 Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
+
+Route::get('/prism', [PrismController::class, 'index'])->name('prism.index');
+Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('prism.prism.nested');

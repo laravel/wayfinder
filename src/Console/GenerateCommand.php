@@ -289,11 +289,24 @@ class GenerateCommand extends Command
             $object->key(TypeScript::safeMethod($d, 'Method'))->rawKey();
         }
 
+        $exportName = $dir->getBasename();
+        $allImportNames = $files->merge($dirs)->map(fn ($name) => TypeScript::safeMethod($name, 'Method'));
+
+        if ($allImportNames->contains($exportName)) {
+            $exportName = $exportName.'Namespace';
+            $suffix = 2;
+
+            while ($allImportNames->contains($exportName)) {
+                $exportName = $exportName.$suffix;
+                $suffix++;
+            }
+        }
+
         $exports = collect($imports->asLines())
             ->push('')
-            ->push((string) TypeScript::constant($dir->getBasename(), $object)->export())
+            ->push((string) TypeScript::constant($exportName, $object)->export())
             ->push('')
-            ->push((string) TypeScript::block($dir->getBasename())->exportDefault())
+            ->push((string) TypeScript::block($exportName)->exportDefault())
             ->join(PHP_EOL);
 
         $this->writeFile($path, $exports);
