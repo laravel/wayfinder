@@ -316,19 +316,19 @@ class GenerateCommand extends Command
         $keys = $childKeys->map(fn ($alias, $key) => str_repeat(' ', 4).implode(': ', array_unique([$alias['normalized'], $alias['safeAssign'] ?? $alias['safe']])))->implode(', '.PHP_EOL);
 
         $varExport = TypeScript::safeMethod(Str::afterLast($parent, DIRECTORY_SEPARATOR), 'Method');
-        $reserved = $childKeys
+        $existingVars = $childKeys
             ->flatMap(fn ($alias) => [$alias['safeMethod'], $alias['safe']])
             ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if (in_array($varExport, $reserved)) {
+        if (in_array($varExport, $existingVars)) {
             $baseExport = $varExport.'Namespace';
             $varExport = TypeScript::safeMethod($baseExport, 'Method');
             $suffix = 2;
 
-            while (in_array($varExport, $reserved)) {
+            while (in_array($varExport, $existingVars)) {
                 $varExport = TypeScript::safeMethod($baseExport.$suffix, 'Method');
                 $suffix++;
             }
