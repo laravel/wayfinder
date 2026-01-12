@@ -376,7 +376,7 @@ class TypeScript
 
     public static function safeMethod(string $method, string $suffix): string
     {
-        $method = str($method);
+        $method = str($method)->replaceMatches('/[^\p{L}\p{Nd}_$-]/u', '_');
 
         if ($method->contains('-')) {
             $method = $method->camel();
