@@ -1,12 +1,13 @@
 {
     "type": "module",
     "scripts": {
-        "test": "vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run tsc",
+        "test": "vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run tsc && npm run tsc:wayfinder",
         "test-routes-cached": "WAYFINDER_CACHE_ROUTES=1 vitest run",
         "lint": "eslint ./workbench/resources/js --ext .ts,.tsx",
         "lint:fix": "eslint ./workbench/resources/js --ext .ts,.tsx --fix",
         "format": "npx --yes prettier --write \"resources/js/**/*.{ts,js,json}\"",
-        "tsc": "tsc --noEmit"
+        "tsc": "tsc --noEmit",
+        "tsc:wayfinder": "tsc --noEmit -p tsconfig.wayfinder.json"
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
