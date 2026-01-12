@@ -27,6 +27,38 @@ export type RouteQueryOptions = {
     mergeQuery?: QueryParams;
 };
 
+const getValue = (value: string | number | boolean) => {
+    if (value === true) {
+        return "1";
+    }
+
+    if (value === false) {
+        return "0";
+    }
+
+    return value.toString();
+};
+
+const addNestedParams = (
+    obj: QueryParams,
+    prefix: string,
+    params: URLSearchParams,
+) => {
+    Object.entries(obj).forEach(([subKey, value]) => {
+        if (value === undefined) return;
+
+        const paramKey = `${prefix}[${subKey}]`;
+
+        if (Array.isArray(value)) {
+            value.forEach((v) => params.append(`${paramKey}[]`, getValue(v)));
+        } else if (value !== null && typeof value === "object") {
+            addNestedParams(value, paramKey, params);
+        } else if (["string", "number", "boolean"].includes(typeof value)) {
+            params.set(paramKey, getValue(value as string | number | boolean));
+        }
+    });
+};
+
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
@@ -35,18 +67,6 @@ export const queryParams = (options?: RouteQueryOptions) => {
     const query = options.query ?? options.mergeQuery;
     const includeExisting = options.mergeQuery !== undefined;
 
-    const getValue = (value: string | number | boolean) => {
-        if (value === true) {
-            return "1";
-        }
-
-        if (value === false) {
-            return "0";
-        }
-
-        return value.toString();
-    };
-
     const params = new URLSearchParams(
         includeExisting && typeof window !== "undefined"
             ? window.location.search
@@ -54,54 +74,31 @@ export const queryParams = (options?: RouteQueryOptions) => {
     );
 
     for (const key in query) {
-        const qryKey = query[key];
+        const queryValue = query[key];
 
-        if (qryKey === undefined || qryKey === null) {
+        if (queryValue === undefined || queryValue === null) {
             params.delete(key);
             continue;
         }
 
-        if (Array.isArray(qryKey)) {
+        if (Array.isArray(queryValue)) {
             if (params.has(`${key}[]`)) {
                 params.delete(`${key}[]`);
             }
 
-            qryKey.forEach((value) => {
+            queryValue.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
-        } else if (typeof qryKey === "object") {
+        } else if (typeof queryValue === "object") {
             params.forEach((_, paramKey) => {
                 if (paramKey.startsWith(`${key}[`)) {
                     params.delete(paramKey);
                 }
             });
 
-            const addNestedParams = (obj: QueryParams, prefix: string) => {
-                Object.entries(obj).forEach(([subKey, value]) => {
-                    if (value === undefined) return;
-
-                    const paramKey = `${prefix}[${subKey}]`;
-
-                    if (Array.isArray(value)) {
-                        value.forEach((v) =>
-                            params.append(`${paramKey}[]`, getValue(v)),
-                        );
-                    } else if (value !== null && typeof value === "object") {
-                        addNestedParams(value, paramKey);
-                    } else if (
-                        ["string", "number", "boolean"].includes(typeof value)
-                    ) {
-                        params.set(
-                            paramKey,
-                            getValue(value as string | number | boolean),
-                        );
-                    }
-                });
-            };
-
-            addNestedParams(qryKey, key);
+            addNestedParams(queryValue, key, params);
         } else {
-            params.set(key, getValue(qryKey));
+            params.set(key, getValue(queryValue));
         }
     }
 
