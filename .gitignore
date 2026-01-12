@@ -2,6 +2,7 @@
 /composer.lock
 /node_modules
 /package-lock.json
+/pnpm-lock.yaml
 /vendor
 /workbench/resources/js
 .idea
