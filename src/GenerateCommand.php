@@ -323,12 +323,12 @@ class GenerateCommand extends Command
             ->values()
             ->all();
 
-        if (in_array($varExport, $reserved, true)) {
+        if (in_array($varExport, $reserved)) {
             $baseExport = $varExport.'Namespace';
             $varExport = TypeScript::safeMethod($baseExport, 'Method');
             $suffix = 2;
 
-            while (in_array($varExport, $reserved, true)) {
+            while (in_array($varExport, $reserved)) {
                 $varExport = TypeScript::safeMethod($baseExport.$suffix, 'Method');
                 $suffix++;
             }
