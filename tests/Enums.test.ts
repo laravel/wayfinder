@@ -5,6 +5,7 @@ import {
     Published,
     Archived,
 } from "../workbench/resources/js/wayfinder/App/Enums/PostStatus";
+import { UnitEnum } from "../workbench/resources/js/wayfinder/App/Enums/UnitEnum";
 
 describe("Enums", () => {
     test("exports enum constant object", () => {
@@ -24,6 +25,22 @@ describe("Enums", () => {
             "Published",
             "Archived",
         ]);
+    });
+
+    test("has correct enum cases with numeric values", () => {
+        expect(UnitEnum.None).toBe(0);
+        expect(UnitEnum.Open).toBe(1);
+        expect(UnitEnum.Done).toBe(2);
+    });
+
+    test("has only expected keys", () => {
+        expect(Object.keys(UnitEnum)).toEqual(["None", "Open", "Done"]);
+    });
+
+    test("exports individual case constants", () => {
+        expect(UnitEnum.None).toBe(0);
+        expect(UnitEnum.Open).toBe(1);
+        expect(UnitEnum.Done).toBe(2);
     });
 
     test("exports individual case constants", () => {
