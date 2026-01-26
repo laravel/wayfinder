@@ -28,12 +28,14 @@ class Import
     public static function relativePathFromFile(string $path, ?string $suffix = null): string
     {
         $path = ltrim($path, DIRECTORY_SEPARATOR);
+
         $count = substr_count($path, DIRECTORY_SEPARATOR);
 
-        $final = '.'.DIRECTORY_SEPARATOR.ltrim(str_repeat(DIRECTORY_SEPARATOR.'..', $count), DIRECTORY_SEPARATOR);
+        $final = '.' . '/' . ltrim(str_repeat('/..', $count), '/');
 
         if ($suffix) {
-            return join_paths($final, $suffix);
+            $suffix = str_replace('\\', '/', $suffix);
+            return rtrim($final, '/') . '/' . ltrim($suffix, '/');
         }
 
         return $final;
