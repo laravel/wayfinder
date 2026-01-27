@@ -31,7 +31,11 @@ class Enums extends Converter
         $content = [];
 
         foreach ($enum->cases as $case => $value) {
-            $content[] = TypeScript::constant($case, TypeScript::quote($value))->export();
+            if (is_string($value)) {
+                $content[] = TypeScript::constant($case, TypeScript::quote($value))->export();
+            } else {
+                $content[] = TypeScript::constant($case, $value)->export();
+            }
         }
 
         $content[] = '';
