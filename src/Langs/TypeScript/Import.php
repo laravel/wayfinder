@@ -4,8 +4,6 @@ namespace Laravel\Wayfinder\Langs\TypeScript;
 
 use Laravel\Wayfinder\Langs\TypeScript;
 
-use function Illuminate\Filesystem\join_paths;
-
 class Import
 {
     protected bool $safe = false;
@@ -31,11 +29,12 @@ class Import
 
         $count = substr_count($path, DIRECTORY_SEPARATOR);
 
-        $final = '.' . '/' . ltrim(str_repeat('/..', $count), '/');
+        $final = '.'.'/'.ltrim(str_repeat('/..', $count), '/');
 
         if ($suffix) {
             $suffix = str_replace('\\', '/', $suffix);
-            return rtrim($final, '/') . '/' . ltrim($suffix, '/');
+
+            return rtrim($final, '/').'/'.ltrim($suffix, '/');
         }
 
         return $final;
