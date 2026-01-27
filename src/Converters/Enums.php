@@ -8,7 +8,6 @@ use Laravel\Wayfinder\Results\Result;
 
 class Enums extends Converter
 {
-
     public function convert(Enum $enum): Result
     {
         $name = str($enum->name)->afterLast('\\')->toString();
