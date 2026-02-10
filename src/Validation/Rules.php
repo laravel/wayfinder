@@ -34,7 +34,10 @@ class Rules
     protected function resolveBaseType(): string
     {
         if ($inRule = $this->getRule('In')) {
-            return collect($inRule->getParams())->map(TypeScript::quote(...))->implode(' | ');
+            return collect($inRule->getParams())
+                ->filter(fn ($v) => ! is_null($v) && $v !== '')
+                ->map(TypeScript::quote(...))
+                ->implode(' | ');
         }
 
         if ($this->getRule('String')) {
