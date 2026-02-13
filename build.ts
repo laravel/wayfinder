@@ -23,6 +23,12 @@ export function setup(): void {
         artisan(
             `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`,
         );
+
+        process.env.WAYFINDER_GENERATE_INERTIA_COMPONENT = "true";
+        artisan(
+            `wayfinder:generate --path=workbench/resources/js/wayfinder-with-inertia-component --app-path=${appDir} --base-path=${baseDir}`,
+        );
+        delete process.env.WAYFINDER_GENERATE_INERTIA_COMPONENT;
     } catch (error) {
         console.error(
             `Wayfinder build error\n----------${error.output}\n----------`,

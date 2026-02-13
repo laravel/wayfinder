@@ -2,6 +2,7 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript\Converters;
 
+use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\Verb;
 use Laravel\Wayfinder\Langs\TypeScript;
@@ -19,6 +20,7 @@ class RouteMethod
     public function __construct(
         protected Route $route,
         protected bool $withForm,
+        protected bool $withInertiaComponent = false,
         protected bool $named = false,
         protected array $relatedRoutes = [],
         protected bool $tmpMethod = false,
@@ -71,6 +73,7 @@ class RouteMethod
             $routeMethod = new static(
                 route: $route,
                 withForm: $this->withForm,
+                withInertiaComponent: $this->withInertiaComponent,
                 named: $this->named,
                 tmpMethod: true,
             );
@@ -104,6 +107,12 @@ class RouteMethod
             ->key('method')
             ->value($this->route->verbs()->first()->actual)
             ->quote();
+
+        $componentValue = $this->inertiaComponentValue();
+
+        if ($componentValue !== null) {
+            $object->key('component')->value($componentValue);
+        }
 
         $func = TypeScript::arrowFunction($this->name)
             ->export($this->named || ! $this->route->hasInvokableController())
@@ -181,6 +190,13 @@ class RouteMethod
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
         $def->key('url')->value($this->route->uri())->quote();
+
+        $componentValue = $this->inertiaComponentValue();
+
+        if ($componentValue !== null) {
+            $def->key('component')->value($componentValue);
+        }
+
         $def->satisfies('RouteDefinition<'.$verbs.'>');
 
         return "{$this->name}.definition = {$def}";
@@ -343,6 +359,12 @@ class RouteMethod
             ->value($verb->actual)
             ->quote();
 
+        $componentValue = $this->inertiaComponentValue();
+
+        if ($componentValue !== null) {
+            $body->key('component')->value($componentValue);
+        }
+
         $func->body($body);
 
         $block = TypeScript::block("{$this->name}.{$verb->actual} = {$func}");
@@ -397,6 +419,12 @@ class RouteMethod
             ->value($verb->formSafe)
             ->quote();
 
+        $componentValue = $this->inertiaComponentValue();
+
+        if ($componentValue !== null) {
+            $body->key('component')->value($componentValue);
+        }
+
         $func->body($body);
 
         return $func;
@@ -420,6 +448,29 @@ class RouteMethod
     protected function tmpMethod(Route $route): string
     {
         return $this->jsMethod($route).hash('xxh128', $route->uri());
+    }
+
+    protected function inertiaComponentValue(): ?string
+    {
+        if (! $this->withInertiaComponent) {
+            return null;
+        }
+
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        if ($components->isEmpty()) {
+            return null;
+        }
+
+        if ($components->count() === 1) {
+            return TypeScript::quote($components->first());
+        }
+
+        return '['.$components->map(fn ($c) => TypeScript::quote($c))->implode(', ').']';
     }
 
     protected function jsMethod(Route $route): string

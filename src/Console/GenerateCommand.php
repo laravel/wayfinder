@@ -121,6 +121,7 @@ class GenerateCommand extends Command
         $routesConverter->generateRoutes($this->config->get('wayfinder.generate.route.named', true));
         $routesConverter->generateActions($this->config->get('wayfinder.generate.route.actions', true));
         $routesConverter->withForm($this->config->get('wayfinder.generate.route.form_variant', true));
+        $routesConverter->withInertiaComponent($this->config->get('wayfinder.generate.inertia.component', false));
         RangerConfig::set('routes.ignore_names', $this->config->get('wayfinder.generate.route.ignore.names', []));
         RangerConfig::set('routes.ignore_urls', $this->config->get('wayfinder.generate.route.ignore.urls', []));
 

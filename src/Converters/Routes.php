@@ -33,6 +33,8 @@ class Routes extends Converter
 
     protected bool $withForm = true;
 
+    protected bool $withInertiaComponent = false;
+
     public function __construct(
         protected InertiaData $inertiaDataConverter,
         protected JsonData $jsonDataConverter,
@@ -173,6 +175,11 @@ class Routes extends Converter
         return $this->withForm;
     }
 
+    public function withInertiaComponent(bool $withInertiaComponent): void
+    {
+        $this->withInertiaComponent = $withInertiaComponent;
+    }
+
     public function generateRoutes(bool $generateRoutes): void
     {
         $this->generateRoutes = $generateRoutes;
@@ -254,7 +261,7 @@ class Routes extends Converter
 
     protected function writeControllerMethodExport(Route $route, string $path): RouteMethod
     {
-        $method = new RouteMethod($route, $this->generateFormVariants());
+        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent);
 
         $this->appendContent($path, $method->controllerMethod());
 
@@ -263,7 +270,7 @@ class Routes extends Converter
 
     protected function writeNamedMethodExport(Route $route, string $path): RouteMethod
     {
-        $method = new RouteMethod($route, $this->generateFormVariants(), true);
+        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent, true);
 
         $this->appendContent($path, $method->controllerMethod());
 
@@ -284,6 +291,7 @@ class Routes extends Converter
         $method = new RouteMethod(
             route: $routes->first(),
             withForm: $this->generateFormVariants(),
+            withInertiaComponent: $this->withInertiaComponent,
             relatedRoutes: $routes->all(),
         );
 
