@@ -12,16 +12,14 @@ class InertiaData extends Converter
     public function convert(InertiaResponse $response, Route $route): ?string
     {
         $fqn = str($response->component)
-            ->explode(DIRECTORY_SEPARATOR)
+            ->explode('/')
             ->map(fn ($part) => Str::studly($part))
             ->prepend('Inertia.Pages')
             ->join('.');
         $name = str($response->component)
-            ->afterLast(DIRECTORY_SEPARATOR)
+            ->afterLast('/')
             ->afterLast('.')
-            ->explode(DIRECTORY_SEPARATOR)
-            ->map(fn ($part) => Str::studly($part))
-            ->join(DIRECTORY_SEPARATOR);
+            ->studly();
         $type = $this->getType($response);
 
         TypeScript::addFqnToNamespaced($fqn, TypeScript::type($name, $type)->export())
