@@ -194,7 +194,7 @@ class GenerateCommand extends Command
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
             ]),
-        ]));
+        ])->render());
     }
 
     private function writeControllerMethodExport(Route $route, string $path): void
@@ -211,7 +211,7 @@ class GenerateCommand extends Command
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
             'withForm' => $this->option('with-form') ?? false,
-        ]));
+        ])->render());
     }
 
     private function writeNamedFile(Collection $routes, string $namespace): void
@@ -267,7 +267,7 @@ class GenerateCommand extends Command
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
             'withForm' => $this->option('with-form') ?? false,
-        ]));
+        ])->render());
     }
 
     private function writeBarrelFiles(array|Collection $children, string $parent): void
