@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.13...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.14...main)
+
+## [v0.1.14](https://github.com/laravel/wayfinder/compare/v0.1.13...v0.1.14) - 2026-02-24
+
+### What's Changed
+
+* Add Laravel 13 support by [@WendellAdriel](https://github.com/WendellAdriel) in https://github.com/laravel/wayfinder/pull/179
+
+### New Contributors
+
+* [@WendellAdriel](https://github.com/WendellAdriel) made their first contribution in https://github.com/laravel/wayfinder/pull/179
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.13...v0.1.14
 
 ## [v0.1.13](https://github.com/laravel/wayfinder/compare/v0.1.12...v0.1.13) - 2026-01-12
 
