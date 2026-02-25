@@ -129,14 +129,14 @@ class Routes extends Converter
 
                     $inFile = in_array($firstSubDir, array_column($this->exports[$path], 'originalMethod'));
 
-                    $resultImports->addDefault('./'.$firstSubDir, TypeScript::safeMethod($firstSubDir, 'Method'), safe: $inFile);
+                    $resultImports->addDefault('./'.$firstSubDir, $safeFirstSubDirMethod = TypeScript::safeMethod($firstSubDir, 'Method'), safe: $inFile);
 
-                    $subDirImportNames->push(TypeScript::safeMethod($firstSubDir, 'Method'));
+                    $subDirImportNames->push($safeFirstSubDirMethod);
 
-                    $keyValue = $object->key(TypeScript::safeMethod($firstSubDir, 'Method'));
+                    $keyValue = $object->key($safeFirstSubDirMethod);
 
                     if ($inFile) {
-                        $keyValue->value(sprintf('Object.assign(%s, %s)', $firstSubDir, $resultImports->get($firstSubDir)));
+                        $keyValue->value(sprintf('Object.assign(%s, %s)', $safeFirstSubDirMethod, $resultImports->get($safeFirstSubDirMethod)));
                     } else {
                         $keyValue->rawKey();
                     }
