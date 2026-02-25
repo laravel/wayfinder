@@ -82,4 +82,17 @@ describe("Inertia component enabled", () => {
         expect(namedRoutes).toContain('component: "Settings/General"');
         expect(namedRoutes).toContain('component: "Profile/Show"');
     });
+
+    test("conditional routes produce component array", () => {
+        expect(inertiaController).toContain(
+            'component: ["Conditional/Authenticated", "Conditional/Guest"]',
+        );
+
+        const conditionalDef = inertiaController.match(
+            /conditional\.definition\s*=\s*\{[^}]+\}/s,
+        )?.[0];
+        expect(conditionalDef).toContain(
+            'component: ["Conditional/Authenticated", "Conditional/Guest"]',
+        );
+    });
 });

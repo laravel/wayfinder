@@ -6,6 +6,7 @@ use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\Verb;
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Langs\TypeScript\ObjectBuilder;
 
 class RouteMethod
 {
@@ -108,11 +109,7 @@ class RouteMethod
             ->value($this->route->verbs()->first()->actual)
             ->quote();
 
-        $componentValue = $this->inertiaComponentValue();
-
-        if ($componentValue !== null) {
-            $object->key('component')->value($componentValue);
-        }
+        $this->addInertiaComponent($object);
 
         $func = TypeScript::arrowFunction($this->name)
             ->export($this->named || ! $this->route->hasInvokableController())
@@ -191,11 +188,7 @@ class RouteMethod
         $def->key('methods')->value($verbs);
         $def->key('url')->value($this->route->uri())->quote();
 
-        $componentValue = $this->inertiaComponentValue();
-
-        if ($componentValue !== null) {
-            $def->key('component')->value($componentValue);
-        }
+        $this->addInertiaComponent($def);
 
         $def->satisfies('RouteDefinition<'.$verbs.'>');
 
@@ -359,11 +352,7 @@ class RouteMethod
             ->value($verb->actual)
             ->quote();
 
-        $componentValue = $this->inertiaComponentValue();
-
-        if ($componentValue !== null) {
-            $body->key('component')->value($componentValue);
-        }
+        $this->addInertiaComponent($body);
 
         $func->body($body);
 
@@ -419,11 +408,7 @@ class RouteMethod
             ->value($verb->formSafe)
             ->quote();
 
-        $componentValue = $this->inertiaComponentValue();
-
-        if ($componentValue !== null) {
-            $body->key('component')->value($componentValue);
-        }
+        $this->addInertiaComponent($body);
 
         $func->body($body);
 
@@ -450,12 +435,21 @@ class RouteMethod
         return $this->jsMethod($route).hash('xxh128', $route->uri());
     }
 
-    protected function inertiaComponentValue(): ?string
+    protected function addInertiaComponent(ObjectBuilder $object): void
     {
         if (! $this->withInertiaComponent) {
-            return null;
+            return;
         }
 
+        $component = $this->inertiaComponent();
+
+        if ($component !== null) {
+            $object->key('component')->value($component);
+        }
+    }
+
+    protected function inertiaComponent(): ?string
+    {
         $components = collect($this->route->possibleResponses())
             ->filter(fn ($response) => $response instanceof InertiaResponse)
             ->map(fn (InertiaResponse $response) => $response->component)

@@ -102,6 +102,7 @@ Route::get('/inertia/dashboard', [InertiaController::class, 'dashboard'])->name(
 Route::get('/inertia/settings', [InertiaController::class, 'settings'])->name('inertia.settings');
 Route::get('/inertia/profile', [InertiaController::class, 'profile'])->name('inertia.profile');
 Route::get('/inertia/unsafe', [InertiaController::class, 'unsafe'])->name('inertia.unsafe');
+Route::get('/inertia/conditional', [InertiaController::class, 'conditional'])->name('inertia.conditional');
 
 Route::get('/inertia/duplicate', [DuplicateInertiaController::class, 'duplicate'])->name('inertia.duplicate');
 Route::get('/inertia/duplicate-with-data', [DuplicateInertiaController::class, 'duplicateWithData'])->name('inertia.duplicate.with-data');
