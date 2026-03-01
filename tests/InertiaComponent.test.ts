@@ -2,22 +2,17 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
 
-const withComponentDir = join(
-    __dirname,
-    "../workbench/resources/js/wayfinder-with-inertia-component",
-);
-const defaultDir = join(
-    __dirname,
-    "../workbench/resources/js/wayfinder",
-);
+const wayfinderDir = join(__dirname, "../workbench/resources/js/wayfinder");
 
-describe("Inertia component disabled by default", () => {
+const withComponent = !!process.env.WAYFINDER_GENERATE_INERTIA_COMPONENT;
+
+describe.skipIf(withComponent)("Inertia component disabled", () => {
     const inertiaController = readFileSync(
-        join(defaultDir, "App/Http/Controllers/InertiaController.ts"),
+        join(wayfinderDir, "App/Http/Controllers/InertiaController.ts"),
         "utf-8",
     );
     const namedRoutes = readFileSync(
-        join(defaultDir, "routes/inertia/index.ts"),
+        join(wayfinderDir, "routes/inertia/index.ts"),
         "utf-8",
     );
 
@@ -30,17 +25,17 @@ describe("Inertia component disabled by default", () => {
     });
 });
 
-describe("Inertia component enabled", () => {
+describe.skipIf(!withComponent)("Inertia component enabled", () => {
     const inertiaController = readFileSync(
-        join(withComponentDir, "App/Http/Controllers/InertiaController.ts"),
+        join(wayfinderDir, "App/Http/Controllers/InertiaController.ts"),
         "utf-8",
     );
     const postController = readFileSync(
-        join(withComponentDir, "App/Http/Controllers/PostController.ts"),
+        join(wayfinderDir, "App/Http/Controllers/PostController.ts"),
         "utf-8",
     );
     const namedRoutes = readFileSync(
-        join(withComponentDir, "routes/inertia/index.ts"),
+        join(wayfinderDir, "routes/inertia/index.ts"),
         "utf-8",
     );
 
@@ -72,6 +67,7 @@ describe("Inertia component enabled", () => {
             /const \w+Form = .+?(?=\n\n)/gs,
         );
         expect(formBlocks).toBeTruthy();
+
         for (const block of formBlocks!) {
             expect(block).toContain("component:");
         }
