@@ -16,19 +16,15 @@ export function setup(): void {
             path.join(baseDir, ".env"),
         );
 
-        process.env.WAYFINDER_CACHE_ROUTES
-            ? artisan("route:cache")
-            : artisan("route:clear");
+        if (process.env.WAYFINDER_CACHE_ROUTES) {
+            artisan("route:cache");
+        } else {
+            artisan("route:clear");
+        }
 
         artisan(
             `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`,
         );
-
-        process.env.WAYFINDER_GENERATE_INERTIA_COMPONENT = "true";
-        artisan(
-            `wayfinder:generate --path=workbench/resources/js/wayfinder-with-inertia-component --app-path=${appDir} --base-path=${baseDir}`,
-        );
-        delete process.env.WAYFINDER_GENERATE_INERTIA_COMPONENT;
     } catch (error) {
         console.error(
             `Wayfinder build error\n----------${error.output}\n----------`,
