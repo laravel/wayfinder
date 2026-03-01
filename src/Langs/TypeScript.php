@@ -64,7 +64,11 @@ class TypeScript
             $values = collect($values);
         }
 
-        return self::type($type, $values->map(fn ($v) => self::quote($v))->implode(' | '));
+        return self::type($type, $values
+            ->filter(fn ($v) => ! is_null($v) && $v !== '')
+            ->map(fn ($v) => self::quote($v))
+            ->implode(' | ')
+        );
     }
 
     public static function backtick(string $content): string
