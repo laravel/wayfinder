@@ -47,8 +47,10 @@ class RouteMethod
             $this->definition(),
             $this->url(),
             ...$this->verbs(),
+            $this->withComponentMethod(),
             $this->formVariant(),
             ...$this->formVerbVariants(),
+            $this->withComponentFormMethod(),
             $this->withForm ? "{$this->name}.form = {$this->name}Form" : '',
         ]));
     }
@@ -108,8 +110,6 @@ class RouteMethod
             ->key('method')
             ->value($this->route->verbs()->first()->actual)
             ->quote();
-
-        $this->addInertiaComponent($object);
 
         $func = TypeScript::arrowFunction($this->name)
             ->export($this->named || ! $this->route->hasInvokableController())
@@ -352,8 +352,6 @@ class RouteMethod
             ->value($verb->actual)
             ->quote();
 
-        $this->addInertiaComponent($body);
-
         $func->body($body);
 
         $block = TypeScript::block("{$this->name}.{$verb->actual} = {$func}");
@@ -408,8 +406,6 @@ class RouteMethod
             ->value($verb->formSafe)
             ->quote();
 
-        $this->addInertiaComponent($body);
-
         $func->body($body);
 
         return $func;
@@ -433,6 +429,121 @@ class RouteMethod
     protected function tmpMethod(Route $route): string
     {
         return $this->jsMethod($route).hash('xxh128', $route->uri());
+    }
+
+    protected function withComponentMethod(): string
+    {
+        if (! $this->withInertiaComponent) {
+            return '';
+        }
+
+        $component = $this->inertiaComponent();
+
+        if ($component === null) {
+            return '';
+        }
+
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        $isMulti = $components->count() > 1;
+
+        $func = TypeScript::arrowFunction();
+
+        if ($isMulti) {
+            $unionType = $components->map(fn ($c) => TypeScript::quote($c))->implode(' | ');
+            $func->argument('component', $unionType);
+        }
+
+        if ($this->hasParameters) {
+            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+        }
+
+        $func->argument('options', 'RouteQueryOptions', true);
+
+        $urlArgs = $this->hasParameters ? ['args', 'options'] : ['options'];
+        $callArgs = implode(', ', $urlArgs);
+
+        if ($isMulti) {
+            $body = "{ ...{$this->name}({$callArgs}), component }";
+        } else {
+            $body = "{ ...{$this->name}({$callArgs}), component: {$component} }";
+        }
+
+        $func->body($body);
+
+        $block = TypeScript::block("{$this->name}.withComponent = {$func}");
+
+        $this->addDockblock($block);
+
+        return $block;
+    }
+
+    protected function withComponentFormMethod(): string
+    {
+        if (! $this->withInertiaComponent || ! $this->withForm) {
+            return '';
+        }
+
+        $component = $this->inertiaComponent();
+
+        if ($component === null) {
+            return '';
+        }
+
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        $isMulti = $components->count() > 1;
+
+        $verb = $this->route->verbs()->first();
+
+        $func = TypeScript::arrowFunction();
+
+        if ($isMulti) {
+            $unionType = $components->map(fn ($c) => TypeScript::quote($c))->implode(' | ');
+            $func->argument('component', $unionType);
+        }
+
+        if ($this->hasParameters) {
+            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+        }
+
+        $func->argument('options', 'RouteQueryOptions', true);
+
+        $urlArgs = [];
+
+        if ($this->hasParameters) {
+            $urlArgs[] = 'args';
+        }
+
+        if ($verb->formSafe === $verb->actual) {
+            $urlArgs[] = 'options';
+        } else {
+            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", options)';
+        }
+
+        $callArgs = implode(', ', $urlArgs);
+
+        if ($isMulti) {
+            $body = "{ ...{$this->name}Form({$callArgs}), component }";
+        } else {
+            $body = "{ ...{$this->name}Form({$callArgs}), component: {$component} }";
+        }
+
+        $func->body($body);
+
+        $block = TypeScript::block("{$this->name}Form.withComponent = {$func}");
+
+        $this->addDockblock($block);
+
+        return $block;
     }
 
     protected function addInertiaComponent(ObjectBuilder $object): void
