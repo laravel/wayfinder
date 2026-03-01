@@ -52,4 +52,17 @@ class InertiaController
             ],
         ]);
     }
+
+    public function conditional(): Response
+    {
+        if (auth()->check()) {
+            return Inertia::render('Conditional/Authenticated', [
+                'user' => auth()->user(),
+            ]);
+        }
+
+        return Inertia::render('Conditional/Guest', [
+            'canLogin' => true,
+        ]);
+    }
 }

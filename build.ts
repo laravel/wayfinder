@@ -16,9 +16,11 @@ export function setup(): void {
             path.join(baseDir, ".env"),
         );
 
-        process.env.WAYFINDER_CACHE_ROUTES
-            ? artisan("route:cache")
-            : artisan("route:clear");
+        if (process.env.WAYFINDER_CACHE_ROUTES) {
+            artisan("route:cache");
+        } else {
+            artisan("route:clear");
+        }
 
         artisan(
             `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`,

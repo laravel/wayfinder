@@ -17,11 +17,13 @@ let urlDefaults: () => UrlDefaults = () => ({});
 
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
+    component?: string | Record<string, string>;
 } & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
 
 export type RouteFormDefinition<TMethod extends Method> = {
     action: string;
     method: TMethod;
+    component?: string | Record<string, string>;
 };
 
 export type RouteQueryOptions = {

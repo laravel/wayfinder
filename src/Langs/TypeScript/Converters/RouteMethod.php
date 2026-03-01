@@ -2,9 +2,11 @@
 
 namespace Laravel\Wayfinder\Langs\TypeScript\Converters;
 
+use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\Verb;
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Langs\TypeScript\ObjectBuilder;
 
 class RouteMethod
 {
@@ -19,6 +21,7 @@ class RouteMethod
     public function __construct(
         protected Route $route,
         protected bool $withForm,
+        protected bool $withInertiaComponent = false,
         protected bool $named = false,
         protected array $relatedRoutes = [],
         protected bool $tmpMethod = false,
@@ -44,8 +47,10 @@ class RouteMethod
             $this->definition(),
             $this->url(),
             ...$this->verbs(),
+            $this->withComponentMethod(),
             $this->formVariant(),
             ...$this->formVerbVariants(),
+            $this->withComponentFormMethod(),
             $this->withForm ? "{$this->name}.form = {$this->name}Form" : '',
         ]));
     }
@@ -71,6 +76,7 @@ class RouteMethod
             $routeMethod = new static(
                 route: $route,
                 withForm: $this->withForm,
+                withInertiaComponent: $this->withInertiaComponent,
                 named: $this->named,
                 tmpMethod: true,
             );
@@ -181,6 +187,9 @@ class RouteMethod
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
         $def->key('url')->value($this->route->uri())->quote();
+
+        $this->addInertiaComponent($def);
+
         $def->satisfies('RouteDefinition<'.$verbs.'>');
 
         return "{$this->name}.definition = {$def}";
@@ -420,6 +429,153 @@ class RouteMethod
     protected function tmpMethod(Route $route): string
     {
         return $this->jsMethod($route).hash('xxh128', $route->uri());
+    }
+
+    protected function withComponentMethod(): string
+    {
+        if (! $this->withInertiaComponent) {
+            return '';
+        }
+
+        $component = $this->inertiaComponent();
+
+        if ($component === null) {
+            return '';
+        }
+
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        $isMulti = $components->count() > 1;
+
+        $func = TypeScript::arrowFunction();
+
+        if ($isMulti) {
+            $unionType = $components->map(fn ($c) => TypeScript::quote($c))->implode(' | ');
+            $func->argument('component', $unionType);
+        }
+
+        if ($this->hasParameters) {
+            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+        }
+
+        $func->argument('options', 'RouteQueryOptions', true);
+
+        $urlArgs = $this->hasParameters ? ['args', 'options'] : ['options'];
+        $callArgs = implode(', ', $urlArgs);
+
+        if ($isMulti) {
+            $body = "{ ...{$this->name}({$callArgs}), component }";
+        } else {
+            $body = "{ ...{$this->name}({$callArgs}), component: {$component} }";
+        }
+
+        $func->body($body);
+
+        $block = TypeScript::block("{$this->name}.withComponent = {$func}");
+
+        $this->addDockblock($block);
+
+        return $block;
+    }
+
+    protected function withComponentFormMethod(): string
+    {
+        if (! $this->withInertiaComponent || ! $this->withForm) {
+            return '';
+        }
+
+        $component = $this->inertiaComponent();
+
+        if ($component === null) {
+            return '';
+        }
+
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        $isMulti = $components->count() > 1;
+
+        $verb = $this->route->verbs()->first();
+
+        $func = TypeScript::arrowFunction();
+
+        if ($isMulti) {
+            $unionType = $components->map(fn ($c) => TypeScript::quote($c))->implode(' | ');
+            $func->argument('component', $unionType);
+        }
+
+        if ($this->hasParameters) {
+            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+        }
+
+        $func->argument('options', 'RouteQueryOptions', true);
+
+        $urlArgs = [];
+
+        if ($this->hasParameters) {
+            $urlArgs[] = 'args';
+        }
+
+        if ($verb->formSafe === $verb->actual) {
+            $urlArgs[] = 'options';
+        } else {
+            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", options)';
+        }
+
+        $callArgs = implode(', ', $urlArgs);
+
+        if ($isMulti) {
+            $body = "{ ...{$this->name}Form({$callArgs}), component }";
+        } else {
+            $body = "{ ...{$this->name}Form({$callArgs}), component: {$component} }";
+        }
+
+        $func->body($body);
+
+        $block = TypeScript::block("{$this->name}Form.withComponent = {$func}");
+
+        $this->addDockblock($block);
+
+        return $block;
+    }
+
+    protected function addInertiaComponent(ObjectBuilder $object): void
+    {
+        if (! $this->withInertiaComponent) {
+            return;
+        }
+
+        $component = $this->inertiaComponent();
+
+        if ($component !== null) {
+            $object->key('component')->value($component);
+        }
+    }
+
+    protected function inertiaComponent(): ?string
+    {
+        $components = collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
+
+        if ($components->isEmpty()) {
+            return null;
+        }
+
+        if ($components->count() === 1) {
+            return TypeScript::quote($components->first());
+        }
+
+        return TypeScript::objectToRecord($components->mapWithKeys(fn ($c) => [$c => $c]));
     }
 
     protected function jsMethod(Route $route): string
