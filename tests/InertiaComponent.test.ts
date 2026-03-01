@@ -25,70 +25,56 @@ describe.skipIf(withComponent)("Inertia component disabled", () => {
     });
 });
 
-describe.skipIf(!withComponent)("Inertia component enabled", () => {
-    const inertiaController = readFileSync(
-        join(wayfinderDir, "App/Http/Controllers/InertiaController.ts"),
-        "utf-8",
-    );
-    const postController = readFileSync(
-        join(wayfinderDir, "App/Http/Controllers/PostController.ts"),
-        "utf-8",
-    );
-    const namedRoutes = readFileSync(
-        join(wayfinderDir, "routes/inertia/index.ts"),
-        "utf-8",
-    );
+const InertiaController = await import(
+    join(wayfinderDir, "App/Http/Controllers/InertiaController.ts")
+) as typeof import("../workbench/resources/js/wayfinder/App/Http/Controllers/InertiaController");
 
+const PostController = await import(
+    join(wayfinderDir, "App/Http/Controllers/PostController.ts")
+) as typeof import("../workbench/resources/js/wayfinder/App/Http/Controllers/PostController");
+
+const namedRoutes = await import(
+    join(wayfinderDir, "routes/inertia/index.ts")
+) as typeof import("../workbench/resources/js/wayfinder/routes/inertia/index");
+
+describe.skipIf(!withComponent)("Inertia component enabled", () => {
     test("inertia routes include component in base function", () => {
-        expect(inertiaController).toContain('component: "Dashboard"');
-        expect(inertiaController).toContain('component: "Settings/General"');
-        expect(inertiaController).toContain('component: "Profile/Show"');
-        expect(inertiaController).toContain('component: "settings/two-factor"');
+        expect(InertiaController.dashboard()).toMatchObject({ component: "Dashboard" });
+        expect(InertiaController.settings()).toMatchObject({ component: "Settings/General" });
+        expect(InertiaController.profile()).toMatchObject({ component: "Profile/Show" });
+        expect(InertiaController.unsafe()).toMatchObject({ component: "settings/two-factor" });
     });
 
     test("component is included in definition", () => {
-        const dashboardDef = inertiaController.match(
-            /dashboard\.definition\s*=\s*\{[^}]+\}/s,
-        )?.[0];
-        expect(dashboardDef).toContain('component: "Dashboard"');
-
-        const settingsDef = inertiaController.match(
-            /settings\.definition\s*=\s*\{[^}]+\}/s,
-        )?.[0];
-        expect(settingsDef).toContain('component: "Settings/General"');
+        expect(InertiaController.dashboard.definition).toMatchObject({ component: "Dashboard" });
+        expect(InertiaController.settings.definition).toMatchObject({ component: "Settings/General" });
     });
 
     test("non-inertia routes do not have component", () => {
-        expect(postController).not.toContain("component:");
+        expect(PostController.index()).not.toHaveProperty("component");
+        expect(PostController.index.definition).not.toHaveProperty("component");
     });
 
     test("form variants include component", () => {
-        const formBlocks = inertiaController.match(
-            /const \w+Form = .+?(?=\n\n)/gs,
-        );
-        expect(formBlocks).toBeTruthy();
-
-        for (const block of formBlocks!) {
-            expect(block).toContain("component:");
-        }
+        expect(InertiaController.dashboard.form()).toMatchObject({ component: "Dashboard" });
+        expect(InertiaController.settings.form()).toMatchObject({ component: "Settings/General" });
+        expect(InertiaController.profile.form()).toMatchObject({ component: "Profile/Show" });
+        expect(InertiaController.unsafe.form()).toMatchObject({ component: "settings/two-factor" });
     });
 
     test("named routes include component", () => {
-        expect(namedRoutes).toContain('component: "Dashboard"');
-        expect(namedRoutes).toContain('component: "Settings/General"');
-        expect(namedRoutes).toContain('component: "Profile/Show"');
+        expect(namedRoutes.dashboard()).toMatchObject({ component: "Dashboard" });
+        expect(namedRoutes.settings()).toMatchObject({ component: "Settings/General" });
+        expect(namedRoutes.profile()).toMatchObject({ component: "Profile/Show" });
     });
 
-    test("conditional routes produce component array", () => {
-        expect(inertiaController).toContain(
-            'component: ["Conditional/Authenticated", "Conditional/Guest"]',
-        );
+    test("conditional routes produce component object", () => {
+        const expectedComponent = {
+            "Conditional/Authenticated": "Conditional/Authenticated",
+            "Conditional/Guest": "Conditional/Guest",
+        };
 
-        const conditionalDef = inertiaController.match(
-            /conditional\.definition\s*=\s*\{[^}]+\}/s,
-        )?.[0];
-        expect(conditionalDef).toContain(
-            'component: ["Conditional/Authenticated", "Conditional/Guest"]',
-        );
+        expect(InertiaController.conditional()).toMatchObject({ component: expectedComponent });
+        expect(InertiaController.conditional.definition).toMatchObject({ component: expectedComponent });
     });
 });

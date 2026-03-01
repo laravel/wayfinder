@@ -464,7 +464,7 @@ class RouteMethod
             return TypeScript::quote($components->first());
         }
 
-        return '['.$components->map(fn ($c) => TypeScript::quote($c))->implode(', ').']';
+        return TypeScript::objectToRecord($components->mapWithKeys(fn ($c) => [$c => $c]));
     }
 
     protected function jsMethod(Route $route): string
