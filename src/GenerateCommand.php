@@ -18,7 +18,14 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate
+        {--path=}
+        {--skip-actions}
+        {--skip-routes}
+        {--with-form}
+        {--only=* : Include routes by pattern (supports name:, uri:, action:, controller:)}
+        {--except=* : Exclude routes by pattern (supports name:, uri:, action:, controller:)}
+        {--report : Print a generation report with skipped route examples}';
 
     private ?string $forcedScheme;
 
@@ -37,6 +44,23 @@ class GenerateCommand extends Command
      * @var array<string, array<string, string[]>>
      */
     private $imports = [];
+
+    /**
+     * @var array{
+     *   total:int,
+     *   included:int,
+     *   excluded_by_only:int,
+     *   excluded_by_except:int,
+     *   examples:array<int, string>
+     * }
+     */
+    private $filterStats = [
+        'total' => 0,
+        'included' => 0,
+        'excluded_by_only' => 0,
+        'excluded_by_except' => 0,
+        'examples' => [],
+    ];
 
     public function __construct(
         private Filesystem $files,
@@ -57,7 +81,40 @@ class GenerateCommand extends Command
 
         $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
 
-        $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
+        $onlyPatterns = $this->parsePatterns('only');
+        $exceptPatterns = $this->parsePatterns('except');
+
+        $filtered = collect($this->router->getRoutes())->filter(function (BaseRoute $route) use ($onlyPatterns, $exceptPatterns) {
+            $this->filterStats['total']++;
+
+            $onlyMatch = $onlyPatterns->isEmpty()
+                ? null
+                : $this->firstMatchingPattern($route, $onlyPatterns);
+
+            if ($onlyPatterns->isNotEmpty() && $onlyMatch === null) {
+                $this->filterStats['excluded_by_only']++;
+                $this->appendFilteredExample($route, 'only', null);
+
+                return false;
+            }
+
+            $exceptMatch = $exceptPatterns->isEmpty()
+                ? null
+                : $this->firstMatchingPattern($route, $exceptPatterns);
+
+            if ($exceptMatch !== null) {
+                $this->filterStats['excluded_by_except']++;
+                $this->appendFilteredExample($route, 'except', $exceptMatch['pattern']);
+
+                return false;
+            }
+
+            $this->filterStats['included']++;
+
+            return true;
+        });
+
+        $routes = $filtered->map(function (BaseRoute $route) use ($globalUrlDefaults) {
             $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
                 if ($middleware instanceof \Closure) {
                     return [];
@@ -71,6 +128,8 @@ class GenerateCommand extends Command
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
 
+        $this->renderFilterReport($routes, $onlyPatterns, $exceptPatterns);
+
         if (! $this->option('skip-actions')) {
             $this->files->deleteDirectory($this->base());
 
@@ -79,9 +138,9 @@ class GenerateCommand extends Command
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
-            $this->writeContent();
+            $count = $this->writeContent();
 
-            info('[Wayfinder] Generated actions in '.$this->base());
+            info("[Wayfinder] Generated actions in {$this->base()} ({$count} files)");
         }
 
         $this->pathDirectory = 'routes';
@@ -94,9 +153,9 @@ class GenerateCommand extends Command
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
-            $this->writeContent();
+            $count = $this->writeContent();
 
-            info('[Wayfinder] Generated routes in '.$this->base());
+            info("[Wayfinder] Generated routes in {$this->base()} ({$count} files)");
         }
 
         $this->pathDirectory = 'wayfinder';
@@ -121,11 +180,14 @@ class GenerateCommand extends Command
         array_unshift($this->content[$path], $content);
     }
 
-    private function writeContent(): void
+    private function writeContent(): int
     {
+        $count = 0;
+
         foreach ($this->content as $path => $content) {
             $this->files->ensureDirectoryExists(dirname($path));
             $this->files->put($path, TypeScript::cleanUp(implode(PHP_EOL, $content)));
+            $count++;
 
             // Prepend the imports to the file
             if (isset($this->imports[$path])) {
@@ -135,6 +197,8 @@ class GenerateCommand extends Command
         }
 
         $this->content = [];
+
+        return $count;
     }
 
     private function writeControllerFile(Collection $routes, string $namespace): void
@@ -344,6 +408,140 @@ class GenerateCommand extends Command
                 JAVASCRIPT);
 
         $children->each(fn ($grandChildren, $child) => $this->writeBarrelFiles($grandChildren, join_paths($parent, $child)));
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    private function parsePatterns(string $option): Collection
+    {
+        return collect((array) $this->option($option))
+            ->flatMap(fn ($value) => explode(',', (string) $value))
+            ->map(fn ($value) => trim($value))
+            ->filter()
+            ->values();
+    }
+
+    private function renderFilterReport(Collection $routes, Collection $onlyPatterns, Collection $exceptPatterns): void
+    {
+        if (! $this->option('report') && $onlyPatterns->isEmpty() && $exceptPatterns->isEmpty()) {
+            return;
+        }
+
+        $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
+        $named = $routes->filter(fn (Route $route) => $route->name());
+
+        info('[Wayfinder] Filter report');
+        $this->line("  Routes discovered: {$this->filterStats['total']}");
+        $this->line("  Routes selected: {$this->filterStats['included']}");
+        $this->line("  Skipped by --only: {$this->filterStats['excluded_by_only']}");
+        $this->line("  Skipped by --except: {$this->filterStats['excluded_by_except']}");
+        $this->line('  Controller namespaces selected: '.$controllers->count());
+        $this->line('  Named routes selected: '.$named->count());
+
+        if ($this->option('report') && $this->filterStats['examples'] !== []) {
+            $this->line('  Skipped route examples:');
+            collect($this->filterStats['examples'])->each(fn ($example) => $this->line("    - {$example}"));
+        }
+    }
+
+    private function appendFilteredExample(BaseRoute $route, string $reason, ?string $pattern): void
+    {
+        if (count($this->filterStats['examples']) >= 10) {
+            return;
+        }
+
+        $label = $this->routeLabel($route);
+
+        $this->filterStats['examples'][] = $pattern
+            ? "{$label} (reason: {$reason}, pattern: {$pattern})"
+            : "{$label} (reason: {$reason})";
+    }
+
+    /**
+     * @return array{pattern:string,field:string,value:string}|null
+     */
+    private function firstMatchingPattern(BaseRoute $route, Collection $patterns): ?array
+    {
+        $candidates = $this->routeCandidates($route);
+
+        foreach ($patterns as $pattern) {
+            $parsed = $this->parsePattern((string) $pattern);
+
+            $fields = $parsed['field'] ? [$parsed['field']] : array_keys($candidates);
+
+            foreach ($fields as $field) {
+                foreach ($candidates[$field] ?? [] as $candidate) {
+                    if (! $this->matchesPattern($candidate, $parsed['value'])) {
+                        continue;
+                    }
+
+                    return [
+                        'pattern' => (string) $pattern,
+                        'field' => $field,
+                        'value' => $candidate,
+                    ];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{field:string|null,value:string}
+     */
+    private function parsePattern(string $pattern): array
+    {
+        if (! str_contains($pattern, ':')) {
+            return ['field' => null, 'value' => $pattern];
+        }
+
+        [$field, $value] = explode(':', $pattern, 2);
+        $field = strtolower(trim($field));
+
+        if (! in_array($field, ['name', 'uri', 'action', 'controller'], true)) {
+            return ['field' => null, 'value' => $pattern];
+        }
+
+        return ['field' => $field, 'value' => trim($value)];
+    }
+
+    /**
+     * @return array{name:array<int,string>,uri:array<int,string>,action:array<int,string>,controller:array<int,string>}
+     */
+    private function routeCandidates(BaseRoute $route): array
+    {
+        $uri = $route->uri() === '/' ? '/' : '/'.ltrim($route->uri(), '/');
+
+        return [
+            'name' => array_values(array_filter([$route->getName()])),
+            'uri' => array_values(array_filter([$route->uri(), $uri])),
+            'action' => array_values(array_filter([$route->getActionName()])),
+            'controller' => array_values(array_filter([$route->getControllerClass()])),
+        ];
+    }
+
+    private function matchesPattern(string $value, string $pattern): bool
+    {
+        if ($pattern === '*') {
+            return true;
+        }
+
+        if (str_contains($pattern, '*')) {
+            return Str::is($pattern, $value);
+        }
+
+        return $value === $pattern;
+    }
+
+    private function routeLabel(BaseRoute $route): string
+    {
+        $methods = collect($route->methods())->reject(fn ($method) => $method === 'HEAD')->implode('|');
+        $uri = $route->uri() === '/' ? '/' : '/'.ltrim($route->uri(), '/');
+        $name = $route->getName() ? " [{$route->getName()}]" : '';
+
+        return "{$methods} {$uri}{$name}";
     }
 
     private function base(): string
