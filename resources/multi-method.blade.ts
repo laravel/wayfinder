@@ -7,8 +7,8 @@
     ])
 @endforeach
 
-{!! when($shouldExport, 'export ') !!}const {!! $method !!} = {
+{!! when($shouldExport, 'export ') !!}const {!! $method !!} = Object.assign({!! $routes->first()['tempMethod'] !!}, {
 @foreach ($routes as $route)
     {!! $route['uri'] !!}: {!! $route['tempMethod'] !!},
 @endforeach
-}{{PHP_EOL}}
+}){{PHP_EOL}}
