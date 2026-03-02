@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnonymousMiddlewareController;
+use App\Http\Controllers\AuditEntryController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\InvokableController;
@@ -53,6 +54,7 @@ Route::post('/optional/{parameter?}', [OptionalController::class, 'optional'])->
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
 
 Route::get('/users/{user}', [ModelBindingController::class, 'show']);
+Route::get('/audit-entries/{audit_entry}', [AuditEntryController::class, 'show']);
 
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}', [UrlDefaultsController::class, 'onlyDefaults']);
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}/also/{timezone}', [UrlDefaultsController::class, 'mixedDefaults']);
