@@ -23,4 +23,4 @@ args{!! when($parameters->every->optional, '?') !!}: {
 @endif
 ,
 @endif
-options?: RouteQueryOptions
+routeOptions?: RouteQueryOptions
