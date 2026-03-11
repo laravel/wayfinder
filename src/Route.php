@@ -80,7 +80,7 @@ class Route
             $optionalParameters->has($name) || $this->paramDefaults->has($name),
             $this->base->bindingFieldFor($name),
             $this->paramDefaults->get($name),
-            $signatureParams->first(fn ($p) => $p->getName() === $name),
+            $signatureParams->first(fn ($p) => Str::snake($p->getName()) === Str::snake($name)),
         ));
     }
 
