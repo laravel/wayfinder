@@ -8,4 +8,9 @@ class TwoRoutesSameActionController
     {
         //
     }
+
+    public function submit()
+    {
+        //
+    }
 }

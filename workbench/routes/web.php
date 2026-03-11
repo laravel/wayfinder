@@ -76,6 +76,8 @@ Route::get('/prism/chat', [PrismChatController::class, 'index']);
 
 Route::get('/two-routes-one-action-1', [TwoRoutesSameActionController::class, 'same']);
 Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 'same']);
+Route::post('/two-routes-one-submit-1', [TwoRoutesSameActionController::class, 'submit']);
+Route::post('/two-routes-one-submit-2', [TwoRoutesSameActionController::class, 'submit']);
 
 Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->name('disallowed.404');
