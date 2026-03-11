@@ -1,6 +1,6 @@
 @include('wayfinder::docblock')
 {!! when($shouldExport, 'export ') !!}const {!! $method !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verbs->first()->actual)> => ({
-    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}routeOptions),
     method: @js($verbs->first()->actual),
 })
 
@@ -63,13 +63,13 @@
     @if ($loop->last)
             .replace(/\/+$/, '')
     @endif
-@endforeach + queryParams(options)
+@endforeach + queryParams(routeOptions)
 }
 
 @foreach ($verbs as $verb)
 @include('wayfinder::docblock')
 {!! $method !!}.{!! $verb->actual !!} = (@include('wayfinder::function-arguments')): RouteDefinition<@js($verb->actual)> => ({
-    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}options),
+    url: {!! $method !!}.url({!! when($parameters->isNotEmpty(), 'args, ') !!}routeOptions),
     method: @js($verb->actual),
 })
 @endforeach
@@ -80,12 +80,12 @@
         action: {!! $method !!}.url(
             {!! when($parameters->isNotEmpty(), 'args, ') !!}
             @if ($verbs->first()->formSafe === $verbs->first()->actual)
-                options
+                routeOptions
             @else
                 {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                    [routeOptions?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: @js(strtoupper($verbs->first()->actual)),
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                        ...(routeOptions?.query ?? routeOptions?.mergeQuery ?? {}),
                     }
                 }
             @endif
@@ -99,12 +99,12 @@
             action: {!! $method !!}.url(
                 {!! when($parameters->isNotEmpty(), 'args, ') !!}
                 @if ($verb->formSafe === $verb->actual)
-                options
+                routeOptions
                 @else
                     {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        [routeOptions?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: @js(strtoupper($verb->actual)),
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                            ...(routeOptions?.query ?? routeOptions?.mergeQuery ?? {}),
                         }
                     }
                 @endif
