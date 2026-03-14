@@ -9,6 +9,7 @@ use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
+use App\Http\Controllers\MixedRouteController;
 use App\Http\Controllers\ModelBindingController;
 use App\Http\Controllers\NamedInvokableController;
 use App\Http\Controllers\Nested\NestedController;
@@ -117,7 +118,7 @@ Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('pri
 // This creates a collision in undot() where "mixed.items" has both a direct value
 // and child keys like "mixed.items.edit"
 Route::prefix('mixed')->name('mixed.')->group(function () {
-    Route::get('items', [\App\Http\Controllers\MixedRouteController::class, 'index'])->name('items');
-    Route::get('items/{item}', [\App\Http\Controllers\MixedRouteController::class, 'edit'])->name('items.edit');
-    Route::patch('items/{item}', [\App\Http\Controllers\MixedRouteController::class, 'update'])->name('items.update');
+    Route::get('items', [MixedRouteController::class, 'index'])->name('items');
+    Route::get('items/{item}', [MixedRouteController::class, 'edit'])->name('items.edit');
+    Route::patch('items/{item}', [MixedRouteController::class, 'update'])->name('items.update');
 });
