@@ -335,6 +335,15 @@ class TypeScript
     protected static function formatNamespaced(Collection $namespaced, $indent = 0): Collection
     {
         return $namespaced->map(function ($content, $key) use ($indent) {
+            // Handle VariableBuilder objects directly (leaf nodes in mixed arrays)
+            // This occurs when undot() merges paths like "Inertia.Pages.Items" and
+            // "Inertia.Pages.Items.Edit" into a mixed array with both numeric and string keys
+            if (! is_array($content)) {
+                return collect(explode(PHP_EOL, (string) $content))
+                    ->map(fn ($line) => self::indent($line, $indent))
+                    ->implode(PHP_EOL);
+            }
+
             if (array_is_list($content)) {
                 return collect($content)->map(
                     fn ($c) => collect(explode(PHP_EOL, $c))->map(fn ($line) => self::indent($line, $indent))->implode(PHP_EOL)
