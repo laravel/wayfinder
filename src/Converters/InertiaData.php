@@ -22,10 +22,14 @@ class InertiaData extends Converter
             ->studly();
         $type = $this->getType($response);
 
-        TypeScript::addFqnToNamespaced($fqn, TypeScript::type($name, $type)->export())
+        // Store at the full path including the type name to avoid collisions
+        // when a component has both a page and child pages (e.g., "Items" and "Items/Edit")
+        $fullPath = $fqn.'.'.$name;
+
+        TypeScript::addFqnToNamespaced($fullPath, TypeScript::type($name, $type)->export())
             ->referenceMethod($route->controller(), $route->method(), $route->controllerPath());
 
-        return ($route->hasController()) ? $fqn : null;
+        return ($route->hasController()) ? $fullPath : null;
     }
 
     protected function getType(InertiaResponse $response): string
