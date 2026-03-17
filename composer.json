@@ -21,10 +21,10 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/console": "^11.0|^12.0",
-        "illuminate/filesystem": "^11.0|^12.0",
-        "illuminate/routing": "^11.0|^12.0",
-        "illuminate/support": "^11.0|^12.0",
+        "illuminate/console": "^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^11.0|^12.0|^13.0",
+        "illuminate/routing": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
         "laravel/ranger": "^0.1.0",
         "laravel/surveyor": "^0.1.0",
         "phpstan/phpdoc-parser": "^2.3"
@@ -32,7 +32,7 @@
     "require-dev": {
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/pint": "^1.21",
-        "orchestra/testbench": "^10.1 | ^9.0"
+        "orchestra/testbench": "^11.0|^10.1|^9.0"
     },
     "autoload": {
         "psr-4": {
@@ -48,7 +48,7 @@
         "preferred-install": "dist",
         "sort-packages": true
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
         "post-autoload-dump": [
