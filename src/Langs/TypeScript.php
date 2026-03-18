@@ -3,6 +3,7 @@
 namespace Laravel\Wayfinder\Langs;
 
 use Illuminate\Support\Collection;
+use Laravel\Surveyor\Result\VariableState;
 use Laravel\Surveyor\Types\Contracts\Type;
 use Laravel\Wayfinder\Langs\TypeScript\ArrowFunctionBuilder;
 use Laravel\Wayfinder\Langs\TypeScript\ObjectBuilder;
@@ -189,6 +190,10 @@ class TypeScript
         $object = self::object()->inline($inline);
 
         foreach ($values as $key => $value) {
+            if ($value instanceof VariableState) {
+                $value = $value->type();
+            }
+
             $optional = $value instanceof Type && $value->isOptional();
             $value = $value instanceof Type ? self::fromSurveyorType($value) : $value;
 
@@ -215,6 +220,10 @@ class TypeScript
         $object = self::typeObject()->inline($inline);
 
         foreach ($values as $key => $value) {
+            if ($value instanceof VariableState) {
+                $value = $value->type();
+            }
+
             $optional = $value instanceof Type && $value->isOptional();
             $value = $value instanceof Type ? self::fromSurveyorType($value) : $value;
 
@@ -247,6 +256,10 @@ class TypeScript
         $obj = [];
 
         foreach ($values as $key => $value) {
+            if ($value instanceof VariableState) {
+                $value = $value->type();
+            }
+
             $optional = $value instanceof Type && $value->isOptional();
 
             $value = $value instanceof Type ? self::fromSurveyorType($value) : $value;
