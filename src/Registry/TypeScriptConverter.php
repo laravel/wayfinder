@@ -90,11 +90,40 @@ class TypeScriptConverter extends AbstractConverter
 
         $matched = match ($value->toString()) {
             Stringable::class => 'string',
-            Collection::class => 'unknown[]',
-            default => $value->replace('\\', '.')->toString(),
+            Collection::class => $this->convertCollectionWithGenerics($result),
+            default => $value->replace('\\', '.')->toString().$this->convertGenericTypes($result),
         };
 
         return $this->decorate($matched, $result);
+    }
+
+    protected function convertGenericTypes(Types\ClassType $result): string
+    {
+        $genericTypes = $result->genericTypes();
+
+        if (empty($genericTypes)) {
+            return '';
+        }
+
+        $converted = collect($genericTypes)
+            ->map(fn ($type) => $this->convert($type))
+            ->implode(', ');
+
+        return '<'.$converted.'>';
+    }
+
+    protected function convertCollectionWithGenerics(Types\ClassType $result): string
+    {
+        $genericTypes = $result->genericTypes();
+
+        if (empty($genericTypes)) {
+            return 'unknown[]';
+        }
+
+        // For Collection<TKey, TValue>, use the last generic type as the array element type
+        $valueType = $this->convert(end($genericTypes));
+
+        return $valueType.'[]';
     }
 
     protected function convertNumberResult(Types\IntType|Types\FloatType|Types\NumberType $result): string
