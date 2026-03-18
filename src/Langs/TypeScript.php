@@ -335,6 +335,10 @@ class TypeScript
     protected static function formatNamespaced(Collection $namespaced, $indent = 0): Collection
     {
         return $namespaced->map(function ($content, $key) use ($indent) {
+            if (! is_array($content)) {
+                $content = [$content];
+            }
+
             if (array_is_list($content)) {
                 return collect($content)->map(
                     fn ($c) => collect(explode(PHP_EOL, $c))->map(fn ($line) => self::indent($line, $indent))->implode(PHP_EOL)
