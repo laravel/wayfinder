@@ -24,9 +24,15 @@ class Models extends Converter
         if (class_exists($model->name)) {
             $reflection = new \ReflectionClass($model->name);
 
-            // 1. Read $casts from the model instance and apply #[WayfinderType] from each cast class
-            $modelInstance = $reflection->newInstanceWithoutConstructor();
-            $casts = method_exists($modelInstance, 'getCasts') ? $modelInstance->getCasts() : [];
+            $casts = [];
+
+            // 1. Read $casts from the model
+            if ($reflection->isInstantiable()) {
+                $modelInstance = $reflection->newInstanceWithoutConstructor();
+                $casts = method_exists($modelInstance, 'getCasts') ? $modelInstance->getCasts() : [];
+            } else {
+                $casts = $reflection->getDefaultProperties()['casts'] ?? [];
+            }
 
             foreach ($casts as $property => $castClass) {
                 if (! is_string($castClass) || ! class_exists($castClass)) {
