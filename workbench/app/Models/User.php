@@ -3,11 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Casts\SettingsCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Laravel\Wayfinder\Attributes\WayfinderPropertyType;
 
 /**
  * @property int $id
@@ -18,7 +20,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property mixed $options
+ * @property mixed $meta
  */
+#[WayfinderPropertyType('meta', '{ bio: string, timezone: string, social_links: Record<string, string> }')]
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -57,6 +62,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'options' => SettingsCast::class,
+        'meta' => \Illuminate\Database\Eloquent\Casts\AsCollection::class,
     ];
 
     /**
