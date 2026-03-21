@@ -63,7 +63,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'options' => SettingsCast::class,
-        'meta' => \Illuminate\Database\Eloquent\Casts\AsCollection::class,
+        'meta' => 'collection',
     ];
 
     /**
