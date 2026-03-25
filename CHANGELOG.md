@@ -2,7 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.14...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.15...main)
+
+## [v0.1.15](https://github.com/laravel/wayfinder/compare/v0.1.14...v0.1.15) - 2026-03-25
+
+### What's Changed
+
+* Add Boost Guidelines & Skills by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/wayfinder/pull/172
+* fix: eagerly render blade views to prevent crash by [@y-l-g](https://github.com/y-l-g) in https://github.com/laravel/wayfinder/pull/177
+* Makes imports consistent by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/wayfinder/pull/192
+* Revert `minimum-stability` to `stable` by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/wayfinder/pull/203
+* Remove redundant "When to Apply" section from skill body by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/wayfinder/pull/198
+* Improve wayfinder skill description and simplify core guideline by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/wayfinder/pull/207
+
+### New Contributors
+
+* [@pushpak1300](https://github.com/pushpak1300) made their first contribution in https://github.com/laravel/wayfinder/pull/172
+* [@y-l-g](https://github.com/y-l-g) made their first contribution in https://github.com/laravel/wayfinder/pull/177
+* [@nunomaduro](https://github.com/nunomaduro) made their first contribution in https://github.com/laravel/wayfinder/pull/192
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.14...v0.1.15
 
 ## [v0.1.14](https://github.com/laravel/wayfinder/compare/v0.1.13...v0.1.14) - 2026-02-24
 
