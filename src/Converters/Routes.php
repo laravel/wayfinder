@@ -5,6 +5,7 @@ namespace Laravel\Wayfinder\Converters;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\InertiaResponse;
+use Laravel\Ranger\Components\JsonApiResponse;
 use Laravel\Ranger\Components\JsonResponse;
 use Laravel\Ranger\Components\ResourceResponse;
 use Laravel\Ranger\Components\Route;
@@ -40,6 +41,7 @@ class Routes extends Converter
         protected InertiaData $inertiaDataConverter,
         protected JsonData $jsonDataConverter,
         protected ResourceData $resourceDataConverter,
+        protected JsonApiData $jsonApiDataConverter,
         protected FormRequests $formRequestConverter,
         protected Repository $config,
     ) {
@@ -78,6 +80,10 @@ class Routes extends Converter
 
                 if ($response instanceof ResourceResponse) {
                     $responseTypes[] = $this->resourceDataConverter->convert($response, $route);
+                }
+
+                if ($response instanceof JsonApiResponse) {
+                    $responseTypes[] = $this->jsonApiDataConverter->convert($response, $route);
                 }
             }
 
