@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\JsonResponse;
+use Laravel\Ranger\Components\ResourceResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\RouteParameter;
 use Laravel\Ranger\Support\Verb;
@@ -38,6 +39,7 @@ class Routes extends Converter
     public function __construct(
         protected InertiaData $inertiaDataConverter,
         protected JsonData $jsonDataConverter,
+        protected ResourceData $resourceDataConverter,
         protected FormRequests $formRequestConverter,
         protected Repository $config,
     ) {
@@ -72,6 +74,10 @@ class Routes extends Converter
 
                 if ($response instanceof JsonResponse) {
                     $responseTypes[] = $this->jsonDataConverter->convert($response, $route);
+                }
+
+                if ($response instanceof ResourceResponse) {
+                    $responseTypes[] = $this->resourceDataConverter->convert($response, $route);
                 }
             }
 
