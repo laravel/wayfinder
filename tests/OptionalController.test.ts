@@ -25,6 +25,9 @@ describe("manyOptional", async () => {
         expect(manyOptional.url({ one: "1", two: "2", three: "3" })).toBe(
             "/many-optional/1/2/3"
         );
+        expect(manyOptional.url({ one: "1", two: 0, three: "3" })).toBe(
+            "/many-optional/1/0/3",
+        );
     });
 
     it("throws an error when passing optional parameters with missing optional parameters before", () => {
