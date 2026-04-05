@@ -127,7 +127,7 @@ export const validateParameters = (
     args: Record<string, unknown> | undefined,
     optional: string[],
 ) => {
-    const missing = optional.filter((key) => !args?.[key]);
+    const missing = optional.filter((key) => args?.[key] === undefined);
     const expectedMissing = optional.slice(missing.length * -1);
 
     for (let i = 0; i < missing.length; i++) {
