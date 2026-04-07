@@ -148,7 +148,12 @@ export const validateParameters = (
     const missing = optional.filter((key) => {
         const value = args?.[key];
 
-        return value === undefined || value === null || value === "" || value === false;
+        return (
+            value === undefined ||
+            value === null ||
+            value === "" ||
+            value === false
+        );
     });
     const expectedMissing = optional.slice(missing.length * -1);
 
