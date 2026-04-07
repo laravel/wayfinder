@@ -6,6 +6,7 @@ use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
 use App\Http\Controllers\InertiaController;
+use App\Http\Controllers\ModularInertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
@@ -103,6 +104,9 @@ Route::get('/inertia/settings', [InertiaController::class, 'settings'])->name('i
 Route::get('/inertia/profile', [InertiaController::class, 'profile'])->name('inertia.profile');
 Route::get('/inertia/unsafe', [InertiaController::class, 'unsafe'])->name('inertia.unsafe');
 Route::get('/inertia/conditional', [InertiaController::class, 'conditional'])->name('inertia.conditional');
+
+Route::get('/inertia/modular/login', [ModularInertiaController::class, 'login'])->name('inertia.modular.login');
+Route::get('/inertia/modular/register', [ModularInertiaController::class, 'register'])->name('inertia.modular.register');
 
 Route::get('/inertia/duplicate', [DuplicateInertiaController::class, 'duplicate'])->name('inertia.duplicate');
 Route::get('/inertia/duplicate-with-data', [DuplicateInertiaController::class, 'duplicateWithData'])->name('inertia.duplicate.with-data');
