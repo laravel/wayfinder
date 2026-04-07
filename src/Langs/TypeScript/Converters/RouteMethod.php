@@ -18,6 +18,12 @@ class RouteMethod
 
     protected array $argTypes;
 
+    protected string $argsParam;
+
+    protected string $optionsParam;
+
+    protected string $parsedArgsParam;
+
     public function __construct(
         protected Route $route,
         protected bool $withForm,
@@ -34,6 +40,10 @@ class RouteMethod
 
         $this->hasParameters = $route->parameters()->isNotEmpty();
         $this->allOptional = $route->parameters()->every->optional;
+
+        $this->argsParam = $this->name === 'args' ? 'routeArgs' : 'args';
+        $this->optionsParam = $this->name === 'options' ? 'routeOptions' : 'options';
+        $this->parsedArgsParam = $this->name === 'parsedArgs' ? 'routeParsedArgs' : 'parsedArgs';
     }
 
     public function controllerMethod(): string
@@ -101,7 +111,7 @@ class RouteMethod
     {
         $object = TypeScript::object();
 
-        $urlArgs = $this->hasParameters ? ['args', 'options'] : ['options'];
+        $urlArgs = $this->hasParameters ? [$this->argsParam, $this->optionsParam] : [$this->optionsParam];
 
         $object
             ->key('url')
@@ -117,10 +127,10 @@ class RouteMethod
             ->body($object);
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
 
         $this->addDockblock($func);
 
@@ -205,25 +215,25 @@ class RouteMethod
         $func = TypeScript::arrowFunction();
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
 
         $body = [];
 
         if ($this->hasParameters) {
             if ($this->route->parameters()->count() === 1) {
                 $body[] = <<<TS
-                if (typeof args === "string" || typeof args === "number") {
-                    args = { {$this->route->parameters()->first()->name}: args }
+                if (typeof {$this->argsParam} === "string" || typeof {$this->argsParam} === "number") {
+                    {$this->argsParam} = { {$this->route->parameters()->first()->name}: {$this->argsParam} }
                 }
                 TS;
 
                 if ($this->route->parameters()->first()->key) {
                     $body[] = <<<TS
-                    if (typeof args === "object" && !Array.isArray(args) && "{$this->route->parameters()->first()->key}" in args) {
-                        args = { {$this->route->parameters()->first()->name}: args.{$this->route->parameters()->first()->key} }
+                    if (typeof {$this->argsParam} === "object" && !Array.isArray({$this->argsParam}) && "{$this->route->parameters()->first()->key}" in {$this->argsParam}) {
+                        {$this->argsParam} = { {$this->route->parameters()->first()->name}: {$this->argsParam}.{$this->route->parameters()->first()->key} }
                     }
                     TS;
                 }
@@ -232,16 +242,16 @@ class RouteMethod
             $argsArrayObject = TypeScript::object();
 
             foreach ($this->route->parameters() as $i => $parameter) {
-                $argsArrayObject->key($parameter->name)->value("args[{$i}]");
+                $argsArrayObject->key($parameter->name)->value("{$this->argsParam}[{$i}]");
             }
 
             $body[] = <<<TS
-            if (Array.isArray(args)) {
-                args = {$argsArrayObject}
+            if (Array.isArray({$this->argsParam})) {
+                {$this->argsParam} = {$argsArrayObject}
             }
             TS;
 
-            $body[] = 'args = applyUrlDefaults(args)';
+            $body[] = "{$this->argsParam} = applyUrlDefaults({$this->argsParam})";
 
             if ($this->route->parameters()->where('optional')->isNotEmpty()) {
                 $optionalParams = $this->route
@@ -250,7 +260,7 @@ class RouteMethod
                     ->pluck('name')
                     ->toJson();
 
-                $body[] = "validateParameters(args, {$optionalParams})";
+                $body[] = "validateParameters({$this->argsParam}, {$optionalParams})";
             }
 
             $parsedArgsObject = TypeScript::object();
@@ -260,16 +270,19 @@ class RouteMethod
 
                 if ($parameter->key) {
                     $val = sprintf(
-                        'typeof args%s.%s === "object" ? args.%s.%s : args%s.%s',
+                        'typeof %s%s.%s === "object" ? %s.%s.%s : %s%s.%s',
+                        $this->argsParam,
                         $this->allOptional ? '?' : '',
                         $parameter->name,
+                        $this->argsParam,
                         $parameter->name,
                         $parameter->key ?? 'id',
+                        $this->argsParam,
                         $this->allOptional ? '?' : '',
                         $parameter->name
                     );
                 } else {
-                    $val = sprintf('args%s.%s', $this->allOptional ? '?' : '', $parameter->name);
+                    $val = sprintf('%s%s.%s', $this->argsParam, $this->allOptional ? '?' : '', $parameter->name);
                 }
 
                 if ($parameter->default !== null) {
@@ -279,7 +292,7 @@ class RouteMethod
                 $keyVal->value($val);
             }
 
-            $body[] = TypeScript::constant('parsedArgs', $parsedArgsObject);
+            $body[] = TypeScript::constant($this->parsedArgsParam, $parsedArgsObject);
         }
 
         $return = "return {$this->name}.definition.url";
@@ -289,8 +302,9 @@ class RouteMethod
 
             foreach ($this->route->parameters() as $parameter) {
                 $urlReplace[] = sprintf(
-                    '.replace("%s", parsedArgs.%s%s.toString()%s)',
+                    '.replace("%s", %s.%s%s.toString()%s)',
                     $parameter->placeholder,
+                    $this->parsedArgsParam,
                     $parameter->name,
                     $parameter->optional ? '?' : '',
                     $parameter->optional ? " ?? ''" : ''
@@ -307,7 +321,7 @@ class RouteMethod
             $return .= PHP_EOL.$urlReplace;
         }
 
-        $return .= ' + queryParams(options)';
+        $return .= " + queryParams({$this->optionsParam})";
 
         $body[] = $return;
 
@@ -339,15 +353,15 @@ class RouteMethod
         $func = TypeScript::arrowFunction();
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
         $func->returnType('RouteDefinition<"'.$verb->actual.'">');
 
         $body = TypeScript::object();
 
-        $urlArgs = $this->hasParameters ? ['args', 'options'] : ['options'];
+        $urlArgs = $this->hasParameters ? [$this->argsParam, $this->optionsParam] : [$this->optionsParam];
 
         $body
             ->key('url')
@@ -382,10 +396,10 @@ class RouteMethod
         $func = TypeScript::arrowFunction();
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
         $func->returnType('RouteFormDefinition<"'.$verb->formSafe.'">');
 
         $body = TypeScript::object();
@@ -393,13 +407,13 @@ class RouteMethod
         $urlArgs = [];
 
         if ($this->hasParameters) {
-            $urlArgs[] = 'args';
+            $urlArgs[] = $this->argsParam;
         }
 
         if ($verb->formSafe === $verb->actual) {
-            $urlArgs[] = 'options';
+            $urlArgs[] = $this->optionsParam;
         } else {
-            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", options)';
+            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", '.$this->optionsParam.')';
         }
 
         $body
@@ -464,12 +478,12 @@ class RouteMethod
         }
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
 
-        $urlArgs = $this->hasParameters ? ['args', 'options'] : ['options'];
+        $urlArgs = $this->hasParameters ? [$this->argsParam, $this->optionsParam] : [$this->optionsParam];
         $callArgs = implode(', ', $urlArgs);
 
         if ($isMulti) {
@@ -517,21 +531,21 @@ class RouteMethod
         }
 
         if ($this->hasParameters) {
-            $func->argument('args', $this->collectArgTypes(), $this->allOptional);
+            $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument('options', 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
 
         $urlArgs = [];
 
         if ($this->hasParameters) {
-            $urlArgs[] = 'args';
+            $urlArgs[] = $this->argsParam;
         }
 
         if ($verb->formSafe === $verb->actual) {
-            $urlArgs[] = 'options';
+            $urlArgs[] = $this->optionsParam;
         } else {
-            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", options)';
+            $urlArgs[] = 'formSafeOptions("'.strtolower($verb->actual).'", '.$this->optionsParam.')';
         }
 
         $callArgs = implode(', ', $urlArgs);
