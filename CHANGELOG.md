@@ -2,7 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.15...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.16...main)
+
+## [v0.1.16](https://github.com/laravel/wayfinder/compare/v0.1.15...v0.1.16) - 2026-04-07
+
+### What's Changed
+
+* Respect `APP_URL` base path and port in generated URLs by [@utsavsomaiya](https://github.com/utsavsomaiya) in https://github.com/laravel/wayfinder/pull/186
+* Handle falsy optional route parameter values by [@utsavsomaiya](https://github.com/utsavsomaiya) in https://github.com/laravel/wayfinder/pull/185
+* Avoid arg collision for methods with the same name by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/215
+* Fix model binding key resolution for camelCase route parameters by [@utsavsomaiya](https://github.com/utsavsomaiya) in https://github.com/laravel/wayfinder/pull/183
+
+### New Contributors
+
+* [@utsavsomaiya](https://github.com/utsavsomaiya) made their first contribution in https://github.com/laravel/wayfinder/pull/186
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.15...v0.1.16
 
 ## [v0.1.15](https://github.com/laravel/wayfinder/compare/v0.1.14...v0.1.15) - 2026-03-25
 
