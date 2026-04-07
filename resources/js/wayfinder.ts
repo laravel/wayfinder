@@ -15,15 +15,21 @@ type UrlDefaults = Record<string, unknown>;
 
 let urlDefaults: () => UrlDefaults = () => ({});
 
-export type RouteDefinition<TMethod extends Method | Method[]> = {
+export type RouteDefinition<
+    TMethod extends Method | Method[],
+    TComponent extends string | Record<string, string> | undefined = undefined,
+> = {
     url: string;
-    component?: string | Record<string, string>;
+    component?: TComponent;
 } & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
 
-export type RouteFormDefinition<TMethod extends Method> = {
+export type RouteFormDefinition<
+    TMethod extends Method,
+    TComponent extends string | Record<string, string> | undefined = undefined,
+> = {
     action: string;
     method: TMethod;
-    component?: string | Record<string, string>;
+    component?: TComponent;
 };
 
 export type RouteQueryOptions = {

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 import InertiaController from "../workbench/resources/js/wayfinder/App/Http/Controllers/InertiaController";
 import PostController from "../workbench/resources/js/wayfinder/App/Http/Controllers/PostController";
 import namedRoutes from "../workbench/resources/js/wayfinder/routes/inertia/index";
@@ -104,5 +104,25 @@ describe.skipIf(!withComponent)("Inertia component enabled", () => {
         expect(InertiaController.conditional.definition).toMatchObject({
             component: expectedComponent,
         });
+    });
+
+    test("base route and form types are compatible with component?: string", () => {
+        expectTypeOf(InertiaController.dashboard()).toMatchTypeOf<{ component?: string }>();
+        expectTypeOf(InertiaController.dashboard.form()).toMatchTypeOf<{ component?: string }>();
+    });
+
+    test("withComponent return type has string component", () => {
+        expectTypeOf(InertiaController.dashboard.withComponent()).toMatchTypeOf<{ component: string }>();
+        expectTypeOf(InertiaController.dashboard.form.withComponent()).toMatchTypeOf<{ component: string }>();
+        expectTypeOf(InertiaController.conditional.withComponent("Conditional/Authenticated")).toMatchTypeOf<{ component: string }>();
+        expectTypeOf(InertiaController.conditional.form.withComponent("Conditional/Authenticated")).toMatchTypeOf<{ component: string }>();
+    });
+
+    test("single-component definition has string component", () => {
+        expectTypeOf(InertiaController.dashboard.definition).toMatchTypeOf<{ component: string }>();
+    });
+
+    test("multi-component definition has Record component", () => {
+        expectTypeOf(InertiaController.conditional.definition).toMatchTypeOf<{ component: Record<string, string> }>();
     });
 });

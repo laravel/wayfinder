@@ -190,7 +190,12 @@ class RouteMethod
 
         $this->addInertiaComponent($def);
 
-        $def->satisfies('RouteDefinition<'.$verbs.'>');
+        $componentType = $this->inertiaComponentType();
+
+        $def->satisfies($componentType
+            ? 'RouteDefinition<'.$verbs.', '.$componentType.'>'
+            : 'RouteDefinition<'.$verbs.'>'
+        );
 
         return "{$this->name}.definition = {$def}";
     }
@@ -561,11 +566,7 @@ class RouteMethod
 
     protected function inertiaComponent(): ?string
     {
-        $components = collect($this->route->possibleResponses())
-            ->filter(fn ($response) => $response instanceof InertiaResponse)
-            ->map(fn (InertiaResponse $response) => $response->component)
-            ->unique()
-            ->values();
+        $components = $this->inertiaComponents();
 
         if ($components->isEmpty()) {
             return null;
@@ -576,6 +577,30 @@ class RouteMethod
         }
 
         return TypeScript::objectToRecord($components->mapWithKeys(fn ($c) => [$c => $c]));
+    }
+
+    protected function inertiaComponentType(): ?string
+    {
+        if (! $this->withInertiaComponent) {
+            return null;
+        }
+
+        $components = $this->inertiaComponents();
+
+        if ($components->isEmpty()) {
+            return null;
+        }
+
+        return $components->count() === 1 ? 'string' : 'Record<string, string>';
+    }
+
+    protected function inertiaComponents()
+    {
+        return collect($this->route->possibleResponses())
+            ->filter(fn ($response) => $response instanceof InertiaResponse)
+            ->map(fn (InertiaResponse $response) => $response->component)
+            ->unique()
+            ->values();
     }
 
     protected function jsMethod(Route $route): string
