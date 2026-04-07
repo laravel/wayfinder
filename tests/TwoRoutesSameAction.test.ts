@@ -1,5 +1,8 @@
 import { expect, it } from "vitest";
-import { same } from "../workbench/resources/js/actions/App/Http/Controllers/TwoRoutesSameActionController";
+import {
+    same,
+    submit,
+} from "../workbench/resources/js/actions/App/Http/Controllers/TwoRoutesSameActionController";
 
 it("creates a keyed dictionary of routes for multiple routes pointing to the same action", () => {
     expect(same["/two-routes-one-action-1"].url()).toBe(
@@ -16,5 +19,23 @@ it("creates a keyed dictionary of routes for multiple routes pointing to the sam
     expect(same["/two-routes-one-action-2"]()).toEqual({
         url: "/two-routes-one-action-2",
         method: "get",
+    });
+});
+
+it("keeps the default callable route API for multi-route actions", () => {
+    expect(same.url()).toBe("/two-routes-one-action-1");
+    expect(same()).toEqual({
+        url: "/two-routes-one-action-1",
+        method: "get",
+    });
+
+    expect(submit.url()).toBe("/two-routes-one-submit-1");
+    expect(submit()).toEqual({
+        url: "/two-routes-one-submit-1",
+        method: "post",
+    });
+    expect(submit.form()).toEqual({
+        action: "/two-routes-one-submit-1",
+        method: "post",
     });
 });
