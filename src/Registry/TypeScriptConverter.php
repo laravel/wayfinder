@@ -7,6 +7,7 @@ use Illuminate\Support\Stringable;
 use InvalidArgumentException;
 use Laravel\Surveyor\Types;
 use Laravel\Surveyor\Types\Contracts\Type;
+use Laravel\Wayfinder\Attributes\WayfinderType;
 use Laravel\Wayfinder\Langs\TypeScript;
 
 class TypeScriptConverter extends AbstractConverter
@@ -87,8 +88,18 @@ class TypeScriptConverter extends AbstractConverter
     protected function convertClassResult(Types\ClassType $result): string
     {
         $value = str($result->value)->ltrim('\\');
+        $fqn = $value->toString();
 
-        $matched = match ($value->toString()) {
+        // Check for #[WayfinderType] attribute on the cast class
+        if (class_exists($fqn)) {
+            $attrs = (new \ReflectionClass($fqn))->getAttributes(WayfinderType::class);
+
+            if ($attrs) {
+                return $this->decorate($attrs[0]->newInstance()->type, $result);
+            }
+        }
+
+        $matched = match ($fqn) {
             Stringable::class => 'string',
             Collection::class => 'unknown[]',
             default => $value->replace('\\', '.')->toString(),
