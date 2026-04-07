@@ -9,6 +9,7 @@ use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
 use App\Http\Controllers\KeyController;
+use App\Http\Controllers\MixedRouteController;
 use App\Http\Controllers\ModelBindingController;
 use App\Http\Controllers\ModularInertiaController;
 use App\Http\Controllers\NamedInvokableController;
@@ -116,3 +117,9 @@ Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
 
 Route::get('/prism', [PrismController::class, 'index'])->name('prism.index');
 Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('prism.prism.nested');
+
+Route::prefix('mixed')->name('mixed.')->group(function () {
+    Route::get('items', [MixedRouteController::class, 'index'])->name('items');
+    Route::get('items/{item}', [MixedRouteController::class, 'edit'])->name('items.edit');
+    Route::patch('items/{item}', [MixedRouteController::class, 'update'])->name('items.update');
+});
