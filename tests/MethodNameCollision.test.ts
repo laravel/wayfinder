@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { options } from "../workbench/resources/js/actions/App/Http/Controllers/NavigationItemController";
+import { options } from "../workbench/resources/js/wayfinder/App/Http/Controllers/NavigationItemController";
 
 test("does not shadow a generated method named options", () => {
     expect(options({ item: 1 })).toEqual({
