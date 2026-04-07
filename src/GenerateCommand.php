@@ -174,12 +174,26 @@ class GenerateCommand extends Command
         JAVASCRIPT);
     }
 
+    private function safeParamNames(string $method): array
+    {
+        $reserved = [
+            'args' => 'routeArgs',
+            'options' => 'routeOptions',
+            'parsedArgs' => 'routeParsedArgs',
+        ];
+
+        $params = array_map(fn ($default, $name) => $method === $name ? $default : $name, $reserved, array_keys($reserved));
+
+        return array_combine(array_keys($reserved), $params);
+    }
+
     private function writeMultiRouteControllerMethodExport(Collection $routes, string $path): void
     {
         $isInvokable = $routes->first()->hasInvokableController();
+        $method = $routes->first()->jsMethod();
 
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
-            'method' => $routes->first()->jsMethod(),
+            'method' => $method,
             'original_method' => $routes->first()->originalJsMethod(),
             'path' => $routes->first()->controllerPath(),
             'line' => $routes->first()->controllerMethodLineNumber(),
@@ -187,6 +201,7 @@ class GenerateCommand extends Command
             'isInvokable' => $isInvokable,
             'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
+            ...$this->safeParamNames($method),
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
                 'tempMethod' => $r->jsMethod().hash('xxh128', $r->uri()),
@@ -199,9 +214,11 @@ class GenerateCommand extends Command
 
     private function writeControllerMethodExport(Route $route, string $path): void
     {
+        $method = $route->jsMethod();
+
         $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
-            'method' => $route->jsMethod(),
+            'method' => $method,
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $route->hasInvokableController(),
             'shouldExport' => ! $route->hasInvokableController(),
@@ -211,6 +228,7 @@ class GenerateCommand extends Command
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
             'withForm' => $this->option('with-form') ?? false,
+            ...$this->safeParamNames($method),
         ])->render());
     }
 
@@ -255,9 +273,11 @@ class GenerateCommand extends Command
 
     private function writeNamedMethodExport(Route $route, string $path): void
     {
+        $method = $route->namedMethod();
+
         $this->appendContent($path, $this->view->make('wayfinder::method', [
             'controller' => $route->controller(),
-            'method' => $route->namedMethod(),
+            'method' => $method,
             'original_method' => $route->originalJsMethod(),
             'isInvokable' => $route->hasInvokableController(),
             'shouldExport' => true,
@@ -267,6 +287,7 @@ class GenerateCommand extends Command
             'verbs' => $route->verbs(),
             'uri' => $route->uri(),
             'withForm' => $this->option('with-form') ?? false,
+            ...$this->safeParamNames($method),
         ])->render());
     }
 
