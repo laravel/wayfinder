@@ -29,6 +29,7 @@ describe("manyOptional", async () => {
 
     test("url supports falsy optional values", () => {
         expect(manyOptional.url({ one: 0, two: 2 })).toBe("/many-optional/0/2");
+        expect(manyOptional.url({ one: 0 })).toBe("/many-optional/0");
     });
 
     it("throws an error when passing optional parameters with missing optional parameters before", () => {
