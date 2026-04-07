@@ -11,7 +11,7 @@ class InertiaData extends Converter
 {
     public function convert(InertiaResponse $response, Route $route): ?string
     {
-        $normalized = str_replace(['::', '\\'], '/', $response->component);
+        $normalized = str_replace('::', '/', $response->component);
         $fqn = str($normalized)
             ->explode('/')
             ->map(fn ($part) => Str::studly($part))
