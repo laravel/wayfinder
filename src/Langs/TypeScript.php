@@ -335,19 +335,38 @@ class TypeScript
     protected static function formatNamespaced(Collection $namespaced, $indent = 0): Collection
     {
         return $namespaced->map(function ($content, $key) use ($indent) {
+            if (! is_array($content)) {
+                return collect(explode(PHP_EOL, (string) $content))
+                    ->map(fn ($line) => self::indent($line, $indent))
+                    ->implode(PHP_EOL);
+            }
+
             if (array_is_list($content)) {
                 return collect($content)->map(
                     fn ($c) => collect(explode(PHP_EOL, $c))->map(fn ($line) => self::indent($line, $indent))->implode(PHP_EOL)
                 )->implode(PHP_EOL);
             }
 
+            $leaves = array_filter($content, fn ($v) => ! is_array($v));
+            $children = array_filter($content, fn ($v) => is_array($v));
+
             $safeKey = self::safeMethod($key, '_');
 
-            return [
-                self::indent("export namespace {$safeKey} {", $indent),
-                self::formatNamespaced(collect($content), $indent + 1),
-                self::indent('}', $indent),
-            ];
+            $result = [];
+
+            foreach ($leaves as $leaf) {
+                $result[] = collect(explode(PHP_EOL, (string) $leaf))
+                    ->map(fn ($line) => self::indent($line, $indent))
+                    ->implode(PHP_EOL);
+            }
+
+            if (! empty($children)) {
+                $result[] = self::indent("export namespace {$safeKey} {", $indent);
+                $result[] = self::formatNamespaced(collect($children), $indent + 1);
+                $result[] = self::indent('}', $indent);
+            }
+
+            return $result;
         });
     }
 
