@@ -88,6 +88,10 @@ Route::get('/package-route', function () {
     //
 })->name('my-package::store');
 
+Route::get('/dashed-route', function () {
+    return 'Dashed';
+})->name('my-dashed-route');
+
 Route::prefix('/api/v1')->name('api.v1.')->group(function () {
     Route::get('/tasks', fn () => 'ok')->name('tasks');
 

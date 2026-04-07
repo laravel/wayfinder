@@ -82,7 +82,7 @@ class TypeScript
             return $name;
         }
 
-        if (is_numeric($name[0])) {
+        if (! preg_match('/^[a-zA-Z_$][\w$]*$/', $name)) {
             return '"'.$name.'"';
         }
 
