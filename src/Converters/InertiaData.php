@@ -11,12 +11,13 @@ class InertiaData extends Converter
 {
     public function convert(InertiaResponse $response, Route $route): ?string
     {
-        $fqn = str($response->component)
+        $normalized = str_replace('::', '/', $response->component);
+        $fqn = str($normalized)
             ->explode('/')
             ->map(fn ($part) => Str::studly($part))
             ->prepend('Inertia.Pages')
             ->join('.');
-        $name = str($response->component)
+        $name = str($normalized)
             ->afterLast('/')
             ->afterLast('.')
             ->studly();
