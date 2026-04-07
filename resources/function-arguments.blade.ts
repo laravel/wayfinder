@@ -1,5 +1,5 @@
 @if ($parameters->isNotEmpty())
-args{!! when($parameters->every->optional, '?') !!}: {
+{!! $args !!}{!! when($parameters->every->optional, '?') !!}: {
     @foreach ($parameters as $parameter)
         {{ $parameter->name }}{!! when($parameter->optional, '?') !!}: {!! $parameter->types !!}
         @if ($parameter->key)
@@ -23,4 +23,4 @@ args{!! when($parameters->every->optional, '?') !!}: {
 @endif
 ,
 @endif
-options?: RouteQueryOptions
+{!! $options !!}?: RouteQueryOptions
