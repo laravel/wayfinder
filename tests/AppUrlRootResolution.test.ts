@@ -34,7 +34,7 @@ test("prefixes generated URLs with APP_URL path", () => {
     expect(contents).toContain("url: '/v2/posts/{post}'");
 });
 
-test("appends APP_URL port to explicit domain routes without a port", () => {
+test("does not inject APP_URL port into explicit domain routes", () => {
     const outputPath = "/tmp/wayfinder-app-url-port";
 
     generateWithAppUrl("https://localhost:8001", outputPath);
@@ -47,8 +47,8 @@ test("appends APP_URL port to explicit domain routes without a port", () => {
         "utf8",
     );
 
-    expect(contents).toContain("url: '//example.test:8001/fixed-domain/{param}'");
+    expect(contents).toContain("url: '//example.test/fixed-domain/{param}'");
     expect(contents).toContain(
-        "url: '//{defaultDomain?}.au:8001/default-parameters-domain/{param}'",
+        "url: '//{defaultDomain?}.au/default-parameters-domain/{param}'",
     );
 });

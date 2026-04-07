@@ -14,6 +14,8 @@ use ReflectionClass;
 
 class Route
 {
+    private ?array $parsedRoot = null;
+
     public function __construct(
         private BaseRoute $base,
         private Collection $paramDefaults,
@@ -107,11 +109,7 @@ class Route
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
 
-        if (
-            $uri !== '/'
-            && ! str_ends_with($uri, '://')
-            && ! str_ends_with($uri, '//')
-        ) {
+        if ($uri !== '/') {
             $uri = rtrim($uri, '/');
         }
 
@@ -129,7 +127,7 @@ class Route
         }
 
         if ($this->forcedRoot) {
-            $parts = $this->parseRootUrl($this->forcedRoot);
+            $parts = $this->getParsedRoot();
 
             if (isset($parts['scheme'])) {
                 return $parts['scheme'].'://';
@@ -142,26 +140,17 @@ class Route
     public function domain(): ?string
     {
         if ($this->base->getDomain()) {
-            $domain = $this->base->getDomain();
-            $port = $this->rootPort();
-
-            if ($port && ! str($domain)->contains(':')) {
-                return "{$domain}:{$port}";
-            }
-
-            return $domain;
+            return $this->base->getDomain();
         }
 
         if ($this->forcedRoot) {
-            $parts = $this->parseRootUrl($this->forcedRoot);
+            $parts = $this->getParsedRoot();
 
-            if (! isset($parts['host'])) {
-                return null;
+            if (isset($parts['host'])) {
+                $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+
+                return $parts['host'].$port;
             }
-
-            $port = isset($parts['port']) ? ':'.$parts['port'] : '';
-
-            return $parts['host'].$port;
         }
 
         return null;
@@ -231,7 +220,7 @@ class Route
 
     private function basePath(): string
     {
-        $parts = $this->parseRootUrl($this->forcedRoot ?: config('app.url'));
+        $parts = $this->getParsedRoot();
 
         if (! isset($parts['path'])) {
             return '';
@@ -242,24 +231,23 @@ class Route
         return $path === '/' ? '' : $path;
     }
 
-    private function rootPort(): ?int
+    private function getParsedRoot(): array
     {
-        $parts = $this->parseRootUrl($this->forcedRoot ?: config('app.url'));
+        if ($this->parsedRoot !== null) {
+            return $this->parsedRoot;
+        }
 
-        return isset($parts['port']) ? (int) $parts['port'] : null;
-    }
+        $url = $this->forcedRoot ?: config('app.url');
 
-    private function parseRootUrl(?string $url): array
-    {
         if (! is_string($url) || $url === '') {
-            return [];
+            return $this->parsedRoot = [];
         }
 
         if (str_starts_with($url, '//')) {
             $url = 'http:'.$url;
         }
 
-        return parse_url($url) ?: [];
+        return $this->parsedRoot = parse_url($url) ?: [];
     }
 
     private function relativePath(string $path)
