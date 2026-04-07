@@ -14,6 +14,8 @@ use ReflectionClass;
 
 class Route
 {
+    private ?array $parsedRoot = null;
+
     public function __construct(
         private BaseRoute $base,
         private Collection $paramDefaults,
@@ -93,13 +95,23 @@ class Route
     {
         $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
 
-        $scheme = $this->scheme() ?? '//';
+        $uri = str($this->base->uri)->start('/')->toString();
 
-        $uri = str($this->base->uri)
-            ->start('/')
-            ->when($this->domain() !== null, fn ($uri) => $uri->prepend("{$scheme}{$this->domain()}"))
+        if (($basePath = $this->basePath()) !== '') {
+            $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
+        }
+
+        if (($domain = $this->domain()) !== null) {
+            $uri = ($this->scheme() ?? '//').$domain.$uri;
+        }
+
+        $uri = str($uri)
             ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
             ->toString();
+
+        if ($uri !== '/') {
+            $uri = rtrim($uri, '/');
+        }
 
         return Js::from($uri, JSON_UNESCAPED_SLASHES)->toHtml();
     }
@@ -114,6 +126,14 @@ class Route
             return 'https://';
         }
 
+        if ($this->forcedRoot) {
+            $parts = $this->getParsedRoot();
+
+            if (isset($parts['scheme'])) {
+                return $parts['scheme'].'://';
+            }
+        }
+
         return $this->forcedScheme;
     }
 
@@ -124,7 +144,13 @@ class Route
         }
 
         if ($this->forcedRoot) {
-            return str_replace(['http://', 'https://'], '', $this->forcedRoot);
+            $parts = $this->getParsedRoot();
+
+            if (isset($parts['host'])) {
+                $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+
+                return $parts['host'].$port;
+            }
         }
 
         return null;
@@ -190,6 +216,38 @@ class Route
     private function finalJsMethod(string $method): string
     {
         return TypeScript::safeMethod($method, 'Method');
+    }
+
+    private function basePath(): string
+    {
+        $parts = $this->getParsedRoot();
+
+        if (! isset($parts['path'])) {
+            return '';
+        }
+
+        $path = '/'.trim($parts['path'], '/');
+
+        return $path === '/' ? '' : $path;
+    }
+
+    private function getParsedRoot(): array
+    {
+        if ($this->parsedRoot !== null) {
+            return $this->parsedRoot;
+        }
+
+        $url = $this->forcedRoot ?: config('app.url');
+
+        if (! is_string($url) || $url === '') {
+            return $this->parsedRoot = [];
+        }
+
+        if (str_starts_with($url, '//')) {
+            $url = 'http:'.$url;
+        }
+
+        return $this->parsedRoot = parse_url($url) ?: [];
     }
 
     private function relativePath(string $path)
