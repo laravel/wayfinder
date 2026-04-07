@@ -15,15 +15,20 @@ describe("optional", async () => {
     });
 });
 
+test("url supports falsy optional values", () => {
+    expect(manyOptional.url({ one: 0, two: 2 })).toBe("/many-optional/0/2");
+    expect(manyOptional.url({ one: 0 })).toBe("/many-optional/0");
+});
+
 describe("manyOptional", async () => {
     test("url", () => {
         expect(manyOptional.url()).toBe("/many-optional");
         expect(manyOptional.url({ one: "1" })).toBe("/many-optional/1");
         expect(manyOptional.url({ one: "1", two: "2" })).toBe(
-            "/many-optional/1/2"
+            "/many-optional/1/2",
         );
         expect(manyOptional.url({ one: "1", two: "2", three: "3" })).toBe(
-            "/many-optional/1/2/3"
+            "/many-optional/1/2/3",
         );
     });
 
@@ -35,7 +40,7 @@ describe("manyOptional", async () => {
 
     test("definition", () => {
         expect(manyOptional.definition.url).toBe(
-            "/many-optional/{one?}/{two?}/{three?}"
+            "/many-optional/{one?}/{two?}/{three?}",
         );
     });
 });
