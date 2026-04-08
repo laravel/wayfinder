@@ -116,10 +116,12 @@ export const addUrlDefault = (
     key: string,
     value: string | number | boolean,
 ) => {
-    const params = urlDefaults();
-    params[key] = value;
+    const previousDefaults = urlDefaults;
 
-    urlDefaults = () => params;
+    urlDefaults = () => ({
+        ...previousDefaults(),
+        [key]: value,
+    });
 };
 
 export const applyUrlDefaults = <T extends UrlDefaults | undefined>(
