@@ -60,6 +60,37 @@ const addNestedParams = (
     });
 };
 
+const clearParamFamily = (params: URLSearchParams, key: string) => {
+    params.delete(key);
+    params.delete(`${key}[]`);
+
+    const nestedKeys: string[] = [];
+
+    params.forEach((_, paramKey) => {
+        if (paramKey.startsWith(`${key}[`)) {
+            nestedKeys.push(paramKey);
+        }
+    });
+
+    nestedKeys.forEach((paramKey) => {
+        params.delete(paramKey);
+    });
+};
+
+const hasNestedParamFamily = (params: URLSearchParams, key: string) => {
+    if (params.has(`${key}[]`)) {
+        return true;
+    }
+
+    for (const paramKey of params.keys()) {
+        if (paramKey.startsWith(`${key}[`)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
@@ -78,27 +109,25 @@ export const queryParams = (options?: RouteQueryOptions) => {
         const queryValue = query[key];
 
         if (queryValue === undefined || queryValue === null) {
-            params.delete(key);
+            clearParamFamily(params, key);
             continue;
         }
 
         if (Array.isArray(queryValue)) {
-            if (params.has(`${key}[]`)) {
-                params.delete(`${key}[]`);
-            }
+            clearParamFamily(params, key);
 
             queryValue.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
         } else if (typeof queryValue === "object") {
-            params.forEach((_, paramKey) => {
-                if (paramKey.startsWith(`${key}[`)) {
-                    params.delete(paramKey);
-                }
-            });
+            clearParamFamily(params, key);
 
             addNestedParams(queryValue, key, params);
         } else {
+            if (hasNestedParamFamily(params, key)) {
+                clearParamFamily(params, key);
+            }
+
             params.set(key, getValue(queryValue));
         }
     }
