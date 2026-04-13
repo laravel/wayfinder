@@ -62,6 +62,12 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+If you prefer relative URLs (for example, `/posts/1`) even for domain-scoped routes, use the `--relative` option:
+
+```
+php artisan wayfinder:generate --relative
+```
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ## Usage
