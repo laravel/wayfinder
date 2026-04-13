@@ -18,7 +18,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--relative}';
 
     private ?string $forcedScheme;
 
@@ -68,7 +68,13 @@ class GenerateCommand extends Command
                 return $this->urlDefaults[$middleware];
             })->flatMap(fn ($r) => $r);
 
-            return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
+            return new Route(
+                $route,
+                $globalUrlDefaults->merge($defaults),
+                $this->forcedScheme,
+                $this->forcedRoot,
+                (bool) $this->option('relative'),
+            );
         });
 
         if (! $this->option('skip-actions')) {

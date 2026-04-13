@@ -20,7 +20,8 @@ class Route
         private BaseRoute $base,
         private Collection $paramDefaults,
         private ?string $forcedScheme,
-        private ?string $forcedRoot
+        private ?string $forcedRoot,
+        private bool $relative = false,
     ) {
         //
     }
@@ -101,7 +102,7 @@ class Route
             $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
         }
 
-        if (($domain = $this->domain()) !== null) {
+        if (! $this->relative && ($domain = $this->domain()) !== null) {
             $uri = ($this->scheme() ?? '//').$domain.$uri;
         }
 
