@@ -3,7 +3,7 @@
 namespace Laravel\Wayfinder\Validation;
 
 use Illuminate\Support\Collection;
-use Laravel\Ranger\Validation\Rule;
+use Laravel\Ranger\Validation\Rule as RangerRule;
 use Laravel\Wayfinder\Langs\TypeScript;
 use ReflectionClass;
 
@@ -12,7 +12,13 @@ class Rules
     public function __construct(
         protected Collection $rules,
     ) {
-        //
+        $this->rules = $this->rules->map(function ($rule) {
+            if ($rule instanceof Rule || $rule instanceof RangerRule) {
+                return $rule;
+            }
+
+            return new Rule($rule);
+        });
     }
 
     public function isRequired(): bool
@@ -35,8 +41,9 @@ class Rules
     {
         if ($inRule = $this->getRule('In')) {
             return collect($inRule->getParams())
+                ->flatten()
                 ->filter(fn ($v) => ! is_null($v) && $v !== '')
-                ->map(TypeScript::quote(...))
+                ->map(fn ($v) => TypeScript::quote((string) $v))
                 ->implode(' | ');
         }
 
@@ -81,8 +88,8 @@ class Rules
         return 'string';
     }
 
-    protected function getRule(string ...$id): ?Rule
+    protected function getRule(string ...$id): Rule|RangerRule|null
     {
-        return $this->rules->first(fn (Rule $rule) => collect($id)->first(fn ($i) => $rule->is($i)));
+        return $this->rules->first(fn ($rule) => collect($id)->first(fn ($i) => $rule->is($i)));
     }
 }

@@ -7,14 +7,29 @@ use Illuminate\Contracts\Validation\Rule as OldValidationRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationRuleParser;
+use Laravel\Ranger\Validation\Rule as RangerRule;
 
 class Rule
 {
     protected array $rule;
 
     public function __construct(
-        array|string|OldValidationRule|ValidationRule|CompilableRules $rule,
+        array|string|OldValidationRule|ValidationRule|CompilableRules|RangerRule $rule,
     ) {
+        if ($rule instanceof RangerRule) {
+            $this->rule = [$rule->rule(), $rule->getParams()];
+
+            return;
+        }
+
+        if (is_array($rule) && ($rule[0] ?? null) instanceof RangerRule) {
+            /** @var RangerRule $first */
+            $first = $rule[0];
+            $this->rule = [$first->rule(), $first->getParams()];
+
+            return;
+        }
+
         $this->rule = ValidationRuleParser::parse($rule);
     }
 

@@ -63,7 +63,7 @@ class FormRequests extends Converter
 
             $this->addControllerDefinition(
                 array_column($info, 1),
-                $this->resolveDefinition($info[0][0]->rules),
+                $this->resolveDefinition($rules),
             );
         }
 
@@ -118,6 +118,12 @@ class FormRequests extends Converter
         $key = TypeScript::quoteKey($key);
         $def = TypeScript::indent($key, $indent);
 
+        // Leaf rules can arrive as a single rule object/string instead of a list.
+        // Normalize them so they are handled by the list-rule branch below.
+        if (! ($rules instanceof Collection) && ! is_array($rules)) {
+            $rules = [$rules];
+        }
+
         if (($rules instanceof Collection && array_is_list($rules->all())) || (is_array($rules) && array_is_list($rules))) {
             $collection = $rules instanceof Collection ? $rules : collect($rules);
             $rulesHelper = new Rules($collection);
@@ -133,10 +139,11 @@ class FormRequests extends Converter
             return $def;
         }
 
-        $wildcard = in_array('*', array_keys($rules instanceof Collection ? $rules->all() : $rules));
+        $rulesArray = $rules instanceof Collection ? $rules->all() : $rules;
+        $wildcard = in_array('*', array_keys($rulesArray));
         $subDef = '';
 
-        foreach ($rules as $subKey => $subRules) {
+        foreach ($rulesArray as $subKey => $subRules) {
             if ($subKey === '*') {
                 foreach ($subRules as $grandKey => $subRule) {
                     $subDef .= PHP_EOL.$this->toDefinition($subRule, $grandKey, $indent + 1);
