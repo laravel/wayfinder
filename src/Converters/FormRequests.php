@@ -58,7 +58,7 @@ class FormRequests extends Converter
 
         foreach ($this->controllers as $info) {
             foreach ($info[0][0]->rules as $key => $value) {
-                data_set($rules, $key, $value);
+                $this->setNestedRule($rules, $key, $value);
             }
 
             $this->addControllerDefinition(
@@ -141,6 +141,37 @@ class FormRequests extends Converter
 
         $rulesArray = $rules instanceof Collection ? $rules->all() : $rules;
         $wildcard = in_array('*', array_keys($rulesArray));
+
+        if ($wildcard) {
+            $wildcardRules = $rulesArray['*'] ?? [];
+            $wildcardRules = $wildcardRules instanceof Collection ? $wildcardRules->all() : $wildcardRules;
+            $wildcardRules = is_array($wildcardRules) ? $wildcardRules : [$wildcardRules];
+
+            $containerRules = collect($rulesArray)
+                ->except('*')
+                ->filter(fn ($_value, $subKey) => is_int($subKey))
+                ->values();
+
+            if (array_is_list($wildcardRules) && ($containerRules->isEmpty() || array_is_list($containerRules->all()))) {
+                $itemRules = new Rules(collect($wildcardRules));
+                $containerRulesHelper = new Rules($containerRules);
+
+                if ($containerRulesHelper->isRequired() || $itemRules->isRequired()) {
+                    $def .= ': ';
+                } else {
+                    $def .= '?: ';
+                }
+
+                $itemType = $itemRules->resolveFieldType().'[]';
+
+                if ($containerRulesHelper->isNullable()) {
+                    $itemType .= ' | null';
+                }
+
+                return $def.$itemType.';';
+            }
+        }
+
         $subDef = '';
 
         foreach ($rulesArray as $subKey => $subRules) {
@@ -171,5 +202,25 @@ class FormRequests extends Converter
         }
 
         return $def;
+    }
+
+    protected function setNestedRule(array &$rules, string $key, mixed $value): void
+    {
+        $segments = explode('.', $key);
+        $current = &$rules;
+
+        foreach ($segments as $index => $segment) {
+            if ($index === count($segments) - 1) {
+                $current[$segment] = $value;
+
+                return;
+            }
+
+            if (! isset($current[$segment]) || ! is_array($current[$segment])) {
+                $current[$segment] = [];
+            }
+
+            $current = &$current[$segment];
+        }
     }
 }

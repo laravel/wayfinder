@@ -26,11 +26,16 @@ class Rules
         return $this->getRule('Required') !== null;
     }
 
+    public function isNullable(): bool
+    {
+        return $this->getRule('Nullable') !== null;
+    }
+
     public function resolveFieldType(): string
     {
         $baseType = $this->resolveBaseType();
 
-        if ($this->getRule('Nullable')) {
+        if ($this->isNullable()) {
             return $baseType.' | null';
         }
 

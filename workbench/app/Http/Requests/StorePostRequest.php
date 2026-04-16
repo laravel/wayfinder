@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePostRequest extends FormRequest
 {
@@ -28,6 +29,7 @@ class StorePostRequest extends FormRequest
             'meta.description' => ['nullable', 'string'],
             'meta.keywords' => ['nullable', 'array'],
             'meta.keywords.*' => ['string'],
+            'roles.*' => ['required', 'integer', Rule::exists('roles', 'id')],
         ];
     }
 }
