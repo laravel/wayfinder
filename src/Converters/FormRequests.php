@@ -54,7 +54,13 @@ class FormRequests extends Converter
             $block->link($validator->name, (new ReflectionClass($validator->name))->getFileName());
         }
 
+        $rules = [];
+
         foreach ($this->controllers as $info) {
+            foreach ($info[0][0]->rules as $key => $value) {
+                data_set($rules, $key, $value);
+            }
+
             $this->addControllerDefinition(
                 array_column($info, 1),
                 $this->resolveDefinition($info[0][0]->rules),
