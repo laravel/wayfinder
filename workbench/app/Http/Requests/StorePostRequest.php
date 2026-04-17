@@ -28,7 +28,6 @@ class StorePostRequest extends FormRequest
             'meta.description' => ['nullable', 'string'],
             'meta.keywords' => ['nullable', 'array'],
             'meta.keywords.*' => ['string'],
-            'roles.*' => ['required', 'number'],
         ];
     }
 }
