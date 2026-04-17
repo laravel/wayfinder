@@ -24,5 +24,6 @@ describe("FormRequests", () => {
         // The Request type should include fields from StorePostRequest
         expect(content).toContain("title");
         expect(content).toContain("body");
+        expect(content).toContain("roles: number[];");
     });
 });
