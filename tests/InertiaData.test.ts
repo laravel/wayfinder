@@ -30,4 +30,11 @@ describe("InertiaData", () => {
         );
         expect(existsSync(inertiaTypesPath)).toBe(true);
     });
+
+    test("inline-assigned props resolve to their underlying type", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        expect(content).toContain(
+            "export type InlineAssignment = Inertia.SharedData & { stats: {a: number, b: number }, first: number }"
+        );
+    });
 });
