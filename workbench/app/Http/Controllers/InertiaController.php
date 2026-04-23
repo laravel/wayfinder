@@ -65,4 +65,12 @@ class InertiaController
             'canLogin' => true,
         ]);
     }
+
+    public function inlineAssignment(): Response
+    {
+        return inertia('InlineAssignment', [
+            'stats' => $stats = ['a' => 1, 'b' => 2],
+            'first' => $stats['a'],
+        ]);
+    }
 }
