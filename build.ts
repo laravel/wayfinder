@@ -23,7 +23,7 @@ export function setup(): void {
         }
 
         artisan(
-            `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir}`,
+            `wayfinder:generate --path=workbench/resources/js/wayfinder --app-path=${appDir} --base-path=${baseDir} --fresh`,
         );
     } catch (error) {
         console.error(
