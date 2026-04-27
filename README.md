@@ -354,8 +354,8 @@ class DashboardController
     {
         return Inertia::render('Dashboard', [
             'stats' => [
-                'users' => User::count(),
-                'posts' => Post::count(),
+                'users' => (int) User::count(),
+                'posts' => (int) Post::count(),
             ],
             'recentActivity' => Activity::latest()->take(10)->get(),
         ]);
