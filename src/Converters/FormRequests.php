@@ -68,16 +68,22 @@ class FormRequests extends Converter
 
     protected function resolveDefinition($rules): string
     {
-        $internalDefinition = collect($rules)
-            ->map($this->toDefinition(...))
-            ->values()
+        $tree = $this->buildDefinitionTree($rules);
+
+        if ($tree === []) {
+            return self::DEFAULT;
+        }
+
+        $internalDefinition = collect($tree)
+            ->map(fn ($node, $key) => $this->toDefinition($node, $key, 1))
+            ->filter()
             ->implode(PHP_EOL);
 
         if ($internalDefinition === '') {
             return self::DEFAULT;
         }
 
-        return '{'.$internalDefinition.'}';
+        return '{'.$internalDefinition.PHP_EOL.'}';
     }
 
     protected function routeControllerRequestKey(Route $route): string
@@ -107,56 +113,116 @@ class FormRequests extends Converter
         );
     }
 
-    protected function toDefinition($rules, $key, $indent = 1)
+    protected function toDefinition($node, $key, $indent = 1): string
     {
         $key = TypeScript::quoteKey($key);
         $def = TypeScript::indent($key, $indent);
 
-        if (($rules instanceof Collection && array_is_list($rules->all())) || (is_array($rules) && array_is_list($rules))) {
-            $collection = $rules instanceof Collection ? $rules : collect($rules);
-            $rulesHelper = new Rules($collection);
+        $isRequired = $this->nodeIsRequired($node);
+        $def .= $isRequired ? ': ' : '?: ';
 
-            if ($rulesHelper->isRequired()) {
-                $def .= ': ';
-            } else {
-                $def .= '?: ';
-            }
-
-            $def .= $rulesHelper->resolveFieldType().';';
+        if ($this->isLeafNode($node)) {
+            $def .= $this->nodeLeafType($node).';';
 
             return $def;
         }
 
-        $wildcard = in_array('*', array_keys($rules instanceof Collection ? $rules->all() : $rules));
-        $subDef = '';
+        if ($this->nodeIsWildcardArray($node)) {
+            $itemNode = $node['children']['*'];
 
-        foreach ($rules as $subKey => $subRules) {
-            if ($subKey === '*') {
-                foreach ($subRules as $grandKey => $subRule) {
-                    $subDef .= PHP_EOL.$this->toDefinition($subRule, $grandKey, $indent + 1);
-                }
-            } else {
-                $subDef .= PHP_EOL.$this->toDefinition($subRules, $subKey, $indent + 1);
+            if ($this->isLeafNode($itemNode)) {
+                $def .= $this->nodeLeafType($itemNode).'[];';
+
+                return $def;
+            }
+
+            $children = collect($itemNode['children'] ?? [])
+                ->map(fn ($child, $childKey) => $this->toDefinition($child, $childKey, $indent + 1))
+                ->filter()
+                ->implode(PHP_EOL);
+
+            $def .= '{'.PHP_EOL.$children.PHP_EOL.TypeScript::indent('}[];', $indent);
+
+            return $def;
+        }
+
+        $children = collect($node['children'] ?? [])
+            ->map(fn ($child, $childKey) => $this->toDefinition($child, $childKey, $indent + 1))
+            ->filter()
+            ->implode(PHP_EOL);
+
+        if ($children === '') {
+            $def .= self::DEFAULT.';';
+
+            return $def;
+        }
+
+        $def .= '{'.PHP_EOL.$children.PHP_EOL.TypeScript::indent('};', $indent);
+
+        return $def;
+    }
+
+    protected function buildDefinitionTree($rules): array
+    {
+        $tree = [];
+
+        foreach ($rules as $key => $ruleSet) {
+            $segments = explode('.', (string) $key);
+            $this->insertRuleIntoTree($tree, $segments, $ruleSet);
+        }
+
+        return $tree;
+    }
+
+    protected function insertRuleIntoTree(array &$tree, array $segments, $ruleSet): void
+    {
+        $segment = array_shift($segments);
+
+        if ($segment === null) {
+            return;
+        }
+
+        $tree[$segment] ??= [
+            'rules' => null,
+            'children' => [],
+        ];
+
+        if ($segments === []) {
+            $tree[$segment]['rules'] = $ruleSet instanceof Collection ? $ruleSet : collect($ruleSet);
+
+            return;
+        }
+
+        $this->insertRuleIntoTree($tree[$segment]['children'], $segments, $ruleSet);
+    }
+
+    protected function isLeafNode(array $node): bool
+    {
+        return ! empty($node['rules']) && empty($node['children']);
+    }
+
+    protected function nodeLeafType(array $node): string
+    {
+        return (new Rules($node['rules']))->resolveFieldType();
+    }
+
+    protected function nodeIsRequired(array $node): bool
+    {
+        if (! empty($node['rules']) && (new Rules($node['rules']))->isRequired()) {
+            return true;
+        }
+
+        foreach ($node['children'] ?? [] as $child) {
+            if ($this->nodeIsRequired($child)) {
+                return true;
             }
         }
 
-        // Match any colon without a preceding question mark
-        if (preg_match('/(?<!\?)\:/', $subDef) || $wildcard) {
-            // If anything below is required,
-            // we need to ensure the parent is also required
-            $def .= ': {';
-        } else {
-            $def .= '?: {';
-        }
+        return false;
+    }
 
-        $def .= $subDef;
-
-        if ($wildcard) {
-            $def .= PHP_EOL.TypeScript::indent('}[]');
-        } else {
-            $def .= PHP_EOL.TypeScript::indent('}');
-        }
-
-        return $def;
+    protected function nodeIsWildcardArray(array $node): bool
+    {
+        return array_key_exists('*', $node['children'] ?? []);
     }
 }

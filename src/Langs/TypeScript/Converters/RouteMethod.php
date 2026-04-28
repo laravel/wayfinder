@@ -194,9 +194,17 @@ class RouteMethod
     {
         $verbs = $this->route->verbs()->pluck('actual')->toJson();
 
+        $uri = $this->route->uri();
+
+        if ($domain = $this->route->domain()) {
+            if (! str_starts_with($uri, '//') && ! str_starts_with($uri, 'http')) {
+                $uri = ($this->route->scheme() ?? '//').$domain.$uri;
+            }
+        }
+
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
-        $def->key('url')->value($this->route->uri())->quote();
+        $def->key('url')->value($uri)->quote();
 
         $this->addInertiaComponent($def);
 
@@ -299,11 +307,28 @@ class RouteMethod
 
         if ($this->hasParameters) {
             $urlReplace = [];
+            $uri = $this->route->uri();
+
+            if ($domain = $this->route->domain()) {
+                if (! str_starts_with($uri, '//') && ! str_starts_with($uri, 'http')) {
+                    $uri = ($this->route->scheme() ?? '//').$domain.$uri;
+                }
+            }
 
             foreach ($this->route->parameters() as $parameter) {
+                $placeholder = $parameter->placeholder;
+
+                if (! str_contains($uri, $placeholder)) {
+                    $alternative = str_replace('?}', '}', $placeholder);
+
+                    if (str_contains($uri, $alternative)) {
+                        $placeholder = $alternative;
+                    }
+                }
+
                 $urlReplace[] = sprintf(
                     '.replace("%s", %s.%s%s.toString()%s)',
-                    $parameter->placeholder,
+                    $placeholder,
                     $this->parsedArgsParam,
                     $parameter->name,
                     $parameter->optional ? '?' : '',
