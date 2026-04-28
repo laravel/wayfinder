@@ -213,6 +213,7 @@ class StorePostRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'banner' => ['required', 'file', 'mimes:jpeg,png,gif', 'max:2048'],
             'excerpt' => ['nullable', 'string'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
@@ -229,6 +230,7 @@ Wayfinder generates:
 export type Request = {
     title: string;
     body: string;
+    banner: File;
     excerpt?: string | null;
     tags?: string[] | null;
     meta?: {
