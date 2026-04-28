@@ -28,6 +28,7 @@ describe("FormRequests", () => {
 
         expect(content).toContain("title: string");
         expect(content).toContain("body: string");
+        expect(content).toContain("banner: File");
         expect(content).toContain("excerpt?: string | null");
         expect(content).toContain("published_at?: string | null");
         expect(content).toContain("author_email?: string | null");
