@@ -78,10 +78,6 @@ const clearParamFamily = (params: URLSearchParams, key: string) => {
 };
 
 const hasNestedParamFamily = (params: URLSearchParams, key: string) => {
-    if (params.has(`${key}[]`)) {
-        return true;
-    }
-
     for (const paramKey of params.keys()) {
         if (paramKey.startsWith(`${key}[`)) {
             return true;
