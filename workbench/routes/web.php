@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnonymousMiddlewareController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\ResourceTestController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
@@ -116,6 +117,15 @@ Route::get('/inertia/duplicate-with-data', [DuplicateInertiaController::class, '
 
 Route::get('/api/status', [ApiController::class, 'status'])->name('api.status');
 Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
+
+Route::get('/products/{product}', [ResourceTestController::class, 'show'])->name('products.show');
+Route::get('/products', [ResourceTestController::class, 'index'])->name('products.index');
+Route::get('/products/wrapped', [ResourceTestController::class, 'wrapped'])->name('products.wrapped');
+Route::get('/categories/json-api/{category}', [ResourceTestController::class, 'jsonApi'])->name('categories.jsonApi');
+Route::get('/categories/json-api', [ResourceTestController::class, 'jsonApiCollection'])->name('categories.jsonApi.collection');
+Route::get('/users-resource/{user}', [ResourceTestController::class, 'user'])->name('users-resource.show');
+Route::get('/users-resource', [ResourceTestController::class, 'users'])->name('users-resource.index');
+Route::get('/users-json-api/{user}', [ResourceTestController::class, 'userJsonApi'])->name('users-json-api.show');
 
 Route::get('/prism', [PrismController::class, 'index'])->name('prism.index');
 Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('prism.prism.nested');

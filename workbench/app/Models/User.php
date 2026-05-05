@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Product $featuredProduct
+ * @property array<int, Product> $relatedProducts
  */
 class User extends Authenticatable
 {

@@ -5,7 +5,9 @@ namespace Laravel\Wayfinder\Converters;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\InertiaResponse;
+use Laravel\Ranger\Components\JsonApiResponse;
 use Laravel\Ranger\Components\JsonResponse;
+use Laravel\Ranger\Components\ResourceResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\RouteParameter;
 use Laravel\Ranger\Support\Verb;
@@ -38,6 +40,8 @@ class Routes extends Converter
     public function __construct(
         protected InertiaData $inertiaDataConverter,
         protected JsonData $jsonDataConverter,
+        protected ResourceData $resourceDataConverter,
+        protected JsonApiData $jsonApiDataConverter,
         protected FormRequests $formRequestConverter,
         protected Repository $config,
     ) {
@@ -66,13 +70,13 @@ class Routes extends Converter
             $responseTypes = [];
 
             foreach ($route->possibleResponses() as $response) {
-                if ($response instanceof InertiaResponse) {
-                    $responseTypes[] = $this->inertiaDataConverter->convert($response, $route);
-                }
-
-                if ($response instanceof JsonResponse) {
-                    $responseTypes[] = $this->jsonDataConverter->convert($response, $route);
-                }
+                $responseTypes[] = match (true) {
+                    $response instanceof InertiaResponse => $this->inertiaDataConverter->convert($response, $route),
+                    $response instanceof JsonResponse => $this->jsonDataConverter->convert($response, $route),
+                    $response instanceof ResourceResponse => $this->resourceDataConverter->convert($response, $route),
+                    $response instanceof JsonApiResponse => $this->jsonApiDataConverter->convert($response, $route),
+                    default => null,
+                };
             }
 
             $responseTypes = array_filter($responseTypes);
