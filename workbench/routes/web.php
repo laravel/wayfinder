@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AnonymousMiddlewareController;
 use App\Http\Controllers\ApiController;
-use App\Http\Controllers\ResourceTestController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
@@ -21,6 +20,7 @@ use App\Http\Controllers\ParameterNameController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
 use App\Http\Controllers\Prism\PrismController;
+use App\Http\Controllers\ResourceTestController;
 use App\Http\Controllers\TwoRoutesSameActionController;
 use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
