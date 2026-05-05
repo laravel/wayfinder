@@ -141,7 +141,22 @@ class RouteMethod
             }
         }
 
-        $block->annotation('route', '"'.$this->route->uri().'"');
+        $block->annotation('route', '"'.$this->resolvedUrl().'"');
+    }
+
+    protected function resolvedUrl(): string
+    {
+        $uri = $this->route->uri();
+
+        if ($domain = $this->route->domain()) {
+            $scheme = $this->route->scheme() ?? '//';
+            foreach ($this->route->parameters() as $parameter) {
+                $domain = str_replace("{{$parameter->name}}", $parameter->placeholder, $domain);
+            }
+            $uri = $scheme.$domain.$uri;
+        }
+
+        return $uri;
     }
 
     protected function collectArgTypes(): array
@@ -186,7 +201,7 @@ class RouteMethod
 
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
-        $def->key('url')->value($this->route->uri())->quote();
+        $def->key('url')->value($this->resolvedUrl())->quote();
 
         $this->addInertiaComponent($def);
 
