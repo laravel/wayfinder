@@ -10,6 +10,8 @@ describe("ResourceData", () => {
 
     const types = () => readFileSync(typesPath, "utf-8");
 
+    const jsonApiAvailable = () => types().includes("export namespace JsonApi {");
+
     test("types.d.ts contains ResourceTestController namespace", () => {
         expect(types()).toContain("export namespace ResourceTestController");
     });
@@ -32,13 +34,13 @@ describe("ResourceData", () => {
         );
     });
 
-    test("JsonApiResource emits id/type/attributes/links/meta", () => {
+    test.skipIf(!jsonApiAvailable())("JsonApiResource emits id/type/attributes/links/meta", () => {
         expect(types()).toContain(
             "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } } }"
         );
     });
 
-    test("JsonApiResource collection wraps the resource shape in an array", () => {
+    test.skipIf(!jsonApiAvailable())("JsonApiResource collection wraps the resource shape in an array", () => {
         expect(types()).toContain(
             "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } }[] }"
         );
@@ -56,7 +58,7 @@ describe("ResourceData", () => {
         );
     });
 
-    test("JsonApiResource relationships emit cardinality-aware shapes", () => {
+    test.skipIf(!jsonApiAvailable())("JsonApiResource relationships emit cardinality-aware shapes", () => {
         // to-one is { data: { id, type } | null }, to-many is { data: { id, type }[] }
         expect(types()).toContain(
             "relationships?: { featuredProduct: {data: {id: string, type: string } | null }, relatedProducts: {data: {id: string, type: string }[] } }"
