@@ -232,6 +232,66 @@ it("can delete existing nested params via null", () => {
     });
 });
 
+it("replaces an existing array param when merging an object param", () => {
+    window.location.search = "?foo[]=bar&foo[]=baz&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: { role: "admin" },
+            },
+        }),
+    ).toEqual({
+        url: "/posts?status=active&foo%5Brole%5D=admin",
+        method: "get",
+    });
+});
+
+it("replaces an existing object param when merging an array param", () => {
+    window.location.search = "?foo[role]=admin&foo[team]=ops&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: ["qux", "baz"],
+            },
+        }),
+    ).toEqual({
+        url: "/posts?status=active&foo%5B%5D=qux&foo%5B%5D=baz",
+        method: "get",
+    });
+});
+
+it("does not clobber params that share a prefix with the merged key", () => {
+    window.location.search = "?foo=bar&foobar=keep&foo_baz=keep";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: null,
+            },
+        }),
+    ).toEqual({
+        url: "/posts?foobar=keep&foo_baz=keep",
+        method: "get",
+    });
+});
+
+it("clears deeply nested params when merging a scalar", () => {
+    window.location.search = "?foo[a][b]=x&foo[a][c]=y&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: "scalar",
+            },
+        }),
+    ).toEqual({
+        url: "/posts?status=active&foo=scalar",
+        method: "get",
+    });
+});
+
 it("can merge with the form method", () => {
     window.location.search = "?foo=bar&bar=baz";
 
