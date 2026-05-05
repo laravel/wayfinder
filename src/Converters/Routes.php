@@ -70,21 +70,13 @@ class Routes extends Converter
             $responseTypes = [];
 
             foreach ($route->possibleResponses() as $response) {
-                if ($response instanceof InertiaResponse) {
-                    $responseTypes[] = $this->inertiaDataConverter->convert($response, $route);
-                }
-
-                if ($response instanceof JsonResponse) {
-                    $responseTypes[] = $this->jsonDataConverter->convert($response, $route);
-                }
-
-                if ($response instanceof ResourceResponse) {
-                    $responseTypes[] = $this->resourceDataConverter->convert($response, $route);
-                }
-
-                if ($response instanceof JsonApiResponse) {
-                    $responseTypes[] = $this->jsonApiDataConverter->convert($response, $route);
-                }
+                $responseTypes[] = match (true) {
+                    $response instanceof InertiaResponse => $this->inertiaDataConverter->convert($response, $route),
+                    $response instanceof JsonResponse => $this->jsonDataConverter->convert($response, $route),
+                    $response instanceof ResourceResponse => $this->resourceDataConverter->convert($response, $route),
+                    $response instanceof JsonApiResponse => $this->jsonApiDataConverter->convert($response, $route),
+                    default => null,
+                };
             }
 
             $responseTypes = array_filter($responseTypes);
