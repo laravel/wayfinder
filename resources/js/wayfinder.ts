@@ -62,7 +62,6 @@ const addNestedParams = (
 
 const clearParamFamily = (params: URLSearchParams, key: string) => {
     params.delete(key);
-    params.delete(`${key}[]`);
 
     const nestedKeys: string[] = [];
 
