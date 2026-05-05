@@ -89,12 +89,13 @@ export const queryParams = (options?: RouteQueryOptions) => {
     for (const key in query) {
         const queryValue = query[key];
 
-        if (queryValue === undefined || queryValue === null) {
-            if (includeExisting) clearParamFamily(params, key);
-            continue;
+        if (includeExisting) {
+            clearParamFamily(params, key);
         }
 
-        if (includeExisting) clearParamFamily(params, key);
+        if (queryValue === undefined || queryValue === null) {
+            continue;
+        }
 
         if (Array.isArray(queryValue)) {
             queryValue.forEach((value) => {
