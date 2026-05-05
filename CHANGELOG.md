@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.16...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.17...main)
+
+## [v0.1.17](https://github.com/laravel/wayfinder/compare/v0.1.16...v0.1.17) - 2026-05-05
+
+### What's Changed
+
+* Replace query parameter families when merging query params by [@utsavsomaiya](https://github.com/utsavsomaiya) in https://github.com/laravel/wayfinder/pull/218
+* Preserve functional URL defaults when adding runtime defaults by [@utsavsomaiya](https://github.com/utsavsomaiya) in https://github.com/laravel/wayfinder/pull/217
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.16...v0.1.17
 
 ## [v0.1.16](https://github.com/laravel/wayfinder/compare/v0.1.15...v0.1.16) - 2026-04-07
 
