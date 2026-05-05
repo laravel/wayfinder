@@ -54,7 +54,7 @@ class JsonApiData extends Converter
         $dataType = (string) $resourceObject;
 
         if ($response->isCollection) {
-            return '{ data: Array<'.$dataType.'> }';
+            return '{ data: '.$dataType.'[] }';
         }
 
         return '{ data: '.$dataType.' }';

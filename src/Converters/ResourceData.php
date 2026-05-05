@@ -18,7 +18,7 @@ class ResourceData extends Converter
         $dataType = (string) TypeScript::objectToTypeObject($response->data, false);
 
         if ($response->isCollection) {
-            $dataType = "Array<{$dataType}>";
+            $dataType = "{$dataType}[]";
         }
 
         if ($response->wrap !== null) {

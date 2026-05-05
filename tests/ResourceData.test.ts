@@ -22,7 +22,7 @@ describe("ResourceData", () => {
 
     test("JsonResource collection emits an array under `data`", () => {
         expect(types()).toContain(
-            "{ data: Array<{ id: number, name: string, price: number, in_stock: true }> } | Record<string, never>"
+            "{ data: { id: number, name: string, price: number, in_stock: true }[] } | Record<string, never>"
         );
     });
 
@@ -38,9 +38,9 @@ describe("ResourceData", () => {
         );
     });
 
-    test("JsonApiResource collection wraps the resource shape in Array", () => {
+    test("JsonApiResource collection wraps the resource shape in an array", () => {
         expect(types()).toContain(
-            "{ data: Array<{ id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } }> }"
+            "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } }[] }"
         );
     });
 
@@ -52,7 +52,7 @@ describe("ResourceData", () => {
 
     test("Eloquent-bound resource collection resolves model types", () => {
         expect(types()).toContain(
-            "{ data: Array<{ id: number, name: string, email: string }> } | Record<string, never>"
+            "{ data: { id: number, name: string, email: string }[] } | Record<string, never>"
         );
     });
 });
