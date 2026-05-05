@@ -4,7 +4,6 @@ namespace Laravel\Wayfinder\Converters;
 
 use Laravel\Ranger\Components\JsonApiResponse;
 use Laravel\Ranger\Components\Route;
-use Laravel\Surveyor\Types\Contracts\Type;
 use Laravel\Wayfinder\Langs\TypeScript;
 
 class JsonApiData extends Converter
@@ -26,16 +25,8 @@ class JsonApiData extends Converter
         }
 
         if (! empty($response->relationships)) {
-            $relObj = TypeScript::typeObject();
-
-            foreach ($response->relationships as $name => $relType) {
-                $relObj->key($name)
-                    ->value('{ data: { id: string, type: string } | null }')
-                    ->optional();
-            }
-
             $resourceObject->key('relationships')
-                ->value((string) $relObj)
+                ->value((string) TypeScript::objectToTypeObject($response->relationships, false))
                 ->optional();
         }
 

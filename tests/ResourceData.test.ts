@@ -55,4 +55,11 @@ describe("ResourceData", () => {
             "{ data: { id: number, name: string, email: string }[] }"
         );
     });
+
+    test("JsonApiResource relationships emit cardinality-aware shapes", () => {
+        // to-one is { data: { id, type } | null }, to-many is { data: { id, type }[] }
+        expect(types()).toContain(
+            "relationships?: { featuredProduct: {data: {id: string, type: string } | null }, relatedProducts: {data: {id: string, type: string }[] } }"
+        );
+    });
 });

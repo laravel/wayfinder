@@ -118,6 +118,7 @@ Route::get('/categories/json-api/{category}', [ResourceTestController::class, 'j
 Route::get('/categories/json-api', [ResourceTestController::class, 'jsonApiCollection'])->name('categories.jsonApi.collection');
 Route::get('/users-resource/{user}', [ResourceTestController::class, 'user'])->name('users-resource.show');
 Route::get('/users-resource', [ResourceTestController::class, 'users'])->name('users-resource.index');
+Route::get('/users-json-api/{user}', [ResourceTestController::class, 'userJsonApi'])->name('users-json-api.show');
 
 Route::get('/prism', [PrismController::class, 'index'])->name('prism.index');
 Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('prism.prism.nested');
