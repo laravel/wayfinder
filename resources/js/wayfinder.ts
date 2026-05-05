@@ -72,16 +72,6 @@ const clearParamFamily = (params: URLSearchParams, key: string) => {
     toDelete.forEach((paramKey) => params.delete(paramKey));
 };
 
-const hasNestedParamFamily = (params: URLSearchParams, key: string) => {
-    for (const paramKey of params.keys()) {
-        if (paramKey.startsWith(`${key}[`)) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
 export const queryParams = (options?: RouteQueryOptions) => {
     if (!options || (!options.query && !options.mergeQuery)) {
         return "";
@@ -115,10 +105,7 @@ export const queryParams = (options?: RouteQueryOptions) => {
 
             addNestedParams(queryValue, key, params);
         } else {
-            if (hasNestedParamFamily(params, key)) {
-                clearParamFamily(params, key);
-            }
-
+            clearParamFamily(params, key);
             params.set(key, getValue(queryValue));
         }
     }

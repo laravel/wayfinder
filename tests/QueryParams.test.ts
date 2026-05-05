@@ -90,7 +90,7 @@ it("can integrate basic params with existing window params", () => {
             },
         }),
     ).toEqual({
-        url: "/posts?foo=bar&bar=no&also=yes",
+        url: "/posts?foo=bar&also=yes&bar=no",
         method: "get",
     });
 });
@@ -302,7 +302,7 @@ it("can merge with the form method", () => {
             },
         }),
     ).toEqual({
-        action: "/posts?foo=sure&bar=baz&_method=HEAD",
+        action: "/posts?bar=baz&_method=HEAD&foo=sure",
         method: "get",
     });
 });
