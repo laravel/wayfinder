@@ -16,19 +16,19 @@ describe("ResourceData", () => {
 
     test("single JsonResource emits a `data`-wrapped shape", () => {
         expect(types()).toContain(
-            "{ data: { id: number, name: string, price: number, in_stock: true } } | Record<string, never>"
+            "{ data: { id: number, name: string, price: number, in_stock: true } }"
         );
     });
 
     test("JsonResource collection emits an array under `data`", () => {
         expect(types()).toContain(
-            "{ data: { id: number, name: string, price: number, in_stock: true }[] } | Record<string, never>"
+            "{ data: { id: number, name: string, price: number, in_stock: true }[] }"
         );
     });
 
     test("custom $wrap key is honored", () => {
         expect(types()).toContain(
-            "{ product: { id: number, name: string } } | Record<string, never>"
+            "{ product: { id: number, name: string } }"
         );
     });
 
@@ -46,13 +46,13 @@ describe("ResourceData", () => {
 
     test("Eloquent-bound resource resolves $this->property to model types", () => {
         expect(types()).toContain(
-            "{ data: { id: number, name: string, email: string } } | Record<string, never>"
+            "{ data: { id: number, name: string, email: string } }"
         );
     });
 
     test("Eloquent-bound resource collection resolves model types", () => {
         expect(types()).toContain(
-            "{ data: { id: number, name: string, email: string }[] } | Record<string, never>"
+            "{ data: { id: number, name: string, email: string }[] }"
         );
     });
 });
