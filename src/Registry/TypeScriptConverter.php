@@ -5,6 +5,7 @@ namespace Laravel\Wayfinder\Registry;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
 use InvalidArgumentException;
+use Laravel\Surveyor\Analyzer\ArrayableResolver;
 use Laravel\Surveyor\Types;
 use Laravel\Surveyor\Types\Contracts\Type;
 use Laravel\Wayfinder\Langs\TypeScript;
@@ -91,8 +92,22 @@ class TypeScriptConverter extends AbstractConverter
         $matched = match ($value->toString()) {
             Stringable::class => 'string',
             Collection::class => 'unknown[]',
-            default => $value->replace('\\', '.')->toString(),
+            default => null,
         };
+
+        if ($matched === null) {
+            try {
+                $resolved = app(ArrayableResolver::class)->resolve($result);
+
+                if ($resolved) {
+                    return $this->convert($resolved);
+                }
+            } catch (\Throwable $e) {
+                // ArrayableResolver not available or resolution failed
+            }
+
+            $matched = $value->replace('\\', '.')->toString();
+        }
 
         return $this->decorate($matched, $result);
     }
