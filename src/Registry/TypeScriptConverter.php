@@ -89,9 +89,9 @@ class TypeScriptConverter extends AbstractConverter
     {
         $value = str($result->value)->ltrim('\\');
 
-        $matched = match ($value->toString()) {
-            Stringable::class => 'string',
-            Collection::class => 'unknown[]',
+        $matched = match (true) {
+            $value->toString() === Stringable::class => 'string',
+            is_a($value->toString(), Collection::class, true) => $this->convertCollectionType($result),
             default => null,
         };
 
@@ -106,6 +106,17 @@ class TypeScriptConverter extends AbstractConverter
         }
 
         return $this->decorate($matched, $result);
+    }
+
+    protected function convertCollectionType(Types\ClassType $result): string
+    {
+        $genericTypes = array_values($result->genericTypes());
+
+        return match (count($genericTypes)) {
+            0 => 'unknown[]',
+            1 => $this->convert($genericTypes[0]).'[]',
+            default => $this->convert($genericTypes[1]).'[]',
+        };
     }
 
     protected function convertNumberResult(Types\IntType|Types\FloatType|Types\NumberType $result): string
