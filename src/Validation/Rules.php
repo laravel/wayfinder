@@ -78,6 +78,10 @@ class Rules
             return str_replace('\\', '.', $enumRule->getProperty('type')->getValue($enum->rule()));
         }
 
+        if ($this->getRule('File', 'Mimes')) {
+            return 'File';
+        }
+
         return 'string';
     }
 

@@ -19,6 +19,7 @@ class StorePostRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'banner' => ['required', 'file', 'mimes:jpeg,png,gif', 'max:2048'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'published_at' => ['nullable', 'date'],
             'author_email' => ['nullable', 'email'],
