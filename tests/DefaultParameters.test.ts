@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { setUrlDefaults } from "../workbench/resources/js/wayfinder";
+import {
+    addUrlDefault,
+    applyUrlDefaults,
+    setUrlDefaults,
+} from "../workbench/resources/js/wayfinder";
 import {
     defaultParametersDomain,
     fixedDomain,
@@ -45,6 +49,31 @@ test("it can generate urls with dynamic function-based default URL parameters", 
             param: "bar",
         }),
     ).toBe("//dynamic-2.test.au/default-parameters-domain/bar");
+
+    expect(callCount).toBe(2);
+});
+
+test("it preserves dynamic URL defaults when adding runtime defaults", () => {
+    let callCount = 0;
+
+    setUrlDefaults(() => {
+        callCount++;
+        return {
+            defaultDomain: `dynamic-${callCount}.test`,
+        };
+    });
+
+    addUrlDefault("locale", "en");
+
+    expect(applyUrlDefaults(undefined)).toEqual({
+        defaultDomain: "dynamic-1.test",
+        locale: "en",
+    });
+
+    expect(applyUrlDefaults(undefined)).toEqual({
+        defaultDomain: "dynamic-2.test",
+        locale: "en",
+    });
 
     expect(callCount).toBe(2);
 });

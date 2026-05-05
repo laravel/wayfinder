@@ -167,8 +167,10 @@ export const addUrlDefault = (
     key: string,
     value: string | number | boolean,
 ) => {
+    const previousDefaults = urlDefaults;
+
     urlDefaults = () => ({
-        ...urlDefaults(),
+        ...previousDefaults(),
         [key]: value,
     });
 };
