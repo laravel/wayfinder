@@ -61,19 +61,15 @@ const addNestedParams = (
 };
 
 const clearParamFamily = (params: URLSearchParams, key: string) => {
-    params.delete(key);
-
-    const nestedKeys: string[] = [];
+    const toDelete = new Set<string>();
 
     params.forEach((_, paramKey) => {
-        if (paramKey.startsWith(`${key}[`)) {
-            nestedKeys.push(paramKey);
+        if (paramKey === key || paramKey.startsWith(`${key}[`)) {
+            toDelete.add(paramKey);
         }
     });
 
-    nestedKeys.forEach((paramKey) => {
-        params.delete(paramKey);
-    });
+    toDelete.forEach((paramKey) => params.delete(paramKey));
 };
 
 const hasNestedParamFamily = (params: URLSearchParams, key: string) => {
