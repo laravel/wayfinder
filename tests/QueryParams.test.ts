@@ -87,7 +87,7 @@ it("can integrate basic params with existing window params", () => {
             },
         })
     ).toEqual({
-        url: "/posts?foo=bar&bar=no&also=yes",
+        url: "/posts?foo=bar&also=yes&bar=no",
         method: "get",
     });
 });
@@ -154,6 +154,141 @@ it("can delete existing params via undefined", () => {
     });
 });
 
+it("replaces an existing scalar param when merging an array param", () => {
+    window.location.search = "?foo=bar&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: ["qux", "baz"],
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo%5B%5D=qux&foo%5B%5D=baz",
+        method: "get",
+    });
+});
+
+it("replaces an existing scalar param when merging an object param", () => {
+    window.location.search = "?foo=bar&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: { role: "admin" },
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo%5Brole%5D=admin",
+        method: "get",
+    });
+});
+
+it("replaces an existing array param when merging a scalar param", () => {
+    window.location.search = "?foo[]=bar&foo[]=baz&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: "qux",
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo=qux",
+        method: "get",
+    });
+});
+
+it("can delete existing array params via null", () => {
+    window.location.search = "?foo[]=bar&foo[]=baz&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: null,
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active",
+        method: "get",
+    });
+});
+
+it("can delete existing nested params via null", () => {
+    window.location.search = "?foo[role]=admin&foo[team]=ops&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: null,
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active",
+        method: "get",
+    });
+});
+
+it("replaces an existing array param when merging an object param", () => {
+    window.location.search = "?foo[]=bar&foo[]=baz&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: { role: "admin" },
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo%5Brole%5D=admin",
+        method: "get",
+    });
+});
+
+it("replaces an existing object param when merging an array param", () => {
+    window.location.search = "?foo[role]=admin&foo[team]=ops&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: ["qux", "baz"],
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo%5B%5D=qux&foo%5B%5D=baz",
+        method: "get",
+    });
+});
+
+it("does not clobber params that share a prefix with the merged key", () => {
+    window.location.search = "?foo=bar&foobar=keep&foo_baz=keep";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: null,
+            },
+        })
+    ).toEqual({
+        url: "/posts?foobar=keep&foo_baz=keep",
+        method: "get",
+    });
+});
+
+it("clears deeply nested params when merging a scalar", () => {
+    window.location.search = "?foo[a][b]=x&foo[a][c]=y&status=active";
+
+    expect(
+        index({
+            mergeQuery: {
+                foo: "scalar",
+            },
+        })
+    ).toEqual({
+        url: "/posts?status=active&foo=scalar",
+        method: "get",
+    });
+});
+
 it("can merge with the form method", () => {
     window.location.search = "?foo=bar&bar=baz";
 
@@ -164,12 +299,12 @@ it("can merge with the form method", () => {
             },
         })
     ).toEqual({
-        action: "/posts?foo=sure&bar=baz&_method=HEAD",
+        action: "/posts?bar=baz&_method=HEAD&foo=sure",
         method: "get",
     });
 });
 
-it("ignores nested object values with unallowed types", () => {
+it("replaces existing scalar params when merging nested object values", () => {
     window.location.search = "?parent=og";
 
     const query = (): {
@@ -197,7 +332,7 @@ it("ignores nested object values with unallowed types", () => {
             },
         })
     ).toEqual({
-        action: "/posts?parent=og&_method=HEAD&parent%5Bstring%5D=string&parent%5Bnumber%5D=5&parent%5Bboolean%5D=1",
+        action: "/posts?_method=HEAD&parent%5Bstring%5D=string&parent%5Bnumber%5D=5&parent%5Bboolean%5D=1",
         method: "get",
     });
 });
