@@ -96,14 +96,10 @@ class TypeScriptConverter extends AbstractConverter
         };
 
         if ($matched === null) {
-            try {
-                $resolved = app(ArrayableResolver::class)->resolve($result);
+            $resolved = app(ArrayableResolver::class)->resolve($result);
 
-                if ($resolved) {
-                    return $this->convert($resolved);
-                }
-            } catch (\Throwable $e) {
-                // ArrayableResolver not available or resolution failed
+            if ($resolved) {
+                return $this->convert($resolved);
             }
 
             $matched = $value->replace('\\', '.')->toString();
