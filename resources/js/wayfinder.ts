@@ -90,22 +90,19 @@ export const queryParams = (options?: RouteQueryOptions) => {
         const queryValue = query[key];
 
         if (queryValue === undefined || queryValue === null) {
-            clearParamFamily(params, key);
+            if (includeExisting) clearParamFamily(params, key);
             continue;
         }
 
-        if (Array.isArray(queryValue)) {
-            clearParamFamily(params, key);
+        if (includeExisting) clearParamFamily(params, key);
 
+        if (Array.isArray(queryValue)) {
             queryValue.forEach((value) => {
                 params.append(`${key}[]`, value.toString());
             });
         } else if (typeof queryValue === "object") {
-            clearParamFamily(params, key);
-
             addNestedParams(queryValue, key, params);
         } else {
-            clearParamFamily(params, key);
             params.set(key, getValue(queryValue));
         }
     }
