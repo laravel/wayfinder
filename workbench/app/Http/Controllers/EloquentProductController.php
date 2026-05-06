@@ -2,48 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePostRequest;
 use App\Models\Product;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class EloquentProductController
 {
-    public function index()
+    public function index(): Response
     {
-        return Inertia::render('eloquent_products/index', [
+        return Inertia::render('EloquentProducts/Index', [
             'products' => Product::all(),
         ]);
     }
 
-    public function create()
+    public function show(Product $product): Response
     {
-        //
-    }
-
-    public function store(StorePostRequest $request)
-    {
-        //
-    }
-
-    public function show(Product $product)
-    {
-        return Inertia::render('eloquent_products/show', [
+        return Inertia::render('EloquentProducts/Show', [
             'product' => $product,
         ]);
-    }
-
-    public function edit()
-    {
-        //
-    }
-
-    public function update()
-    {
-        //
-    }
-
-    public function destroy()
-    {
-        //
     }
 }

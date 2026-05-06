@@ -46,7 +46,8 @@ Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.e
 Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-Route::resource('/eloquent_products', EloquentProductController::class);
+Route::get('/eloquent-products', [EloquentProductController::class, 'index'])->name('eloquent-products.index');
+Route::get('/eloquent-products/{product}', [EloquentProductController::class, 'show'])->name('eloquent-products.show');
 
 Route::get('/dashboard', function () {
     return 'Dashboard';
