@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
 
@@ -9,6 +9,12 @@ describe("ResourceData", () => {
     );
 
     const types = () => readFileSync(typesPath, "utf-8");
+    const hasJsonApiResource = existsSync(
+        join(
+            __dirname,
+            "../vendor/laravel/framework/src/Illuminate/Http/Resources/JsonApi/JsonApiResource.php"
+        )
+    );
 
     test("types.d.ts contains ResourceTestController namespace", () => {
         expect(types()).toContain("export namespace ResourceTestController");
@@ -32,16 +38,25 @@ describe("ResourceData", () => {
         );
     });
 
-    test("JsonApiResource emits id/type/attributes/links/meta", () => {
-        expect(types()).toContain(
-            "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } } }"
-        );
-    });
+    describe.skipIf(!hasJsonApiResource)("JsonApiResource", () => {
+        test("emits id/type/attributes/links/meta", () => {
+            expect(types()).toContain(
+                "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } } }"
+            );
+        });
 
-    test("JsonApiResource collection wraps the resource shape in an array", () => {
-        expect(types()).toContain(
-            "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } }[] }"
-        );
+        test("collection wraps the resource shape in an array", () => {
+            expect(types()).toContain(
+                "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } }[] }"
+            );
+        });
+
+        test("relationships emit cardinality-aware shapes", () => {
+            // to-one is { data: { id, type } | null }, to-many is { data: { id, type }[] }
+            expect(types()).toContain(
+                "relationships?: { featuredProduct: {data: {id: string, type: string } | null }, relatedProducts: {data: {id: string, type: string }[] } }"
+            );
+        });
     });
 
     test("Eloquent-bound resource resolves $this->property to model types", () => {
@@ -56,10 +71,4 @@ describe("ResourceData", () => {
         );
     });
 
-    test("JsonApiResource relationships emit cardinality-aware shapes", () => {
-        // to-one is { data: { id, type } | null }, to-many is { data: { id, type }[] }
-        expect(types()).toContain(
-            "relationships?: { featuredProduct: {data: {id: string, type: string } | null }, relatedProducts: {data: {id: string, type: string }[] } }"
-        );
-    });
 });
