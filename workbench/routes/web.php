@@ -5,6 +5,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
+use App\Http\Controllers\EloquentProductController;
 use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
@@ -44,6 +45,9 @@ Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show')
 Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
 Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+Route::get('/eloquent-products', [EloquentProductController::class, 'index'])->name('eloquent-products.index');
+Route::get('/eloquent-products/{product}', [EloquentProductController::class, 'show'])->name('eloquent-products.show');
 
 Route::get('/dashboard', function () {
     return 'Dashboard';
