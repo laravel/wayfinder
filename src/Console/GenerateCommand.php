@@ -291,7 +291,7 @@ class GenerateCommand extends Command
         }
 
         $allImportNames = $files->merge($dirs)->map(fn ($name) => TypeScript::safeMethod($name, 'Method'));
-        $exportName = TypeScript::uniqueNamespace($dir->getBasename(), $allImportNames->toArray());
+        $exportName = TypeScript::uniqueNamespace(TypeScript::safeMethod($dir->getBasename(), 'Object'), $allImportNames->toArray());
 
         $exports = collect($imports->asLines())
             ->push('')
