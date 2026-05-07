@@ -2,7 +2,7 @@
 
 namespace Laravel\Wayfinder\Registry;
 
-use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
 use InvalidArgumentException;
@@ -88,12 +88,12 @@ class TypeScriptConverter extends AbstractConverter
 
     protected function convertClassResult(Types\ClassType $result): string
     {
-        $value = str($result->value)->ltrim('\\');
+        $class = ltrim($result->value, '\\');
 
         $matched = match (true) {
-            $value->toString() === Stringable::class => 'string',
-            is_a($value->toString(), Carbon::class, true) => 'string',
-            is_a($value->toString(), Collection::class, true) => $this->convertCollectionType($result),
+            $class === Stringable::class => 'string',
+            is_a($class, DateTimeInterface::class, true) => 'string',
+            is_a($class, Collection::class, true) => $this->convertCollectionType($result),
             default => null,
         };
 
@@ -104,7 +104,7 @@ class TypeScriptConverter extends AbstractConverter
                 return $this->convert($resolved);
             }
 
-            $matched = $value->replace('\\', '.')->toString();
+            $matched = str_replace('\\', '.', $class);
         }
 
         return $this->decorate($matched, $result);

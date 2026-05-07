@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnonymousMiddlewareController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\DateTimeController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
@@ -48,6 +49,8 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 
 Route::get('/eloquent-products', [EloquentProductController::class, 'index'])->name('eloquent-products.index');
 Route::get('/eloquent-products/{product}', [EloquentProductController::class, 'show'])->name('eloquent-products.show');
+
+Route::get('/date-time', [DateTimeController::class, 'show'])->name('date-time.show');
 
 Route::get('/dashboard', function () {
     return 'Dashboard';
