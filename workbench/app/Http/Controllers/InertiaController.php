@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,6 +17,14 @@ class InertiaController
                 'views' => 10000,
             ],
             'recentActivity' => [],
+        ]);
+    }
+
+    public function usersList(): Response
+    {
+        return Inertia::render('UsersList', [
+            'users' => UserResource::collection([]),
+            'featured' => new UserResource(null),
         ]);
     }
 

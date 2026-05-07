@@ -20,6 +20,7 @@ class TypeScriptConverter extends AbstractConverter
             Types\ArrayShapeType::class => $this->convertArrayShapeResult($result),
             Types\BoolType::class => $this->convertBoolResult($result),
             Types\ClassType::class => $this->convertClassResult($result),
+            Types\Entities\ResourceResponse::class => $this->convertResourceResponse($result),
             Types\IntType::class, Types\FloatType::class, Types\NumberType::class => $this->convertNumberResult($result),
             Types\IntersectionType::class => $this->convertIntersectionResult($result),
             Types\MixedType::class => $this->convertMixedResult($result),
@@ -29,6 +30,19 @@ class TypeScriptConverter extends AbstractConverter
             Types\CallableType::class => $this->convertCallableResult($result),
             default => throw new InvalidArgumentException('Unsupported result type: '.get_class($result)),
         };
+    }
+
+    protected function convertResourceResponse(Types\Entities\ResourceResponse $result): string
+    {
+        // Inertia/array contexts call ->toArray() directly without the JSON wrap,
+        // so emit just the data shape.
+        $shape = $result->data instanceof Types\ArrayType
+            ? TypeScript::objectToTypeObject($result->data->value, false)
+            : $this->convert($result->data);
+
+        $shape = (string) $shape;
+
+        return $result->isCollection ? "{$shape}[]" : $shape;
     }
 
     protected function convertCallableResult(Types\CallableType $result): string
