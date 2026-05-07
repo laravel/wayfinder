@@ -1,9 +1,11 @@
 import { expect, it } from "vitest";
-import {
+import routes, {
     dashboard,
     invalid_js_name,
     invokable,
+    myDashedRoute,
 } from "../workbench/resources/js/wayfinder/routes";
+import projects from "../workbench/resources/js/wayfinder/routes/projects";
 import { edit } from "../workbench/resources/js/wayfinder/routes/posts";
 
 it("exports named routes", () => {
@@ -30,4 +32,14 @@ it("exports named routes", () => {
         url: "/invalid-js-name",
         method: "get",
     });
+});
+
+it("quotes barrel keys that are not valid JS identifiers", () => {
+    expect(myDashedRoute.url()).toBe("/dashed-route");
+    expect(routes["my-dashed-route"].url()).toBe("/dashed-route");
+    expect(routes["invalid#js@name"].url()).toBe("/invalid-js-name");
+
+    expect(projects.application["customer-sector"].url()).toBe(
+        "/projects/application/customer-sector",
+    );
 });
