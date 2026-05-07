@@ -6,6 +6,11 @@ import {
     Archived,
 } from "../workbench/resources/js/wayfinder/App/Enums/PostStatus";
 import { UnitEnum } from "../workbench/resources/js/wayfinder/App/Enums/UnitEnum";
+import {
+    ProductStatus,
+    used,
+    Active,
+} from "../workbench/resources/js/wayfinder/App/Enums/ProductStatus";
 
 describe("Enums", () => {
     test("exports enum constant object", () => {
@@ -47,5 +52,26 @@ describe("Enums", () => {
         expect(Draft).toBe("draft");
         expect(Published).toBe("published");
         expect(Archived).toBe("archived");
+    });
+
+    test("handles reserved keyword case names", () => {
+        expect(ProductStatus.new).toBe("new");
+        expect(ProductStatus.used).toBe("used");
+        expect(ProductStatus.for).toBe("for-sale");
+        expect(ProductStatus.Active).toBe("active");
+    });
+
+    test("exposes all keys for enums with reserved keyword cases", () => {
+        expect(Object.keys(ProductStatus)).toEqual([
+            "new",
+            "used",
+            "for",
+            "Active",
+        ]);
+    });
+
+    test("only exports non-reserved case constants individually", () => {
+        expect(used).toBe("used");
+        expect(Active).toBe("active");
     });
 });

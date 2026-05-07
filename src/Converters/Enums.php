@@ -31,6 +31,10 @@ class Enums extends Converter
         $content = [];
 
         foreach ($enum->cases as $case => $value) {
+            if (in_array($case, TypeScript::RESERVED_KEYWORDS, true)) {
+                continue;
+            }
+
             if (is_string($value)) {
                 $content[] = TypeScript::constant($case, TypeScript::quote($value))->export();
             } else {
@@ -40,9 +44,18 @@ class Enums extends Converter
 
         $content[] = '';
 
-        $obj = TypeScript::objectWithOnlyKeys(array_keys($enum->cases));
+        $obj = TypeScript::object()->inline();
 
-        $content[] = TypeScript::constant($name, $obj)
+        foreach ($enum->cases as $case => $value) {
+            if (in_array($case, TypeScript::RESERVED_KEYWORDS, true)) {
+                $literal = is_string($value) ? TypeScript::quote($value) : (string) $value;
+                $obj->key($case)->value($literal);
+            } else {
+                $obj->key($case)->value($case);
+            }
+        }
+
+        $content[] = TypeScript::constant($name, (string) $obj)
             ->export()
             ->asConst()
             ->link($enum->name, $enum->filepath());
