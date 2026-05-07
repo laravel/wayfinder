@@ -196,7 +196,7 @@ class RouteMethod
 
         $def = TypeScript::object();
         $def->key('methods')->value($verbs);
-        $def->key('url')->value($this->routeUrl())->quote();
+        $def->key('url')->value($this->route->uri())->quote();
 
         $this->addInertiaComponent($def);
 
@@ -208,27 +208,6 @@ class RouteMethod
         );
 
         return "{$this->name}.definition = {$def}";
-    }
-
-    protected function routeUrl(): string
-    {
-        $url = $this->route->uri();
-
-        if (
-            ($domain = $this->route->domain()) !== null
-            && ! str_starts_with($url, '//')
-            && ! preg_match('/^https?:\/\//', $url)
-        ) {
-            $url = ($this->route->scheme() ?? '//').$domain.$url;
-        }
-
-        foreach ($this->route->parameters() as $parameter) {
-            if ($parameter->default !== null) {
-                $url = str_replace('{'.$parameter->name.'}', $parameter->placeholder, $url);
-            }
-        }
-
-        return $url;
     }
 
     protected function url(): string
