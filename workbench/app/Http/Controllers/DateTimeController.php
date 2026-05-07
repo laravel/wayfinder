@@ -12,8 +12,8 @@ class DateTimeController
     public function show(): Response
     {
         return Inertia::render('DateTime/Show', [
-            'immutable' => new DateTimeImmutable(),
-            'mutable' => new DateTime(),
+            'immutable' => new DateTimeImmutable,
+            'mutable' => new DateTime,
         ]);
     }
 }
