@@ -72,14 +72,13 @@ class GenerateCommand extends Command
         });
 
         if (! $this->option('skip-actions')) {
-            $this->files->deleteDirectory($this->base());
-
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
 
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
-            $this->writeContent();
+            $written = $this->writeContent();
+            $this->pruneStaleFiles($this->base(), $written);
 
             info('[Wayfinder] Generated actions in '.$this->base());
         }
@@ -87,14 +86,13 @@ class GenerateCommand extends Command
         $this->pathDirectory = 'routes';
 
         if (! $this->option('skip-routes')) {
-            $this->files->deleteDirectory($this->base());
-
             $named = $routes->filter(fn (Route $route) => $route->name())->groupBy(fn (Route $route) => $route->name());
 
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
-            $this->writeContent();
+            $written = $this->writeContent();
+            $this->pruneStaleFiles($this->base(), $written);
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
@@ -102,7 +100,16 @@ class GenerateCommand extends Command
         $this->pathDirectory = 'wayfinder';
 
         $this->files->ensureDirectoryExists($this->base());
-        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
+
+        $source = __DIR__.'/../resources/js/wayfinder.ts';
+        $dest = join_paths($this->base(), 'index.ts');
+
+        // Skip the copy when the destination already matches: copy() truncates
+        // before writing, briefly leaving an empty file that watchers can read
+        // and treat as a module that no longer exports queryParams etc.
+        if (! $this->files->exists($dest) || $this->files->get($source) !== $this->files->get($dest)) {
+            $this->files->copy($source, $dest);
+        }
     }
 
     private function appendContent($path, $content): void
@@ -121,20 +128,82 @@ class GenerateCommand extends Command
         array_unshift($this->content[$path], $content);
     }
 
-    private function writeContent(): void
+    /**
+     * @return string[] paths that were written
+     */
+    private function writeContent(): array
     {
+        $written = [];
+
         foreach ($this->content as $path => $content) {
             $this->files->ensureDirectoryExists(dirname($path));
-            $this->files->put($path, TypeScript::cleanUp(implode(PHP_EOL, $content)));
 
-            // Prepend the imports to the file
+            $body = TypeScript::cleanUp(implode(PHP_EOL, $content));
+
             if (isset($this->imports[$path])) {
-                $importLines = collect($this->imports[$path])->map(fn ($imports, $key) => 'import { '.implode(', ', array_unique($imports))." } from '{$key}'")->implode(PHP_EOL);
-                $this->files->prepend($path, $importLines.PHP_EOL);
+                $importLines = collect($this->imports[$path])
+                    ->map(fn ($imports, $key) => 'import { '.implode(', ', array_unique($imports))." } from '{$key}'")
+                    ->implode(PHP_EOL);
+
+                $body = $importLines.PHP_EOL.$body;
             }
+
+            // Write imports + body in a single put so the file is never on disk
+            // with a body that references identifiers (e.g. queryParams) before
+            // the import line exists. Vite's watcher would otherwise pick up
+            // the intermediate state and surface ReferenceErrors.
+            $this->files->put($path, $body);
+            $written[] = $path;
         }
 
         $this->content = [];
+        $this->imports = [];
+
+        return $written;
+    }
+
+    /**
+     * Remove files (and now-empty directories) under $base that weren't part
+     * of the latest generation. Replaces an upfront deleteDirectory() call so
+     * file watchers (e.g. Vite) don't see the entire output dir disappear and
+     * reappear on every regeneration.
+     *
+     * @param  string[]  $writtenPaths
+     */
+    private function pruneStaleFiles(string $base, array $writtenPaths): void
+    {
+        if (! $this->files->isDirectory($base)) {
+            return;
+        }
+
+        $kept = collect($writtenPaths)
+            ->mapWithKeys(fn ($path) => [(realpath($path) ?: $path) => true])
+            ->all();
+
+        foreach ($this->files->allFiles($base) as $file) {
+            $path = $file->getPathname();
+
+            if (! isset($kept[realpath($path) ?: $path])) {
+                $this->files->delete($path);
+            }
+        }
+
+        $this->pruneEmptyDirectories($base);
+    }
+
+    private function pruneEmptyDirectories(string $dir): void
+    {
+        if (! $this->files->isDirectory($dir)) {
+            return;
+        }
+
+        foreach ($this->files->directories($dir) as $sub) {
+            $this->pruneEmptyDirectories($sub);
+        }
+
+        if (empty($this->files->files($dir)) && empty($this->files->directories($dir))) {
+            $this->files->deleteDirectory($dir);
+        }
     }
 
     private function writeControllerFile(Collection $routes, string $namespace): void
