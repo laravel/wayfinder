@@ -10,9 +10,20 @@ class Imports implements Stringable
 {
     public array $imports = [];
 
+    public array $sideEffects = [];
+
     public static function create(): self
     {
         return new self;
+    }
+
+    public function addSideEffect(string $from): self
+    {
+        if (! in_array($from, $this->sideEffects, true)) {
+            $this->sideEffects[] = $from;
+        }
+
+        return $this;
     }
 
     public function addImport(Import $import): self
@@ -158,6 +169,10 @@ class Imports implements Stringable
     public function asLines(): array
     {
         $lines = [];
+
+        foreach ($this->sideEffects as $from) {
+            $lines[] = sprintf('import "%s";', $from);
+        }
 
         foreach ($this->imports as $from => $imports) {
             $default = null;

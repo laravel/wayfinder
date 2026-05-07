@@ -1,8 +1,5 @@
 {
     "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "skipLibCheck": false
-    },
     "include": [
         "workbench/resources/js/wayfinder/**/*.d.ts"
     ]

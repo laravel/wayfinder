@@ -28,6 +28,11 @@ describe("InertiaSharedData", () => {
         expect(content).toContain("declare module '@inertiajs/core'");
     });
 
+    test("inertia-config.d.ts imports @inertiajs/core so the file is treated as a module for augmentation", () => {
+        const content = readFileSync(inertiaConfigPath, "utf-8");
+        expect(content).toContain('import "@inertiajs/core";');
+    });
+
     test("inertia-config.d.ts exports InertiaConfig interface", () => {
         const content = readFileSync(inertiaConfigPath, "utf-8");
         expect(content).toContain("export interface InertiaConfig");

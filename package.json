@@ -12,6 +12,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
+        "@inertiajs/core": "^3.1.0",
         "@types/node": "^22.7.5",
         "eslint": "^9.29.0",
         "happy-dom": ">=20.0.2",
