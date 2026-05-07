@@ -115,7 +115,7 @@ class TypeScript
 
         return collect($type)
             ->map(fn ($type) => trim($type))
-            ->filter()
+            ->filter(fn ($type) => $type !== '')
             ->unique()
             ->implode(' | ');
     }

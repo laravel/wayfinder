@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 import {
     PostStatus,
     Draft,
@@ -6,6 +6,7 @@ import {
     Archived,
 } from "../workbench/resources/js/wayfinder/App/Enums/PostStatus";
 import { UnitEnum } from "../workbench/resources/js/wayfinder/App/Enums/UnitEnum";
+import type { App } from "../workbench/resources/js/wayfinder/types";
 import {
     ProductStatus,
     used,
@@ -36,6 +37,16 @@ describe("Enums", () => {
         expect(UnitEnum.None).toBe(0);
         expect(UnitEnum.Open).toBe(1);
         expect(UnitEnum.Done).toBe(2);
+    });
+
+    test("namespaced unit enum type is a numeric union", () => {
+        expectTypeOf<App.Enums.UnitEnum>().toEqualTypeOf<0 | 1 | 2>();
+    });
+
+    test("namespaced string-backed enum type is a string union", () => {
+        expectTypeOf<App.Enums.PostStatus>().toEqualTypeOf<
+            "draft" | "published" | "archived"
+        >();
     });
 
     test("has only expected keys", () => {
