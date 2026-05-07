@@ -110,6 +110,10 @@ Route::prefix('/projects/application')->name('projects.application.')->group(fun
     Route::get('/customer-sector', fn () => 'ok')->name('customer-sector');
 });
 
+Route::prefix('/dashed-parent/admin')->name('dashed-parent.admin.')->group(function () {
+    Route::get('/items', fn () => 'ok')->name('items');
+});
+
 Route::prefix('/api/v1')->name('api.v1.')->group(function () {
     Route::get('/tasks', fn () => 'ok')->name('tasks');
 
