@@ -158,7 +158,21 @@ class GenerateCommand extends Command
     protected function writeFiles(): void
     {
         $this->files->ensureDirectoryExists($this->generatedDirectory);
-        $this->files->cleanDirectory($this->generatedDirectory);
+
+        $writtenPaths = [];
+
+        // Copy the wayfinder index first so dependent files always have a
+        // resolvable target for `import { queryParams } from '.../index'`.
+        // Skip the copy when the destination already matches: copy() truncates
+        // before writing, briefly leaving an empty file that watchers can read.
+        $indexSource = __DIR__.'/../../resources/js/wayfinder.ts';
+        $indexDest = join_paths($this->generatedDirectory, 'index.ts');
+
+        if (! $this->files->exists($indexDest) || $this->files->get($indexSource) !== $this->files->get($indexDest)) {
+            $this->files->copy($indexSource, $indexDest);
+        }
+
+        $writtenPaths[] = $indexDest;
 
         $validResults = array_filter($this->results);
 
@@ -172,6 +186,7 @@ class GenerateCommand extends Command
 
                 $this->files->ensureDirectoryExists(dirname($path));
                 $this->writeFile($path, $result->content());
+                $writtenPaths[] = $path;
 
                 $progress->advance();
             }
@@ -185,13 +200,20 @@ class GenerateCommand extends Command
         if ($namespaced->isNotEmpty()) {
             info('Writing namespaced TypeScript files...');
 
-            $this->writeFile(
-                join_paths($this->generatedDirectory, 'types.d.ts'),
-                $namespaced->join(PHP_EOL),
-            );
+            $typesPath = join_paths($this->generatedDirectory, 'types.d.ts');
+
+            $this->writeFile($typesPath, $namespaced->join(PHP_EOL));
+            $writtenPaths[] = $typesPath;
         }
 
         // TypeScript::getNamespaced()->undot()->each($this->writeTypeBarrelFile(...));
+
+        // Prune anything left over from previous runs before walking for barrel
+        // files, so the walk doesn't see stale subdirectories. Replaces the
+        // upfront cleanDirectory() that caused Vite to surface "Failed to load
+        // url" / "queryParams is not defined" errors when its watcher saw the
+        // entire output dir disappear and reappear on every regeneration.
+        $this->pruneStaleFiles($this->generatedDirectory, $writtenPaths);
 
         info('Writing barrel files...');
 
@@ -199,11 +221,48 @@ class GenerateCommand extends Command
             $this->writeBarrelFile($dir);
         }
 
-        $this->files->copy(__DIR__.'/../../resources/js/wayfinder.ts', join_paths($this->generatedDirectory, 'index.ts'));
-
         if ($this->config->get('wayfinder.format.enabled', false)) {
             info('Formatting...');
             exec('npx @biomejs/biome format --write '.escapeshellarg($this->generatedDirectory).' --indent-width 4 --indent-style space > /dev/null 2>&1 &');
+        }
+    }
+
+    /**
+     * @param  string[]  $writtenPaths
+     */
+    protected function pruneStaleFiles(string $base, array $writtenPaths): void
+    {
+        if (! $this->files->isDirectory($base)) {
+            return;
+        }
+
+        $kept = collect($writtenPaths)
+            ->mapWithKeys(fn ($path) => [(realpath($path) ?: $path) => true])
+            ->all();
+
+        foreach ($this->files->allFiles($base) as $file) {
+            $path = $file->getPathname();
+
+            if (! isset($kept[realpath($path) ?: $path])) {
+                $this->files->delete($path);
+            }
+        }
+
+        $this->pruneEmptyDirectories($base);
+    }
+
+    protected function pruneEmptyDirectories(string $dir): void
+    {
+        if (! $this->files->isDirectory($dir)) {
+            return;
+        }
+
+        foreach ($this->files->directories($dir) as $sub) {
+            $this->pruneEmptyDirectories($sub);
+        }
+
+        if (empty($this->files->files($dir)) && empty($this->files->directories($dir))) {
+            $this->files->deleteDirectory($dir);
         }
     }
 
