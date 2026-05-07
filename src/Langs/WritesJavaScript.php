@@ -26,7 +26,7 @@ trait WritesJavaScript
             return $key;
         }
 
-        if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $key)) {
+        if (preg_match('/^[a-zA-Z_$][a-zA-Z0-9_$]*$/', $key)) {
             return $key;
         }
 
