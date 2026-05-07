@@ -59,7 +59,7 @@ describe("ResourceData", () => {
     test("JsonApiResource relationships emit cardinality-aware shapes", () => {
         // to-one is { data: { id, type } | null }, to-many is { data: { id, type }[] }
         expect(types()).toContain(
-            "relationships?: { featuredProduct: {data: {id: string, type: string } | null }, relatedProducts: {data: {id: string, type: string }[] } }"
+            "relationships?: { featuredProduct: { data: { id: string, type: string } | null }, relatedProducts: { data: { id: string, type: string }[] } }"
         );
     });
 });
