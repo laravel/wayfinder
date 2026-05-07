@@ -45,13 +45,13 @@ class InertiaSharedData extends Converter
 
         preg_match_all('/(?<!\.)([A-Z][a-zA-Z0-9]*)(?=\.[A-Z])/', $typeObject, $matches);
 
-        $imports = [];
+        $importsHelper = Imports::create()->addSideEffect('@inertiajs/core');
 
         if (count($matches[0]) > 0) {
-            $imports[] = (string) Imports::create()->add('./types', $matches[0]);
-            $imports[] = '';
-            $imports[] = '';
+            $importsHelper->add('./types', $matches[0]);
         }
+
+        $imports = [(string) $importsHelper, '', ''];
 
         $module = TypeScript::module(
             '@inertiajs/core',
