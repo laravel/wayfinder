@@ -2,7 +2,6 @@
 
 namespace Laravel\Wayfinder\Registry;
 
-use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
@@ -94,7 +93,6 @@ class TypeScriptConverter extends AbstractConverter
 
         $matched = match (true) {
             $value->toString() === Stringable::class => 'string',
-            is_a($value->toString(), Carbon::class, true) => 'string',
             is_a($class, DateTimeInterface::class, true) => 'string',
             is_a($value->toString(), Collection::class, true) => $this->convertCollectionType($result),
             default => null,
