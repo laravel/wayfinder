@@ -98,6 +98,10 @@ class TypeScriptConverter extends AbstractConverter
             default => null,
         };
 
+        if ($matched === null && is_a($class, DateTimeInterface::class, true)) {
+            $matched = 'string';
+        }
+
         if ($matched === null) {
             $resolved = app(ArrayableResolver::class)->resolve($result);
 
