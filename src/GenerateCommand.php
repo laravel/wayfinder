@@ -71,6 +71,8 @@ class GenerateCommand extends Command
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
 
+        $this->writeWayinderHelperFile();
+
         if (! $this->option('skip-actions')) {
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
 
@@ -94,11 +96,23 @@ class GenerateCommand extends Command
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+    }
 
+    private function writeWayinderHelperFile(): void
+    {
+        $previousPathDirectory = $this->pathDirectory;
         $this->pathDirectory = 'wayfinder';
 
         $this->files->ensureDirectoryExists($this->base());
-        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
+
+        $source = __DIR__.'/../resources/js/wayfinder.ts';
+        $destination = join_paths($this->base(), 'index.ts');
+
+        if (! $this->files->exists($destination) || $this->files->get($destination) !== $this->files->get($source)) {
+            $this->files->put($destination, $this->files->get($source));
+        }
+
+        $this->pathDirectory = $previousPathDirectory;
     }
 
     private function appendContent(string $path, string $content): void

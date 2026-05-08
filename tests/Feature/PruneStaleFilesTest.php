@@ -92,4 +92,27 @@ class PruneStaleFilesTest extends TestCase
         $this->assertDirectoryDoesNotExist($orphanDir);
         $this->assertFileExists($sibling);
     }
+
+    public function test_runtime_index_is_written_before_actions_and_routes(): void
+    {
+        $this->artisan('wayfinder:generate', ['--path' => $this->tempPath])->assertSuccessful();
+
+        $this->assertFileExists(join_paths($this->tempPath, 'wayfinder', 'index.ts'));
+    }
+
+    public function test_runtime_index_is_skipped_when_contents_match(): void
+    {
+        $this->artisan('wayfinder:generate', ['--path' => $this->tempPath])->assertSuccessful();
+
+        $destination = join_paths($this->tempPath, 'wayfinder', 'index.ts');
+        $beforeMtime = filemtime($destination);
+
+        clearstatcache(true, $destination);
+        sleep(1);
+
+        $this->artisan('wayfinder:generate', ['--path' => $this->tempPath])->assertSuccessful();
+
+        clearstatcache(true, $destination);
+        $this->assertSame($beforeMtime, filemtime($destination));
+    }
 }
