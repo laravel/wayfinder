@@ -158,7 +158,22 @@ class GenerateCommand extends Command
     protected function writeFiles(): void
     {
         $this->files->ensureDirectoryExists($this->generatedDirectory);
-        $this->files->cleanDirectory($this->generatedDirectory);
+
+        $writtenPaths = [];
+
+        // Copy the wayfinder index first so dependent files always have a
+        // resolvable target for `import { queryParams } from '.../index'`.
+        // Skip the copy when the destination already matches: copy() truncates
+        // before writing, briefly leaving an empty file that watchers can read.
+        $indexSource = __DIR__.'/../../resources/js/wayfinder.ts';
+        $indexDest = join_paths($this->generatedDirectory, 'index.ts');
+        $indexBody = $this->files->get($indexSource);
+
+        if (! $this->files->exists($indexDest) || $this->files->get($indexDest) !== $indexBody) {
+            $this->files->put($indexDest, $indexBody);
+        }
+
+        $writtenPaths[] = $indexDest;
 
         $validResults = array_filter($this->results);
 
@@ -172,6 +187,7 @@ class GenerateCommand extends Command
 
                 $this->files->ensureDirectoryExists(dirname($path));
                 $this->writeFile($path, $result->content());
+                $writtenPaths[] = $path;
 
                 $progress->advance();
             }
@@ -185,25 +201,101 @@ class GenerateCommand extends Command
         if ($namespaced->isNotEmpty()) {
             info('Writing namespaced TypeScript files...');
 
-            $this->writeFile(
-                join_paths($this->generatedDirectory, 'types.d.ts'),
-                $namespaced->join(PHP_EOL),
-            );
+            $typesPath = join_paths($this->generatedDirectory, 'types.d.ts');
+
+            $this->writeFile($typesPath, $namespaced->join(PHP_EOL));
+            $writtenPaths[] = $typesPath;
         }
 
         // TypeScript::getNamespaced()->undot()->each($this->writeTypeBarrelFile(...));
 
+        // Snapshot paths written by non-barrel writers (helper, results,
+        // types.d.ts). Passed to writeBarrelFile() below so a computed barrel
+        // can't clobber a result file that happens to be named index.ts.
+        $nonBarrelPaths = $writtenPaths;
+
+        // Preserve existing barrels in active subdirectories through the prune
+        // step. writeFile() already content-skips identical writes, but if
+        // prune deleted the barrel first, writeFile() would see no existing
+        // file and write fresh — Vite's watcher would observe a delete +
+        // create pair even when the barrel ultimately matches.
+        $activeDirs = collect($nonBarrelPaths)
+            ->flatMap(fn ($path) => $this->ancestorDirs($path))
+            ->unique();
+
+        foreach ($activeDirs as $dir) {
+            $barrelPath = join_paths($dir, 'index.ts');
+
+            if ($this->files->exists($barrelPath)) {
+                $writtenPaths[] = $barrelPath;
+            }
+        }
+
+        // Prune leftover files from previous runs before the barrel walk so it
+        // doesn't see stale subdirectories. Replaces the upfront
+        // cleanDirectory() that caused Vite to surface "Failed to load url" /
+        // "queryParams is not defined" errors when its watcher saw the entire
+        // output dir disappear and reappear on every regeneration.
+        $this->pruneStaleFiles($this->generatedDirectory, $writtenPaths);
+
         info('Writing barrel files...');
 
         foreach (Finder::create()->directories()->in($this->generatedDirectory) as $dir) {
-            $this->writeBarrelFile($dir);
+            $this->writeBarrelFile($dir, $nonBarrelPaths);
         }
-
-        $this->files->copy(__DIR__.'/../../resources/js/wayfinder.ts', join_paths($this->generatedDirectory, 'index.ts'));
 
         if ($this->config->get('wayfinder.format.enabled', false)) {
             info('Formatting...');
             exec('npx @biomejs/biome format --write '.escapeshellarg($this->generatedDirectory).' --indent-width 4 --indent-style space > /dev/null 2>&1 &');
+        }
+    }
+
+    protected function ancestorDirs(string $path): array
+    {
+        $dirs = [];
+        $current = dirname($path);
+
+        while (str_starts_with($current, $this->generatedDirectory.DIRECTORY_SEPARATOR)) {
+            $dirs[] = $current;
+            $current = dirname($current);
+        }
+
+        return $dirs;
+    }
+
+    protected function pruneStaleFiles(string $base, array $writtenPaths): void
+    {
+        if (! $this->files->isDirectory($base)) {
+            return;
+        }
+
+        $kept = collect($writtenPaths)
+            ->map(fn ($path) => realpath($path) ?: $path)
+            ->flip();
+
+        foreach ($this->files->allFiles($base) as $file) {
+            $path = $file->getPathname();
+
+            if (! $kept->has(realpath($path) ?: $path)) {
+                $this->files->delete($path);
+            }
+        }
+
+        $this->pruneEmptyDirectories($base);
+    }
+
+    protected function pruneEmptyDirectories(string $dir): void
+    {
+        if (! $this->files->isDirectory($dir)) {
+            return;
+        }
+
+        foreach ($this->files->directories($dir) as $sub) {
+            $this->pruneEmptyDirectories($sub);
+        }
+
+        if (empty($this->files->files($dir)) && empty($this->files->directories($dir))) {
+            $this->files->deleteDirectory($dir);
         }
     }
 
@@ -239,7 +331,7 @@ class GenerateCommand extends Command
         }
     }
 
-    protected function writeBarrelFile(SplFileInfo $dir)
+    protected function writeBarrelFile(SplFileInfo $dir, array $nonBarrelPaths = [])
     {
         $isTypeDir = str_starts_with($dir->getPathname(), join_paths($this->generatedDirectory, 'types'));
 
@@ -249,7 +341,8 @@ class GenerateCommand extends Command
 
         $path = join_paths($dir->getPathname(), 'index.ts');
 
-        if ($this->files->exists($path)) {
+        // A non-barrel write already claimed this path; don't clobber it.
+        if (in_array($path, $nonBarrelPaths)) {
             return;
         }
 
@@ -314,6 +407,10 @@ class GenerateCommand extends Command
         // Do not edit this file directly, any changes will be overwritten.
         COMMENT;
 
-        $this->files->put($path, $comment.PHP_EOL.PHP_EOL.$content);
+        $body = $comment.PHP_EOL.PHP_EOL.$content;
+
+        if (! $this->files->exists($path) || $this->files->get($path) !== $body) {
+            $this->files->put($path, $body);
+        }
     }
 }

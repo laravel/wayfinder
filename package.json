@@ -1,7 +1,7 @@
 {
     "type": "module",
     "scripts": {
-        "test": "vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run test-inertia-component && npm run lint && npm run tsc && npm run tsc:wayfinder",
+        "test": "vendor/bin/phpunit && vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run test-inertia-component && npm run lint && npm run tsc && npm run tsc:wayfinder",
         "test-routes-cached": "WAYFINDER_CACHE_ROUTES=1 vitest run",
         "test-inertia-component": "WAYFINDER_GENERATE_INERTIA_COMPONENT=1 vitest run",
         "lint": "eslint ./workbench/resources/js --ext .ts,.tsx",
