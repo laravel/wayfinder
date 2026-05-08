@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.17...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.18...main)
+
+## [v0.1.18](https://github.com/laravel/wayfinder/compare/v0.1.17...v0.1.18) - 2026-05-08
+
+### What's Changed
+
+* Stop generated files from briefly existing without their imports by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/247
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.17...v0.1.18
 
 ## [v0.1.17](https://github.com/laravel/wayfinder/compare/v0.1.16...v0.1.17) - 2026-05-05
 
