@@ -77,8 +77,7 @@ class GenerateCommand extends Command
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
-            $written = $this->writeContent();
-            $this->pruneStaleFiles($this->base(), $written);
+            $this->pruneStaleFiles($this->base(), $this->writeContent());
 
             info('[Wayfinder] Generated actions in '.$this->base());
         }
@@ -91,8 +90,7 @@ class GenerateCommand extends Command
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
-            $written = $this->writeContent();
-            $this->pruneStaleFiles($this->base(), $written);
+            $this->pruneStaleFiles($this->base(), $this->writeContent());
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
@@ -112,7 +110,7 @@ class GenerateCommand extends Command
         }
     }
 
-    private function appendContent($path, $content): void
+    private function appendContent(string $path, string $content): void
     {
         $this->content[$path] ??= [];
 
@@ -121,7 +119,7 @@ class GenerateCommand extends Command
         }
     }
 
-    private function prependContent($path, $content): void
+    private function prependContent(string $path, string $content): void
     {
         $this->content[$path] ??= [];
 
