@@ -271,13 +271,13 @@ class GenerateCommand extends Command
         }
 
         $kept = collect($writtenPaths)
-            ->mapWithKeys(fn ($path) => [(realpath($path) ?: $path) => true])
-            ->all();
+            ->map(fn ($path) => realpath($path) ?: $path)
+            ->flip();
 
         foreach ($this->files->allFiles($base) as $file) {
             $path = $file->getPathname();
 
-            if (! isset($kept[realpath($path) ?: $path])) {
+            if (! $kept->has(realpath($path) ?: $path)) {
                 $this->files->delete($path);
             }
         }
