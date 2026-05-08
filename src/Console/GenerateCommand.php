@@ -223,7 +223,7 @@ class GenerateCommand extends Command
         foreach ($activeDirs as $dir) {
             $barrelPath = join_paths($dir, 'index.ts');
 
-            if (in_array($barrelPath, $resultPaths, true)) {
+            if (in_array($barrelPath, $resultPaths)) {
                 continue;
             }
 
@@ -347,7 +347,7 @@ class GenerateCommand extends Command
 
         // A result already wrote to this index path; don't clobber it with a
         // computed barrel.
-        if (in_array($path, $resultPaths, true)) {
+        if (in_array($path, $resultPaths)) {
             return;
         }
 
