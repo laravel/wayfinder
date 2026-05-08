@@ -137,11 +137,8 @@ class GenerateCommand extends Command
                 $body = $importLines.PHP_EOL.$body;
             }
 
-            // Write imports + body in a single put so the file is never on disk
-            // with a body that references identifiers (e.g. queryParams) before
-            // the import line exists. Vite's watcher would otherwise pick up
-            // the intermediate state and surface ReferenceErrors.
             $this->files->put($path, $body);
+
             $written[] = $path;
         }
 
@@ -151,28 +148,18 @@ class GenerateCommand extends Command
         return $written;
     }
 
-    /**
-     * Remove files (and now-empty directories) under $base that weren't part
-     * of the latest generation. Replaces an upfront deleteDirectory() call so
-     * file watchers (e.g. Vite) don't see the entire output dir disappear and
-     * reappear on every regeneration.
-     *
-     * @param  string[]  $writtenPaths
-     */
     private function pruneStaleFiles(string $base, array $writtenPaths): void
     {
         if (! $this->files->isDirectory($base)) {
             return;
         }
 
-        $kept = collect($writtenPaths)
-            ->mapWithKeys(fn ($path) => [(realpath($path) ?: $path) => true])
-            ->all();
+        $kept = collect($writtenPaths)->map(fn ($path) => realpath($path) ?: $path);
 
         foreach ($this->files->allFiles($base) as $file) {
             $path = $file->getPathname();
 
-            if (! isset($kept[realpath($path) ?: $path])) {
+            if (! $kept->has(realpath($path) ?: $path)) {
                 $this->files->delete($path);
             }
         }
