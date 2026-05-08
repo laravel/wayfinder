@@ -159,7 +159,7 @@ class GenerateCommand extends Command
         foreach ($this->files->allFiles($base) as $file) {
             $path = $file->getPathname();
 
-            if (! $kept->has(realpath($path) ?: $path)) {
+            if (! $kept->contains(realpath($path) ?: $path)) {
                 $this->files->delete($path);
             }
         }
