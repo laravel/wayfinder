@@ -136,4 +136,32 @@ class GenerateCommandTest extends TestCase
         clearstatcache(true, $sample);
         $this->assertSame($beforeMtime, filemtime($sample));
     }
+
+    public function test_noop_regenerate_does_not_touch_any_file(): void
+    {
+        $this->generate();
+
+        $before = collect($this->files->allFiles($this->tempPath))
+            ->mapWithKeys(fn ($file) => [$file->getPathname() => filemtime($file->getPathname())]);
+
+        $this->assertNotEmpty($before);
+
+        clearstatcache();
+        sleep(1);
+
+        $this->generate();
+
+        clearstatcache();
+        $after = collect($this->files->allFiles($this->tempPath))
+            ->mapWithKeys(fn ($file) => [$file->getPathname() => filemtime($file->getPathname())]);
+
+        $this->assertSame($before->keys()->sort()->values()->all(), $after->keys()->sort()->values()->all());
+
+        $changed = $before->filter(fn ($mtime, $path) => $after->get($path) !== $mtime);
+
+        $this->assertEmpty(
+            $changed,
+            'expected no files to be rewritten on a no-op regen, got: '.$changed->keys()->implode(', ')
+        );
+    }
 }

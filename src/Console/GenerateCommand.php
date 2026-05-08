@@ -209,6 +209,29 @@ class GenerateCommand extends Command
 
         // TypeScript::getNamespaced()->undot()->each($this->writeTypeBarrelFile(...));
 
+        $resultPaths = $writtenPaths;
+
+        // Track existing barrels in active subdirectories so prune doesn't
+        // delete and recreate them on every run. Without this, every
+        // regenerate would unlink + add every barrel and Vite's watcher would
+        // fire HMR for the whole tree even when nothing actually changed.
+        $activeDirs = collect($resultPaths)
+            ->flatMap(fn ($path) => $this->ancestorDirs($path))
+            ->unique()
+            ->all();
+
+        foreach ($activeDirs as $dir) {
+            $barrelPath = join_paths($dir, 'index.ts');
+
+            if (in_array($barrelPath, $resultPaths, true)) {
+                continue;
+            }
+
+            if ($this->files->exists($barrelPath)) {
+                $writtenPaths[] = $barrelPath;
+            }
+        }
+
         // Prune anything left over from previous runs before walking for barrel
         // files, so the walk doesn't see stale subdirectories. Replaces the
         // upfront cleanDirectory() that caused Vite to surface "Failed to load
@@ -219,13 +242,29 @@ class GenerateCommand extends Command
         info('Writing barrel files...');
 
         foreach (Finder::create()->directories()->in($this->generatedDirectory) as $dir) {
-            $this->writeBarrelFile($dir);
+            $this->writeBarrelFile($dir, $resultPaths);
         }
 
         if ($this->config->get('wayfinder.format.enabled', false)) {
             info('Formatting...');
             exec('npx @biomejs/biome format --write '.escapeshellarg($this->generatedDirectory).' --indent-width 4 --indent-style space > /dev/null 2>&1 &');
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function ancestorDirs(string $path): array
+    {
+        $dirs = [];
+        $current = dirname($path);
+
+        while (str_starts_with($current, $this->generatedDirectory) && $current !== $this->generatedDirectory) {
+            $dirs[] = $current;
+            $current = dirname($current);
+        }
+
+        return $dirs;
     }
 
     /**
@@ -299,7 +338,10 @@ class GenerateCommand extends Command
         }
     }
 
-    protected function writeBarrelFile(SplFileInfo $dir)
+    /**
+     * @param  string[]  $resultPaths
+     */
+    protected function writeBarrelFile(SplFileInfo $dir, array $resultPaths = [])
     {
         $isTypeDir = str_starts_with($dir->getPathname(), join_paths($this->generatedDirectory, 'types'));
 
@@ -309,7 +351,9 @@ class GenerateCommand extends Command
 
         $path = join_paths($dir->getPathname(), 'index.ts');
 
-        if ($this->files->exists($path)) {
+        // A result already wrote to this index path; don't clobber it with a
+        // computed barrel.
+        if (in_array($path, $resultPaths, true)) {
             return;
         }
 
