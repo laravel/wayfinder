@@ -251,9 +251,6 @@ class GenerateCommand extends Command
         }
     }
 
-    /**
-     * @return string[]
-     */
     protected function ancestorDirs(string $path): array
     {
         $dirs = [];
@@ -267,9 +264,6 @@ class GenerateCommand extends Command
         return $dirs;
     }
 
-    /**
-     * @param  string[]  $writtenPaths
-     */
     protected function pruneStaleFiles(string $base, array $writtenPaths): void
     {
         if (! $this->files->isDirectory($base)) {
