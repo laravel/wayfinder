@@ -255,7 +255,7 @@ class GenerateCommand extends Command
         $dirs = [];
         $current = dirname($path);
 
-        while (str_starts_with($current, $this->generatedDirectory) && $current !== $this->generatedDirectory) {
+        while (str_starts_with($current, $this->generatedDirectory.DIRECTORY_SEPARATOR)) {
             $dirs[] = $current;
             $current = dirname($current);
         }
