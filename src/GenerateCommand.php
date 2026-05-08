@@ -98,16 +98,7 @@ class GenerateCommand extends Command
         $this->pathDirectory = 'wayfinder';
 
         $this->files->ensureDirectoryExists($this->base());
-
-        $source = __DIR__.'/../resources/js/wayfinder.ts';
-        $dest = join_paths($this->base(), 'index.ts');
-
-        // Skip the copy when the destination already matches: copy() truncates
-        // before writing, briefly leaving an empty file that watchers can read
-        // and treat as a module that no longer exports queryParams etc.
-        if (! $this->files->exists($dest) || $this->files->get($source) !== $this->files->get($dest)) {
-            $this->files->copy($source, $dest);
-        }
+        $this->files->copy(__DIR__.'/../resources/js/wayfinder.ts', join_paths($this->base(), 'index.ts'));
     }
 
     private function appendContent(string $path, string $content): void
