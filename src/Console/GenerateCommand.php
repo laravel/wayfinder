@@ -332,9 +332,6 @@ class GenerateCommand extends Command
         }
     }
 
-    /**
-     * @param  string[]  $resultPaths
-     */
     protected function writeBarrelFile(SplFileInfo $dir, array $resultPaths = [])
     {
         $isTypeDir = str_starts_with($dir->getPathname(), join_paths($this->generatedDirectory, 'types'));
