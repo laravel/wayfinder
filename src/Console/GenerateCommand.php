@@ -209,40 +209,39 @@ class GenerateCommand extends Command
 
         // TypeScript::getNamespaced()->undot()->each($this->writeTypeBarrelFile(...));
 
-        $resultPaths = $writtenPaths;
+        // Snapshot paths written by non-barrel writers (helper, results,
+        // types.d.ts). Passed to writeBarrelFile() below so a computed barrel
+        // can't clobber a result file that happens to be named index.ts.
+        $nonBarrelPaths = $writtenPaths;
 
-        // Track existing barrels in active subdirectories so prune doesn't
-        // delete and recreate them on every run. Without this, every
-        // regenerate would unlink + add every barrel and Vite's watcher would
-        // fire HMR for the whole tree even when nothing actually changed.
-        $activeDirs = collect($resultPaths)
+        // Preserve existing barrels in active subdirectories through the prune
+        // step. writeFile() already content-skips identical writes, but if
+        // prune deleted the barrel first, writeFile() would see no existing
+        // file and write fresh — Vite's watcher would observe a delete +
+        // create pair even when the barrel ultimately matches.
+        $activeDirs = collect($nonBarrelPaths)
             ->flatMap(fn ($path) => $this->ancestorDirs($path))
-            ->unique()
-            ->all();
+            ->unique();
 
         foreach ($activeDirs as $dir) {
             $barrelPath = join_paths($dir, 'index.ts');
-
-            if (in_array($barrelPath, $resultPaths)) {
-                continue;
-            }
 
             if ($this->files->exists($barrelPath)) {
                 $writtenPaths[] = $barrelPath;
             }
         }
 
-        // Prune anything left over from previous runs before walking for barrel
-        // files, so the walk doesn't see stale subdirectories. Replaces the
-        // upfront cleanDirectory() that caused Vite to surface "Failed to load
-        // url" / "queryParams is not defined" errors when its watcher saw the
-        // entire output dir disappear and reappear on every regeneration.
+        // Prune leftover files from previous runs before the barrel walk so it
+        // doesn't see stale subdirectories. Replaces the upfront
+        // cleanDirectory() that caused Vite to surface "Failed to load url" /
+        // "queryParams is not defined" errors when its watcher saw the entire
+        // output dir disappear and reappear on every regeneration.
         $this->pruneStaleFiles($this->generatedDirectory, $writtenPaths);
 
         info('Writing barrel files...');
 
         foreach (Finder::create()->directories()->in($this->generatedDirectory) as $dir) {
-            $this->writeBarrelFile($dir, $resultPaths);
+            $this->writeBarrelFile($dir, $nonBarrelPaths);
         }
 
         if ($this->config->get('wayfinder.format.enabled', false)) {
@@ -332,7 +331,7 @@ class GenerateCommand extends Command
         }
     }
 
-    protected function writeBarrelFile(SplFileInfo $dir, array $resultPaths = [])
+    protected function writeBarrelFile(SplFileInfo $dir, array $nonBarrelPaths = [])
     {
         $isTypeDir = str_starts_with($dir->getPathname(), join_paths($this->generatedDirectory, 'types'));
 
@@ -342,9 +341,8 @@ class GenerateCommand extends Command
 
         $path = join_paths($dir->getPathname(), 'index.ts');
 
-        // A result already wrote to this index path; don't clobber it with a
-        // computed barrel.
-        if (in_array($path, $resultPaths)) {
+        // A non-barrel write already claimed this path; don't clobber it.
+        if (in_array($path, $nonBarrelPaths)) {
             return;
         }
 
