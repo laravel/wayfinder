@@ -108,9 +108,7 @@ class GenerateCommand extends Command
         $source = __DIR__.'/../resources/js/wayfinder.ts';
         $destination = join_paths($this->base(), 'index.ts');
 
-        if (! $this->files->exists($destination) || $this->files->get($destination) !== $this->files->get($source)) {
-            $this->files->put($destination, $this->files->get($source));
-        }
+        $this->writeContentIfChanged($destination, $this->files->get($source));
 
         $this->pathDirectory = $previousPathDirectory;
     }
@@ -151,7 +149,7 @@ class GenerateCommand extends Command
                 $body = $importLines.PHP_EOL.$body;
             }
 
-            $this->files->put($path, $body);
+            $this->writeContentIfChanged($path, $body);
 
             $written[] = $path;
         }
@@ -160,6 +158,15 @@ class GenerateCommand extends Command
         $this->imports = [];
 
         return $written;
+    }
+
+    private function writeContentIfChanged(string $path, string $content): void
+    {
+        $this->files->ensureDirectoryExists(dirname($path));
+
+        if (! $this->files->exists($path) || $this->files->get($path) !== $content) {
+            $this->files->put($path, $content);
+        }
     }
 
     private function pruneStaleFiles(string $base, array $writtenPaths): void

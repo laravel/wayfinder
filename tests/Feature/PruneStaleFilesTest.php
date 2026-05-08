@@ -115,4 +115,21 @@ class PruneStaleFilesTest extends TestCase
         clearstatcache(true, $destination);
         $this->assertSame($beforeMtime, filemtime($destination));
     }
+
+    public function test_unchanged_generated_files_are_not_rewritten(): void
+    {
+        $this->generate();
+
+        $target = join_paths($this->tempPath, 'routes', 'prune', 'test', 'index.ts');
+        $this->assertFileExists($target);
+        $beforeMtime = filemtime($target);
+
+        clearstatcache(true, $target);
+        sleep(1);
+
+        $this->generate();
+
+        clearstatcache(true, $target);
+        $this->assertSame($beforeMtime, filemtime($target));
+    }
 }
