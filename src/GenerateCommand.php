@@ -71,7 +71,7 @@ class GenerateCommand extends Command
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
 
-        $this->writeWayinderHelperFile();
+        $this->writeWayfinderHelperFile();
 
         if (! $this->option('skip-actions')) {
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
@@ -98,7 +98,7 @@ class GenerateCommand extends Command
         }
     }
 
-    private function writeWayinderHelperFile(): void
+    private function writeWayfinderHelperFile(): void
     {
         $previousPathDirectory = $this->pathDirectory;
         $this->pathDirectory = 'wayfinder';
@@ -175,12 +175,12 @@ class GenerateCommand extends Command
             return;
         }
 
-        $kept = collect($writtenPaths)->map(fn ($path) => realpath($path) ?: $path);
+        $kept = collect($writtenPaths)->map(fn ($path) => realpath($path) ?: $path)->flip();
 
         foreach ($this->files->allFiles($base) as $file) {
             $path = $file->getPathname();
 
-            if (! $kept->contains(realpath($path) ?: $path)) {
+            if (! $kept->has(realpath($path) ?: $path)) {
                 $this->files->delete($path);
             }
         }
