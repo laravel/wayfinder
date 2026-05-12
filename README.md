@@ -64,6 +64,17 @@ php artisan wayfinder:generate --skip-routes
 
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
+### Deploying
+
+Wayfinder reads routes from the registered router, so if Laravel boots with a cached route table left over from a previous release, generation will run against those stale routes. Any routes added since the last `route:cache` will be silently missing from the generated `routes/` and `actions/` directories, and Vite will fail with errors like `Could not load resources/js/routes/<name>`.
+
+If your deploy script runs `php artisan optimize` (or `route:cache` directly) at the end of a deploy, run `php artisan route:clear` before regenerating on the next deploy. With the Vite plugin, this needs to happen before `npm run build`, since the plugin invokes `wayfinder:generate` during the build:
+
+```shell
+php artisan route:clear
+npm run build
+```
+
 ## Usage
 
 Wayfinder functions return an object that contains the resolved URL and default HTTP method:
