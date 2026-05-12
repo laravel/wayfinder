@@ -77,6 +77,7 @@ class ObjectKeyValueBuilder implements Stringable
 
     public function __toString(): string
     {
+        $value = $this->value;
         $block = $this->meta();
 
         if ($block !== '') {
@@ -89,22 +90,22 @@ class ObjectKeyValueBuilder implements Stringable
             $key = "...{$key}";
         }
 
-        if ($this->value !== null) {
-            $value = $this->quote ? TypeScript::quote($this->value) : $this->value;
+        $block .= $key;
+
+        if ($value === null) {
+            return $block;
         }
 
-        if ($this->value === null) {
-            return $block.$key;
-        }
+        $value = $this->quote ? TypeScript::quote($value) : $value;
 
         if ($this->shorthand && ! $this->optional && ! str_contains($key, '"') && $key === $value) {
-            return $block.$key;
+            return $block;
         }
 
         if ($this->optional) {
-            return $block.$key.'?: '.$value;
+            return $block.'?: '.$value;
         }
 
-        return $block.$key.': '.$value;
+        return $block.': '.$value;
     }
 }
