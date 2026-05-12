@@ -20,6 +20,8 @@ class ObjectKeyValueBuilder implements Stringable
 
     protected bool $spread = false;
 
+    protected bool $shorthand = true;
+
     public function __construct(protected string $key)
     {
         //
@@ -66,8 +68,16 @@ class ObjectKeyValueBuilder implements Stringable
         return $this;
     }
 
+    public function shorthand(bool $shorthand = true): static
+    {
+        $this->shorthand = $shorthand;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
+        $value = $this->value;
         $block = $this->meta();
 
         if ($block !== '') {
@@ -80,22 +90,22 @@ class ObjectKeyValueBuilder implements Stringable
             $key = "...{$key}";
         }
 
-        if ($this->value !== null) {
-            $value = $this->quote ? TypeScript::quote($this->value) : $this->value;
+        $block .= $key;
+
+        if ($value === null) {
+            return $block;
         }
 
-        if ($this->value === null) {
-            return $block.$key;
-        }
+        $value = $this->quote ? TypeScript::quote($value) : $value;
 
-        if (! $this->optional && ! str_contains($key, '"') && $key === $value) {
-            return $block.$key;
+        if ($this->shorthand && ! $this->optional && ! str_contains($key, '"') && $key === $value) {
+            return $block;
         }
 
         if ($this->optional) {
-            return $block.$key.'?: '.$value;
+            return $block.'?: '.$value;
         }
 
-        return $block.$key.': '.$value;
+        return $block.': '.$value;
     }
 }
