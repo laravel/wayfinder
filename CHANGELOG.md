@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.18...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.19...main)
+
+## [v0.1.19](https://github.com/laravel/wayfinder/compare/v0.1.18...v0.1.19) - 2026-05-12
+
+### What's Changed
+
+* Clarify behavior when multiple routes share an action by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/wayfinder/pull/251
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.18...v0.1.19
 
 ## [v0.1.18](https://github.com/laravel/wayfinder/compare/v0.1.17...v0.1.18) - 2026-05-08
 
