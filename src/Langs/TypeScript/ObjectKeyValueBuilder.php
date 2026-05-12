@@ -20,6 +20,8 @@ class ObjectKeyValueBuilder implements Stringable
 
     protected bool $spread = false;
 
+    protected bool $shorthand = true;
+
     public function __construct(protected string $key)
     {
         //
@@ -66,6 +68,13 @@ class ObjectKeyValueBuilder implements Stringable
         return $this;
     }
 
+    public function shorthand(bool $shorthand = true): static
+    {
+        $this->shorthand = $shorthand;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
         $block = $this->meta();
@@ -88,7 +97,7 @@ class ObjectKeyValueBuilder implements Stringable
             return $block.$key;
         }
 
-        if (! $this->optional && ! str_contains($key, '"') && $key === $value) {
+        if ($this->shorthand && ! $this->optional && ! str_contains($key, '"') && $key === $value) {
             return $block.$key;
         }
 
