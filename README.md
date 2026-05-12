@@ -145,6 +145,33 @@ import { show } from "@/routes/post";
 show(1); // { url: "/posts/1", method: "get" }
 ```
 
+### Multiple Routes To The Same Action
+
+If two or more routes point at the same controller method, Wayfinder can't tell which URL you meant from the action alone, so the generated export becomes a dictionary keyed by URI instead of a callable:
+
+```php
+Route::get('clients/{client}/payments', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.index');
+
+Route::get('clients/{client}/payments-archive', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.archive');
+```
+
+```ts
+import { index } from "@/actions/App/Http/Controllers/ClientPaymentsController";
+
+// `index` is not callable directly — pick the URI you want:
+index["/clients/{client}/payments"]({ client: 1 });
+```
+
+In most cases it is easier to import the route by name from your generated `routes/` directory instead:
+
+```ts
+import { index } from "@/routes/clients/payments";
+
+index({ client: 1 }); // { url: "/clients/1/payments", method: "get" }
+```
+
 ### Conventional Forms
 
 If your application uses conventional HTML form submissions, Wayfinder can help you out there as well. First, opt into form variants when generating your TypeScript definitions:
