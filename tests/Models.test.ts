@@ -19,6 +19,17 @@ describe("Models", () => {
         expect(content).toContain("export type User");
     });
 
+    test("User type omits attributes listed in $hidden", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        const userType = content
+            .split("export type User")[1]
+            ?.split("export type")[0];
+
+        expect(userType).toBeDefined();
+        expect(userType).not.toMatch(/\bpassword\b/);
+        expect(userType).not.toMatch(/\bremember_token\b/);
+    });
+
     test.skip("User model types directory exists", () => {
         const userTypesPath = join(
             __dirname,

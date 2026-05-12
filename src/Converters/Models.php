@@ -10,7 +10,7 @@ class Models extends Converter
 {
     public function convert(Model $model): null
     {
-        $properties = array_merge($model->getAttributes(), $model->getRelations());
+        $properties = $model->visibleProperties();
 
         if ($model->snakeCaseAttributes()) {
             $properties = collect($properties)->mapWithKeys(
