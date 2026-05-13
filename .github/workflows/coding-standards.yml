@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   lint:
-    uses: laravel/.github/.github/workflows/coding-standards.yml@main
+    uses: laravel/.github/.github/workflows/coding-standards.yml@9c15e86fffce728fb6c50ebeae24fd63e98f4d1d # main
     with:
       php: "8.3"
   format:
@@ -19,7 +19,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install dependencies
         run: npm install
@@ -28,6 +30,6 @@ jobs:
         run: npm run format
 
       - name: Commit formatted files
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7
         with:
           commit_message: "Fix code style"
