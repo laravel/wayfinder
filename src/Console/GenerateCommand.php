@@ -66,6 +66,10 @@ class GenerateCommand extends Command
     ) {
         $this->raiseMemoryLimit();
 
+        TypeScript::reset();
+        $this->results = [];
+        $this->ranger = app(Ranger::class);
+
         $cacheDirectory = $this->config->get('wayfinder.cache.directory');
 
         AnalyzedCache::freezeFileTimes();
