@@ -1,9 +1,15 @@
 {
     "type": "module",
     "scripts": {
-        "test": "vendor/bin/pest && vitest run && npm run lint && npm run test-routes-cached && npm run lint && npm run test-inertia-component && npm run lint && npm run tsc && npm run tsc:wayfinder",
-        "test-routes-cached": "WAYFINDER_CACHE_ROUTES=1 vitest run",
-        "test-inertia-component": "WAYFINDER_GENERATE_INERTIA_COMPONENT=1 vitest run",
+        "test": "run-s test:php test:ts test:ts:cached test:ts:inertia test:types",
+        "test:php": "vendor/bin/pest",
+        "test:ts": "run-s test:vitest lint",
+        "test:ts:cached": "run-s test:vitest:cached lint",
+        "test:ts:inertia": "run-s test:vitest:inertia lint",
+        "test:vitest": "vitest run",
+        "test:vitest:cached": "WAYFINDER_CACHE_ROUTES=1 vitest run",
+        "test:vitest:inertia": "WAYFINDER_GENERATE_INERTIA_COMPONENT=1 vitest run",
+        "test:types": "run-s tsc tsc:wayfinder",
         "lint": "eslint ./workbench/resources/js --ext .ts,.tsx",
         "lint:fix": "eslint ./workbench/resources/js --ext .ts,.tsx --fix",
         "format": "npx --yes prettier --write \"resources/js/**/*.{ts,js,json}\"",
@@ -16,6 +22,7 @@
         "@types/node": "^22.7.5",
         "eslint": "^9.29.0",
         "happy-dom": ">=20.8.9",
+        "npm-run-all2": "^8.0.4",
         "typescript-eslint": "^8.34.1",
         "vite": "^7.1.3",
         "vitest": "^3.2.3"
