@@ -139,8 +139,10 @@ class Route
 
     public function domain(): ?string
     {
-        if ($this->base->getDomain()) {
-            return $this->base->getDomain();
+        if ($baseDomain = $this->base->getDomain()) {
+            $port = parse_url(config('app.url'), PHP_URL_PORT);
+
+            return $baseDomain.($port ? ':'.$port : '');
         }
 
         if ($this->forcedRoot) {
