@@ -10,7 +10,7 @@ return [
                 // Patterns to ignore for URLs (e.g. 'nova-api/*')
                 'urls' => [],
                 // Patterns to ignore for route names (e.g. 'nova.*')
-                'names' => ['nova.*'],
+                'names' => ['boost.*', 'nova.*'],
             ],
         ],
         'models' => env('WAYFINDER_GENERATE_MODELS', true),
