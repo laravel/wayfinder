@@ -23,6 +23,7 @@ class TypeObjectBuilder implements Stringable
     public function key(string $key): ObjectKeyValueBuilder
     {
         $keyValue = new ObjectKeyValueBuilder($key);
+        $keyValue->shorthand(false);
 
         $this->keyValuePairs[] = $keyValue;
 
