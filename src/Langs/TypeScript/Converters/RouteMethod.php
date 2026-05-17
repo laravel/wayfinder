@@ -3,6 +3,9 @@
 namespace Laravel\Wayfinder\Langs\TypeScript\Converters;
 
 use Laravel\Ranger\Components\InertiaResponse;
+use Laravel\Ranger\Components\JsonApiResponse;
+use Laravel\Ranger\Components\JsonResponse;
+use Laravel\Ranger\Components\ResourceResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Support\Verb;
 use Laravel\Wayfinder\Langs\TypeScript;
@@ -123,7 +126,7 @@ class RouteMethod
 
         $func = TypeScript::arrowFunction($this->name)
             ->export($this->named || ! $this->route->hasInvokableController())
-            ->returnType('RouteDefinition<"'.$this->route->verbs()->first()->actual.'">')
+            ->returnType($this->routeDefinitionType('"'.$this->route->verbs()->first()->actual.'"'))
             ->body($object);
 
         if ($this->hasParameters) {
@@ -202,10 +205,7 @@ class RouteMethod
 
         $componentType = $this->inertiaComponentType();
 
-        $def->satisfies($componentType
-            ? 'RouteDefinition<'.$verbs.', '.$componentType.'>'
-            : 'RouteDefinition<'.$verbs.'>'
-        );
+        $def->satisfies($this->routeDefinitionType($verbs, $componentType));
 
         return "{$this->name}.definition = {$def}";
     }
@@ -357,7 +357,7 @@ class RouteMethod
         }
 
         $func->argument($this->optionsParam, 'RouteQueryOptions', true);
-        $func->returnType('RouteDefinition<"'.$verb->actual.'">');
+        $func->returnType($this->routeDefinitionType('"'.$verb->actual.'"'));
 
         $body = TypeScript::object();
 
@@ -400,7 +400,7 @@ class RouteMethod
         }
 
         $func->argument($this->optionsParam, 'RouteQueryOptions', true);
-        $func->returnType('RouteFormDefinition<"'.$verb->formSafe.'">');
+        $func->returnType($this->routeFormDefinitionType('"'.$verb->formSafe.'"'));
 
         $body = TypeScript::object();
 
@@ -626,5 +626,74 @@ class RouteMethod
         return $route->hasInvokableController()
             ? str($route->controller())->afterLast('\\')->toString()
             : $route->method();
+    }
+
+    protected function routeDefinitionType(string $methodType, ?string $componentType = null): string
+    {
+        return $this->routeContractType('RouteDefinition', $methodType, $componentType);
+    }
+
+    protected function routeFormDefinitionType(string $methodType, ?string $componentType = null): string
+    {
+        return $this->routeContractType('RouteFormDefinition', $methodType, $componentType);
+    }
+
+    protected function routeContractType(string $definitionType, string $methodType, ?string $componentType = null): string
+    {
+        $generics = [$methodType];
+        $requestType = $this->requestType();
+        $responseType = $this->responseType();
+
+        if ($componentType !== null || $requestType !== 'unknown' || $responseType !== 'unknown') {
+            $generics[] = $componentType ?? 'undefined';
+        }
+
+        if ($requestType !== 'unknown' || $responseType !== 'unknown') {
+            $generics[] = $requestType;
+            $generics[] = $responseType;
+        }
+
+        return $definitionType.'<'.implode(', ', $generics).'>';
+    }
+
+    protected function requestType(): string
+    {
+        return $this->controllerContractType('Request');
+    }
+
+    protected function responseType(): string
+    {
+        if (! $this->hasGeneratedResponseType()) {
+            return 'unknown';
+        }
+
+        return $this->controllerContractType('Response');
+    }
+
+    protected function controllerContractType(string $type): string
+    {
+        $controller = str($this->route->controller())->ltrim('\\')->toString();
+
+        if ($controller === '') {
+            return 'unknown';
+        }
+
+        return collect([
+            ...explode('\\', $controller),
+            ucwords($this->route->method()),
+            $type,
+        ])
+            ->map(fn (string $part) => TypeScript::safeMethod($part, '_'))
+            ->implode('.');
+    }
+
+    protected function hasGeneratedResponseType(): bool
+    {
+        return collect($this->route->possibleResponses())
+            ->contains(fn ($response) => $response instanceof InertiaResponse
+                || $response instanceof JsonResponse
+                || $response instanceof ResourceResponse
+                || $response instanceof JsonApiResponse
+            );
     }
 }

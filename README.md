@@ -156,6 +156,32 @@ PostController.index.head();
 PostController.update.patch({ post: 1 });
 ```
 
+### Route Type Helpers
+
+Generated route functions carry their request and response contracts, so client helpers can infer the TypeScript types that Wayfinder generated for the matching controller method:
+
+```typescript
+import { show } from "@/wayfinder/App/Http/Controllers/ProductController";
+import type { RequestOf, ResponseOf } from "@/wayfinder";
+
+type ShowProductRequest = RequestOf<typeof show>;
+type ShowProductResponse = ResponseOf<typeof show>;
+```
+
+This is useful when building typed HTTP clients around Wayfinder routes:
+
+```typescript
+async function api<TRoute extends { url: string }>(
+    route: TRoute,
+): Promise<ResponseOf<TRoute>> {
+    const response = await fetch(route.url);
+
+    return response.json();
+}
+
+const product = await api(show({ product: 1 }));
+```
+
 ### Form-Safe Routes
 
 HTML forms only support GET and POST methods. Wayfinder provides `.form` variants that automatically add Laravel's `_method` field for method spoofing:
