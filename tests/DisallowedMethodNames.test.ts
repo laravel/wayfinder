@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import DisallowedMethodNameController, {
     deleteMethod,
+    interfaceMethod,
     method404,
 } from "../workbench/resources/js/wayfinder/App/Http/Controllers/DisallowedMethodNameController";
 import method2fa from "../workbench/resources/js/wayfinder/routes/2fa";
@@ -10,14 +11,19 @@ import disallowed from "../workbench/resources/js/wayfinder/routes/disallowed";
 test("will append `method` to invalid methods", () => {
     expect(method404.url()).toBe("/disallowed/404");
     expect(deleteMethod.url()).toBe("/disallowed/delete");
+    expect(interfaceMethod.url()).toBe("/disallowed/interface");
     expect(DisallowedMethodNameController.delete.url()).toBe(
         "/disallowed/delete"
+    );
+    expect(DisallowedMethodNameController.interface.url()).toBe(
+        "/disallowed/interface"
     );
     expect(DisallowedMethodNameController[404].url()).toBe("/disallowed/404");
 });
 
 test("will append `method` to invalid methods", () => {
     expect(disallowed[404].url()).toBe("/disallowed/404");
+    expect(disallowed.interface.url()).toBe("/disallowed/interface");
 });
 
 test("will properly handle leading numbers", () => {
