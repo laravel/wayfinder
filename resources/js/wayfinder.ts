@@ -13,29 +13,71 @@ type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
 type ParamValue = string | number | boolean;
 type UrlDefaults = Record<string, unknown>;
 
+type RouteContractKey = "__wayfinderRouteContract";
+
+export type RouteContract<TRequest = unknown, TResponse = unknown> = {
+    readonly __wayfinderRouteContract?: {
+        request: TRequest;
+        response: TResponse;
+    };
+};
+
 let urlDefaults: () => UrlDefaults = () => ({});
 
 export type RouteDefinition<
     TMethod extends Method | Method[],
     TComponent extends string | Record<string, string> | undefined = undefined,
+    TRequest = unknown,
+    TResponse = unknown,
 > = {
     url: string;
     component?: TComponent;
-} & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
+} & RouteContract<TRequest, TResponse> &
+    (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
 
 export type RouteFormDefinition<
     TMethod extends Method,
     TComponent extends string | Record<string, string> | undefined = undefined,
+    TRequest = unknown,
+    TResponse = unknown,
 > = {
     action: string;
     method: TMethod;
     component?: TComponent;
-};
+} & RouteContract<TRequest, TResponse>;
 
 export type RouteQueryOptions = {
     query?: QueryParams;
     mergeQuery?: QueryParams;
 };
+
+type RouteContractOf<T> =
+    T extends (...args: infer TArguments) => infer TReturn
+        ? TArguments extends unknown[]
+            ? RouteContractOf<TReturn>
+            : never
+        : RouteContractKey extends keyof T
+          ? T extends RouteContract<infer TRequest, infer TResponse>
+              ? {
+                    request: TRequest;
+                    response: TResponse;
+                }
+              : never
+          : never;
+
+export type RequestOf<T> =
+    [RouteContractOf<T>] extends [never]
+        ? never
+        : RouteContractOf<T> extends { request: infer TRequest }
+          ? TRequest
+          : never;
+
+export type ResponseOf<T> =
+    [RouteContractOf<T>] extends [never]
+        ? never
+        : RouteContractOf<T> extends { response: infer TResponse }
+          ? TResponse
+          : never;
 
 export const formSafeOptions = (
     method: Method,
