@@ -1,16 +1,15 @@
+type QueryParamValue = string | number | boolean;
+
 export type QueryParams = {
     [key: string]:
-        | string
-        | number
-        | boolean
-        | (string | number)[]
+        | QueryParamValue
+        | readonly QueryParamValue[]
         | null
         | undefined
         | QueryParams;
 };
 
 type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
-type ParamValue = string | number | boolean;
 type UrlDefaults = Record<string, unknown>;
 
 let urlDefaults: () => UrlDefaults = () => ({});
@@ -47,7 +46,7 @@ export const formSafeOptions = (
     },
 });
 
-const getValue = (value: ParamValue) => {
+const getValue = (value: QueryParamValue) => {
     if (value === true) {
         return "1";
     }
@@ -58,6 +57,10 @@ const getValue = (value: ParamValue) => {
 
     return value.toString();
 };
+
+const isQueryParamArray = (
+    value: unknown,
+): value is readonly QueryParamValue[] => Array.isArray(value);
 
 const addNestedParams = (
     obj: QueryParams,
@@ -71,7 +74,7 @@ const addNestedParams = (
 
         const paramKey = `${prefix}[${subKey}]`;
 
-        if (Array.isArray(value)) {
+        if (isQueryParamArray(value)) {
             value.forEach((v) => params.append(`${paramKey}[]`, getValue(v)));
         } else if (value !== null && typeof value === "object") {
             addNestedParams(value, paramKey, params);
@@ -118,9 +121,9 @@ export const queryParams = (options?: RouteQueryOptions) => {
             continue;
         }
 
-        if (Array.isArray(queryValue)) {
+        if (isQueryParamArray(queryValue)) {
             queryValue.forEach((value) => {
-                params.append(`${key}[]`, value.toString());
+                params.append(`${key}[]`, getValue(value));
             });
         } else if (typeof queryValue === "object") {
             addNestedParams(queryValue, key, params);
