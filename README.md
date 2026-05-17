@@ -127,6 +127,22 @@ PostController.edit.url({ post: 42 });
 // '/posts/42/edit'
 ```
 
+### URL Defaults
+
+Set frontend URL defaults for route parameters such as locales or tenant domains:
+
+```typescript
+import { setUrlDefaults, withUrlDefaults } from "@/wayfinder";
+
+setUrlDefaults({ locale: "en" });
+
+const frenchUrl = withUrlDefaults({ locale: "fr" }, () =>
+    PostController.index.url()
+);
+```
+
+Scoped defaults are merged with the existing defaults and restored when the callback finishes or settles.
+
 ### Query Parameters
 
 Add query parameters to any route:
