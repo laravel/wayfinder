@@ -175,6 +175,37 @@ export const addUrlDefault = (
     });
 };
 
+export const withUrlDefaults = <T>(
+    params: UrlDefaults | (() => UrlDefaults),
+    callback: () => T,
+): T => {
+    const previousDefaults = urlDefaults;
+    const scopedDefaults = typeof params === "function" ? params : () => params;
+
+    urlDefaults = () => ({
+        ...previousDefaults(),
+        ...scopedDefaults(),
+    });
+
+    try {
+        const result = callback();
+
+        if (result instanceof Promise) {
+            return result.finally(() => {
+                urlDefaults = previousDefaults;
+            }) as T;
+        }
+
+        urlDefaults = previousDefaults;
+
+        return result;
+    } catch (error) {
+        urlDefaults = previousDefaults;
+
+        throw error;
+    }
+};
+
 export const applyUrlDefaults = <T extends UrlDefaults | undefined>(
     existing: T,
 ): T => {
