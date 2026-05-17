@@ -51,33 +51,30 @@ export type RouteQueryOptions = {
     mergeQuery?: QueryParams;
 };
 
-type RouteContractOf<T> =
-    T extends (...args: infer TArguments) => infer TReturn
-        ? TArguments extends unknown[]
-            ? RouteContractOf<TReturn>
-            : never
-        : RouteContractKey extends keyof T
-          ? T extends RouteContract<infer TRequest, infer TResponse>
-              ? {
-                    request: TRequest;
-                    response: TResponse;
-                }
-              : never
-          : never;
+type RouteContractOf<T> = T extends (...args: infer TArguments) => infer TReturn
+    ? TArguments extends unknown[]
+        ? RouteContractOf<TReturn>
+        : never
+    : RouteContractKey extends keyof T
+      ? T extends RouteContract<infer TRequest, infer TResponse>
+          ? {
+                request: TRequest;
+                response: TResponse;
+            }
+          : never
+      : never;
 
-export type RequestOf<T> =
-    [RouteContractOf<T>] extends [never]
-        ? never
-        : RouteContractOf<T> extends { request: infer TRequest }
-          ? TRequest
-          : never;
+export type RequestOf<T> = [RouteContractOf<T>] extends [never]
+    ? never
+    : RouteContractOf<T> extends { request: infer TRequest }
+      ? TRequest
+      : never;
 
-export type ResponseOf<T> =
-    [RouteContractOf<T>] extends [never]
-        ? never
-        : RouteContractOf<T> extends { response: infer TResponse }
-          ? TResponse
-          : never;
+export type ResponseOf<T> = [RouteContractOf<T>] extends [never]
+    ? never
+    : RouteContractOf<T> extends { response: infer TResponse }
+      ? TResponse
+      : never;
 
 export const formSafeOptions = (
     method: Method,
