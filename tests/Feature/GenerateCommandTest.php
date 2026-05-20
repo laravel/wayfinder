@@ -3,33 +3,37 @@
 namespace Tests\Feature;
 
 use Illuminate\Filesystem\Filesystem;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
+use Laravel\Ranger\RangerServiceProvider;
+use Laravel\Surveyor\SurveyorServiceProvider;
+use Laravel\Wayfinder\WayfinderServiceProvider;
+use Orchestra\Testbench\Concerns\WithWorkbench;
+use Orchestra\Testbench\TestCase;
 
 use function Illuminate\Filesystem\join_paths;
 
 class GenerateCommandTest extends TestCase
 {
+    use WithWorkbench;
+
     private string $tempPath;
 
     private Filesystem $files;
 
-    private string $rootPath;
+    protected function getPackageProviders($app): array
+    {
+        return [
+            RangerServiceProvider::class,
+            SurveyorServiceProvider::class,
+            WayfinderServiceProvider::class,
+        ];
+    }
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->files = new Filesystem;
-        $this->rootPath = realpath(join_paths(__DIR__, '..', '..'));
         $this->tempPath = join_paths(sys_get_temp_dir(), 'wayfinder-prune-'.uniqid());
-
-        $envExample = join_paths($this->rootPath, 'workbench', '.env.example');
-        $envFile = join_paths($this->rootPath, 'workbench', '.env');
-
-        if ($this->files->exists($envExample) && ! $this->files->exists($envFile)) {
-            $this->files->copy($envExample, $envFile);
-        }
     }
 
     protected function tearDown(): void
@@ -41,22 +45,13 @@ class GenerateCommandTest extends TestCase
 
     private function generate(): void
     {
-        $process = new Process([
-            join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
-            'wayfinder:generate',
-            '--path='.$this->tempPath,
-            '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
-            '--base-path='.join_paths($this->rootPath, 'workbench'),
-            '--fresh',
-        ], $this->rootPath);
+        $rootPath = realpath(join_paths(__DIR__, '..', '..'));
 
-        $process->setTimeout(60);
-        $process->run();
-
-        $this->assertTrue(
-            $process->isSuccessful(),
-            'wayfinder:generate failed: '.$process->getErrorOutput().$process->getOutput()
-        );
+        $this->artisan('wayfinder:generate', [
+            '--path' => $this->tempPath,
+            '--app-path' => join_paths($rootPath, 'workbench', 'app'),
+            '--base-path' => join_paths($rootPath, 'workbench'),
+        ])->assertSuccessful();
     }
 
     public function test_generated_files_exist_after_generate(): void
