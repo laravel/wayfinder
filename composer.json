@@ -32,7 +32,8 @@
     "require-dev": {
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/pint": "^1.21",
-        "orchestra/testbench": "^10.1|^11.0"
+        "orchestra/testbench": "^10.1|^11.0",
+        "pestphp/pest": "^3.0"
     },
     "autoload": {
         "psr-4": {
@@ -47,7 +48,10 @@
     },
     "config": {
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
