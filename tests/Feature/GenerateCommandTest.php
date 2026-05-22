@@ -39,7 +39,7 @@ class GenerateCommandTest extends TestCase
         parent::tearDown();
     }
 
-    private function generate(): void
+    private function generate(array $options = []): Process
     {
         $process = new Process([
             join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
@@ -48,6 +48,7 @@ class GenerateCommandTest extends TestCase
             '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
             '--base-path='.join_paths($this->rootPath, 'workbench'),
             '--fresh',
+            ...$options,
         ], $this->rootPath);
 
         $process->setTimeout(60);
@@ -57,6 +58,8 @@ class GenerateCommandTest extends TestCase
             $process->isSuccessful(),
             'wayfinder:generate failed: '.$process->getErrorOutput().$process->getOutput()
         );
+
+        return $process;
     }
 
     public function test_generated_files_exist_after_generate(): void
@@ -163,5 +166,18 @@ class GenerateCommandTest extends TestCase
             $changed,
             'expected no files to be rewritten on a no-op regen, got: '.$changed->keys()->implode(', ')
         );
+    }
+
+    public function test_explain_outputs_generation_diagnostics(): void
+    {
+        $process = $this->generate(['--explain']);
+        $output = $process->getOutput();
+
+        $this->assertStringContainsString('Wayfinder explain', $output);
+        $this->assertStringContainsString('Output path:', $output);
+        $this->assertStringContainsString('Route ignore names:', $output);
+        $this->assertStringContainsString('Controller actions:', $output);
+        $this->assertStringContainsString('Routes:', $output);
+        $this->assertStringContainsString('Generated files:', $output);
     }
 }

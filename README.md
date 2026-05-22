@@ -76,6 +76,9 @@ php artisan wayfinder:generate --path=resources/ts/api
 | `--base-path` | Comma-separated base paths to scan   |
 | `--app-path`  | Comma-separated app paths to scan    |
 | `--fresh`     | Clear the cache before generating    |
+| `--explain`   | Display generation diagnostics       |
+
+Use `--explain` when troubleshooting generation. It prints the active paths, generator configuration, route counts, output counts, and common warnings after files are written.
 
 ### Automating Generation
 
