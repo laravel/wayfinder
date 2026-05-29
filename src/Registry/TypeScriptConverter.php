@@ -106,6 +106,7 @@ class TypeScriptConverter extends AbstractConverter
 
         $matched = match (true) {
             $class === Stringable::class => 'string',
+            $class === 'Illuminate\Database\Eloquent\Casts\AsStringable' => 'string',
             is_a($class, DateTimeInterface::class, true) => 'string',
             is_a($class, Collection::class, true) => $this->convertCollectionType($result),
             default => null,
