@@ -31,7 +31,7 @@ use function Laravel\Prompts\progress;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--base-path=} {--app-path=} {--fresh}';
+    protected $signature = 'wayfinder:generate {--path=} {--base-path=} {--app-path=} {--fresh} {--explain : Display generation diagnostics after writing files}';
 
     protected $description = 'Generate TypeScript files for your Laravel application';
 
@@ -41,6 +41,14 @@ class GenerateCommand extends Command
      * @var Result[]
      */
     protected $results = [];
+
+    protected array $routeDiagnostics = [
+        'routes' => 0,
+        'named_routes' => 0,
+        'controller_routes' => 0,
+        'controller_namespaces' => 0,
+        'form_request_routes' => 0,
+    ];
 
     public function __construct(
         protected Ranger $ranger,
@@ -126,15 +134,161 @@ class GenerateCommand extends Command
         RangerConfig::set('routes.ignore_urls', $this->config->get('wayfinder.generate.route.ignore.urls', []));
 
         $this->ranger->onRoutes(
-            fn ($routes) => array_push(
-                $this->results,
-                ...$routesConverter->convert($routes),
-            ),
+            function ($routes) use ($routesConverter) {
+                $this->captureRouteDiagnostics($routes);
+                array_push(
+                    $this->results,
+                    ...$routesConverter->convert($routes),
+                );
+            },
         );
 
         $this->ranger->walk();
 
         $this->writeFiles();
+
+        if ($this->option('explain')) {
+            $this->renderExplanation($basePaths, $appPaths);
+        }
+    }
+
+    protected function captureRouteDiagnostics($routes): void
+    {
+        $this->routeDiagnostics = [
+            'routes' => $routes->count(),
+            'named_routes' => $routes->filter(fn ($route) => $route->name())->count(),
+            'controller_routes' => $routes->filter(fn ($route) => $route->hasController())->count(),
+            'controller_namespaces' => $routes->filter(fn ($route) => $route->hasController())->map(fn ($route) => $route->dotNamespace())->unique()->count(),
+            'form_request_routes' => $routes->filter(fn ($route) => $route->requestValidator() !== null)->count(),
+        ];
+    }
+
+    protected function renderExplanation(array $basePaths, array $appPaths): void
+    {
+        $this->newLine();
+        $this->line('<info>Wayfinder explain</info>');
+
+        $this->renderExplanationSection('Paths', [
+            'Output path' => $this->displayPath($this->generatedDirectory),
+            'Base paths' => $this->displayPaths($basePaths),
+            'App paths' => $this->displayPaths($appPaths),
+        ]);
+
+        $this->renderExplanationSection('Configuration', [
+            'Cache' => $this->cacheExplanation(),
+            'Format generated files' => $this->enabled($this->config->get('wayfinder.format.enabled', false)),
+            'Route ignore names' => $this->formatList($this->config->get('wayfinder.generate.route.ignore.names', [])),
+            'Route ignore URLs' => $this->formatList($this->config->get('wayfinder.generate.route.ignore.urls', [])),
+        ]);
+
+        $this->renderExplanationSection('Generators', [
+            'Controller actions' => $this->enabled($this->config->get('wayfinder.generate.route.actions', true)),
+            'Named routes' => $this->enabled($this->config->get('wayfinder.generate.route.named', true)),
+            'Form variants' => $this->enabled($this->config->get('wayfinder.generate.route.form_variant', true)),
+            'Models' => $this->enabled($this->config->get('wayfinder.generate.models', true)),
+            'Inertia shared data' => $this->enabled($this->config->get('wayfinder.generate.inertia.shared_data', true)),
+            'Inertia components' => $this->enabled($this->config->get('wayfinder.generate.inertia.component', false)),
+            'Broadcast channels' => $this->enabled($this->config->get('wayfinder.generate.broadcast.channels', true)),
+            'Broadcast events' => $this->enabled($this->config->get('wayfinder.generate.broadcast.events', true)),
+            'Environment variables' => $this->enabled($this->config->get('wayfinder.generate.environment_variables', true)),
+            'Enums' => $this->enabled($this->config->get('wayfinder.generate.enums', true)),
+        ]);
+
+        $this->renderExplanationSection('Analyzed', [
+            'Routes' => $this->routeDiagnostics['routes'],
+            'Named routes' => $this->routeDiagnostics['named_routes'],
+            'Controller routes' => $this->routeDiagnostics['controller_routes'],
+            'Controller namespaces' => $this->routeDiagnostics['controller_namespaces'],
+            'Form request routes' => $this->routeDiagnostics['form_request_routes'],
+        ]);
+
+        $this->renderExplanationSection('Output', [
+            'Result files' => count(array_filter($this->results)),
+            'Type namespaces' => TypeScript::getNamespaced()->count(),
+            'Generated files' => $this->generatedFileCount(),
+        ]);
+
+        $this->renderExplanationWarnings();
+    }
+
+    protected function renderExplanationSection(string $title, array $items): void
+    {
+        $this->newLine();
+        $this->line('<comment>'.$title.'</comment>');
+
+        foreach ($items as $label => $value) {
+            $this->line(sprintf('  %-24s %s', $label.':', $value));
+        }
+    }
+
+    protected function renderExplanationWarnings(): void
+    {
+        $warnings = [];
+
+        if (method_exists(app(), 'routesAreCached') && app()->routesAreCached()) {
+            $warnings[] = 'Routes are cached. Run route:clear before generating if routes changed in this release.';
+        }
+
+        if ($this->generatedFileCount() === 0) {
+            $warnings[] = 'No files were generated. Check the enabled generators and scanned paths.';
+        }
+
+        if (empty($warnings)) {
+            return;
+        }
+
+        $this->newLine();
+        $this->line('<comment>Warnings</comment>');
+
+        foreach ($warnings as $warning) {
+            $this->line('  - '.$warning);
+        }
+    }
+
+    protected function cacheExplanation(): string
+    {
+        if ($this->option('fresh')) {
+            return 'cleared for this run';
+        }
+
+        return $this->enabled($this->config->get('wayfinder.cache.enabled', true));
+    }
+
+    protected function generatedFileCount(): int
+    {
+        if (! $this->files->isDirectory($this->generatedDirectory)) {
+            return 0;
+        }
+
+        return count($this->files->allFiles($this->generatedDirectory));
+    }
+
+    protected function displayPaths(array $paths): string
+    {
+        return collect($paths)
+            ->map(fn ($path) => $this->displayPath($path))
+            ->implode(', ');
+    }
+
+    protected function displayPath(string $path): string
+    {
+        $basePath = base_path();
+
+        if (str_starts_with($path, $basePath.DIRECTORY_SEPARATOR)) {
+            return str($path)->after($basePath.DIRECTORY_SEPARATOR)->toString();
+        }
+
+        return $path;
+    }
+
+    protected function enabled(bool $enabled): string
+    {
+        return $enabled ? 'enabled' : 'disabled';
+    }
+
+    protected function formatList(array $items): string
+    {
+        return count($items) > 0 ? implode(', ', $items) : 'none';
     }
 
     protected function getBasePaths(): array
