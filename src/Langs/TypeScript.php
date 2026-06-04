@@ -20,6 +20,12 @@ class TypeScript
 
     protected static $safeImports = [];
 
+    public static function reset(): void
+    {
+        static::$namespaced = [];
+        static::$safeImports = [];
+    }
+
     public const RESERVED_KEYWORDS = [
         'break',
         'case',

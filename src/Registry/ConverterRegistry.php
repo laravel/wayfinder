@@ -11,14 +11,14 @@ class ConverterRegistry
 
     public function register(string $converter): void
     {
+        if ($this->hasConverter($converter)) {
+            return;
+        }
+
         $instance = app($converter);
 
         if (! ($instance instanceof ConverterInterface)) {
             throw new InvalidArgumentException("Converter {$converter} must implement ".ConverterInterface::class);
-        }
-
-        if ($this->hasConverter($converter)) {
-            throw new InvalidArgumentException("Converter {$converter} already registered");
         }
 
         $this->converters[$converter] = $instance;
