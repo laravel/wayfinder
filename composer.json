@@ -25,11 +25,12 @@
         "illuminate/filesystem": "^12.0|^13.0",
         "illuminate/routing": "^12.0|^13.0",
         "illuminate/support": "^12.0|^13.0",
-        "laravel/ranger": "^0.2.4",
-        "laravel/surveyor": "^0.2.1",
+        "laravel/ranger": "dev-main as 0.2.x-dev",
+        "laravel/surveyor": "dev-template-bindings-via-static-method-dispatch-on-model-subclasses as 0.2.x-dev",
         "phpstan/phpdoc-parser": "^2.3"
     },
     "require-dev": {
+        "laravel/framework": "12.x-dev|^13.9.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/pint": "^1.21",
         "orchestra/testbench": "^10.1|^11.0"
@@ -74,5 +75,11 @@
                 "Laravel\\Wayfinder\\WayfinderServiceProvider"
             ]
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/levikl/surveyor"
+        }
+    ]
 }
