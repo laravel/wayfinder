@@ -62,6 +62,16 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+In modular Laravel applications, the `--namespace` option may be used to generate TypeScript definitions for routes whose controllers match one or more namespace prefixes:
+
+```
+php artisan wayfinder:generate --namespace=Modules\\Tenancy
+php artisan wayfinder:generate --namespace=Modules\\Tenancy,Modules\\Membership
+php artisan wayfinder:generate --namespace=Foo\\Bar,Module\\Foo
+```
+
+When this option is provided, Wayfinder only includes routes whose controller class name starts with one of the given namespace prefixes. Routes without controllers, including closure routes, are ignored while namespace filtering is enabled.
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ### Deploying

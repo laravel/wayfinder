@@ -18,7 +18,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--namespace= : Only generate routes whose controller matches one or more namespace prefixes, e.g. --namespace=Foo\\Bar,Module\\Foo (comma separated)}';
 
     private ?string $forcedScheme;
 
@@ -47,7 +47,7 @@ class GenerateCommand extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(): void
     {
         $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
@@ -57,19 +57,25 @@ class GenerateCommand extends Command
 
         $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
 
-        $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
-            $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
-                if ($middleware instanceof \Closure) {
-                    return [];
-                }
+        $moduleNamespaces = $this->moduleNamespaces();
 
-                $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
+        $routes = collect($this->router->getRoutes())
+            ->when($moduleNamespaces->isNotEmpty(), fn (Collection $routes) => $routes->filter(
+                fn (BaseRoute $route) => $this->routeBelongsToModule($route, $moduleNamespaces)
+            ))
+            ->map(function (BaseRoute $route) use ($globalUrlDefaults) {
+                $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
+                    if ($middleware instanceof \Closure) {
+                        return [];
+                    }
 
-                return $this->urlDefaults[$middleware];
-            })->flatMap(fn ($r) => $r);
+                    $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
 
-            return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
-        });
+                    return $this->urlDefaults[$middleware];
+                })->flatMap(fn ($r) => $r);
+
+                return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
+            });
 
         $this->writeWayfinderHelperFile();
 
@@ -96,6 +102,37 @@ class GenerateCommand extends Command
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    private function moduleNamespaces(): Collection
+    {
+        return str($this->option('namespace') ?? '')
+            ->explode(',')
+            ->map(fn (string $ns) => trim($ns))
+            ->filter()
+            ->map(fn (string $ns) => rtrim($ns, '\\').'\\')
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, string>  $moduleNamespaces
+     */
+    private function routeBelongsToModule(BaseRoute $route, Collection $moduleNamespaces): bool
+    {
+        $controller = $route->getControllerClass();
+
+        if (! $controller) {
+            return false;
+        }
+
+        $controller = ltrim($controller, '\\');
+
+        return $moduleNamespaces->contains(
+            fn (string $moduleNamespace) => str_contains($controller, $moduleNamespace)
+        );
     }
 
     private function writeWayfinderHelperFile(): void
