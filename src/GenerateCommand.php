@@ -18,7 +18,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--namespace= : Only generate routes whose controller matches one or more namespace prefixes, e.g. --namespace=Foo\\Bar,Module\\Foo (comma separated)}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--relative : Strip the host from generated URLs, producing portable path-only URLs (e.g. /admin/admins instead of //laravel.test/admin/admins). Recommended for multi-tenant apps and any environment where the domain changes between dev and production.} {--namespace= : Only generate routes whose controller matches one or more namespace prefixes, e.g. --namespace=Foo\\Bar,Module\\Foo (comma separated)}';
 
     private ?string $forcedScheme;
 
@@ -58,12 +58,13 @@ class GenerateCommand extends Command
         $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
 
         $moduleNamespaces = $this->moduleNamespaces();
+        $relative = (bool) $this->option('relative');
 
         $routes = collect($this->router->getRoutes())
             ->when($moduleNamespaces->isNotEmpty(), fn (Collection $routes) => $routes->filter(
                 fn (BaseRoute $route) => $this->routeBelongsToModule($route, $moduleNamespaces)
             ))
-            ->map(function (BaseRoute $route) use ($globalUrlDefaults) {
+            ->map(function (BaseRoute $route) use ($globalUrlDefaults, $relative) {
                 $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
                     if ($middleware instanceof \Closure) {
                         return [];
@@ -74,8 +75,9 @@ class GenerateCommand extends Command
                     return $this->urlDefaults[$middleware];
                 })->flatMap(fn ($r) => $r);
 
-                return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
-            });
+                return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot, $relative);
+            })
+            ->when($relative, fn (Collection $routes) => $this->deduplicateByPath($routes));
 
         $this->writeWayfinderHelperFile();
 
@@ -103,6 +105,37 @@ class GenerateCommand extends Command
             info('[Wayfinder] Generated routes in '.$this->base());
         }
     }
+
+    /**
+     * When --relative is active, routes that are bound to different domains
+     * but resolve to the same controller method and path become identical.
+     * This removes those duplicates, keeping only the first occurrence.
+     *
+     * Example: Route::domain('nitrofit28.test')->... and Route::domain('localhost')->...
+     * both pointing to CentralAdminController::index at /admin/admins would otherwise
+     * produce two `export const index` declarations in the same TypeScript file.
+     */
+    private function deduplicateByPath(Collection $routes): Collection
+    {
+        $seen = [];
+
+        return $routes->filter(function (Route $route) use (&$seen) {
+            $controller = $route->hasController() ? $route->dotNamespace().'.'.$route->method() : null;
+            $path = $route->pathUri();
+            $verbs = $route->verbs()->pluck('actual')->sort()->implode(',');
+
+            $key = $controller.'|'.$path.'|'.$verbs;
+
+            if (isset($seen[$key])) {
+                return false;
+            }
+
+            $seen[$key] = true;
+
+            return true;
+        })->values();
+    }
+
 
     /**
      * @return Collection<int, string>
