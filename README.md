@@ -62,6 +62,42 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+In modular Laravel applications, the `--namespace` option may be used to generate TypeScript definitions for routes whose controllers match one or more namespace prefixes:
+
+```
+php artisan wayfinder:generate --namespace=Modules\\Tenancy
+php artisan wayfinder:generate --namespace=Modules\\Tenancy,Modules\\Membership
+php artisan wayfinder:generate --namespace=Foo\\Bar,Module\\Foo
+```
+
+When this option is provided, Wayfinder only includes routes whose controller class name starts with one of the given namespace prefixes. Routes without controllers, including closure routes, are ignored while namespace filtering is enabled.
+
+### Relative URLs
+
+By default, Wayfinder bakes the full host into generated URLs whenever a route is registered with `Route::domain(...)`:
+
+```ts
+url: "//laravel.test/admin/admins";
+```
+
+This makes the generated output environment-specific — it will break on staging, production, or any machine with a different hostname.
+
+Use the `--relative` flag to strip the host and generate portable path-only URLs instead:
+
+```
+php artisan wayfinder:generate --relative
+```
+
+The result is environment-agnostic:
+
+```ts
+url: "/admin/admins";
+```
+
+The browser resolves the correct origin automatically (`window.location.origin + '/admin/admins'`), which means the same generated files work in development, staging, and production without any changes.
+
+> [!NOTE] > `--relative` also **deduplicates** routes that become identical after the host is stripped. This is important for multi-tenant applications where the same central-domain routes are registered under multiple domains (e.g. `laravel.test` and `localhost`). Without deduplication those routes would produce duplicate TypeScript exports that fail to compile.
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ### Deploying
