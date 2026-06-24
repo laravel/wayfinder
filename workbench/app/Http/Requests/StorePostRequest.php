@@ -22,6 +22,7 @@ class StorePostRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'published_at' => ['nullable', 'date'],
             'author_email' => ['nullable', 'email'],
+            'visibility' => ['nullable', 'in:public,team "quoted","prefixed",`template`,path\\to\\file'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
             'meta' => ['nullable', 'array'],

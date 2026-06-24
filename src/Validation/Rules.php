@@ -36,7 +36,7 @@ class Rules
         if ($inRule = $this->getRule('In')) {
             return collect($inRule->getParams())
                 ->filter(fn ($v) => ! is_null($v) && $v !== '')
-                ->map(TypeScript::quote(...))
+                ->map(fn ($v) => TypeScript::stringLiteral((string) $v))
                 ->implode(' | ');
         }
 

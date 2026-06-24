@@ -19,7 +19,7 @@ class Enums extends Converter
                 $name,
                 TypeScript::union(
                     collect($enum->cases)
-                        ->map(fn ($case) => is_string($case) ? "'{$case}'" : (string) $case)
+                        ->map(fn ($case) => is_string($case) ? TypeScript::stringLiteral($case) : (string) $case)
                         ->values()
                         ->all(),
                 ),
@@ -36,7 +36,7 @@ class Enums extends Converter
             }
 
             if (is_string($value)) {
-                $content[] = TypeScript::constant($case, TypeScript::quote($value))->export();
+                $content[] = TypeScript::constant($case, TypeScript::stringLiteral($value))->export();
             } else {
                 $content[] = TypeScript::constant($case, $value)->export();
             }
@@ -48,7 +48,7 @@ class Enums extends Converter
 
         foreach ($enum->cases as $case => $value) {
             if (in_array($case, TypeScript::RESERVED_KEYWORDS, true)) {
-                $literal = is_string($value) ? TypeScript::quote($value) : (string) $value;
+                $literal = is_string($value) ? TypeScript::stringLiteral($value) : (string) $value;
                 $obj->key($case)->value($literal);
             } else {
                 $obj->key($case)->value($case);

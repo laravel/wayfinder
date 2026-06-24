@@ -25,4 +25,12 @@ describe("FormRequests", () => {
         expect(content).toContain("title");
         expect(content).toContain("body");
     });
+
+    test("StorePostRequest escapes in rule string literals", () => {
+        const content = readFileSync(typesPath, "utf-8");
+
+        expect(content).toContain(
+            'visibility?: "public" | "team \\"quoted\\"" | "prefixed" | "`template`" | "path\\\\to\\\\file" | null;'
+        );
+    });
 });
