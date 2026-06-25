@@ -20,6 +20,11 @@ trait WritesJavaScript
         return '"'.$string.'"';
     }
 
+    public static function stringLiteral(string $string): string
+    {
+        return json_encode($string, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
     public static function quoteKey(string $key): string
     {
         if (str_starts_with($key, '[')) {
@@ -30,7 +35,7 @@ trait WritesJavaScript
             return $key;
         }
 
-        return self::quote($key);
+        return self::stringLiteral($key);
     }
 
     protected static function splitOn(string $str, string $separator): array
