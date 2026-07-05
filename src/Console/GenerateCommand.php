@@ -59,6 +59,8 @@ class GenerateCommand extends Command
         Enums $enumConverter,
         Routes $routesConverter,
     ) {
+        $this->ensureSufficientMemoryLimit();
+
         AnalyzedCache::setCacheDirectory($this->config->get('wayfinder.cache.directory'));
 
         if ($this->option('fresh') || ! $this->config->get('wayfinder.cache.enabled')) {
@@ -135,6 +137,21 @@ class GenerateCommand extends Command
         $this->ranger->walk();
 
         $this->writeFiles();
+    }
+
+    protected function ensureSufficientMemoryLimit(): void
+    {
+        // The static analysis pass keeps every analyzed scope in memory and can
+        // exceed PHP's default 128M limit on a cold cache, triggering a fatal
+        // out-of-memory error. This is a build-time command, so lift the limit
+        // when it has been capped instead of failing mid-generation.
+        $limit = ini_get('memory_limit');
+
+        if ($limit === false || $limit === '-1') {
+            return;
+        }
+
+        @ini_set('memory_limit', '-1');
     }
 
     protected function getBasePaths(): array

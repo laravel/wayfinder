@@ -137,6 +137,34 @@ class GenerateCommandTest extends TestCase
         $this->assertSame($beforeMtime, filemtime($sample));
     }
 
+    public function test_generate_completes_under_default_memory_limit(): void
+    {
+        // The static analysis pass can exceed PHP's default 128M limit on a
+        // cold cache (laravel/wayfinder#167). Generation must complete rather
+        // than fatal with an out-of-memory error.
+        $process = new Process([
+            PHP_BINARY,
+            '-d',
+            'memory_limit=128M',
+            join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
+            'wayfinder:generate',
+            '--path='.$this->tempPath,
+            '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
+            '--base-path='.join_paths($this->rootPath, 'workbench'),
+            '--fresh',
+        ], $this->rootPath);
+
+        $process->setTimeout(60);
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            'wayfinder:generate failed under the default 128M memory limit: '
+                .$process->getErrorOutput().$process->getOutput()
+        );
+        $this->assertFileExists(join_paths($this->tempPath, 'index.ts'));
+    }
+
     public function test_noop_regenerate_does_not_touch_any_file(): void
     {
         $this->generate();
