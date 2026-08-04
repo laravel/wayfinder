@@ -58,22 +58,22 @@ store.form() // { action: "/posts", method: "post" }
 show(1, { query: { page: 1 } }) // "/posts/1?page=1"
 @endboostsnippet
 
-@if($assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_LARAVEL) || $assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_REACT) || $assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_VUE) || $assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_SVELTE))
+@if($assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_LARAVEL) || $assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_REACT) || $assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_VUE) || $assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_SVELTE))
 ## Wayfinder + Inertia
 
 @if($assist->inertia()->hasFormComponent())
 Use Wayfinder with the `<Form>` component:
-@if($assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_REACT))
+@if($assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_REACT))
 @boostsnippet("Wayfinder Form (React)", "typescript")
 <Form {...store.form()}><input name="title" /></Form>
 @endboostsnippet
 @endif
-@if($assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_VUE))
+@if($assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_VUE))
 @boostsnippet("Wayfinder Form (Vue)", "vue")
 <Form v-bind="store.form()"><input name="title" /></Form>
 @endboostsnippet
 @endif
-@if($assist->roster->uses(\Laravel\Roster\Enums\Packages::INERTIA_SVELTE))
+@if($assist->hasPackage(\Laravel\Boost\Support\PackageRegistry::INERTIA_SVELTE))
 @boostsnippet("Wayfinder Form (Svelte)", "svelte")
 <Form {...store.form()}><input name="title" /></Form>
 @endboostsnippet
