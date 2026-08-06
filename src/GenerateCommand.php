@@ -3,6 +3,7 @@
 namespace Laravel\Wayfinder;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\Route as BaseRoute;
 use Illuminate\Routing\Router;
@@ -52,6 +53,8 @@ class GenerateCommand extends Command
         $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
 
+        $this->syncMiddlewareFromHttpKernel();
+
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
 
@@ -95,6 +98,29 @@ class GenerateCommand extends Command
             $this->pruneStaleFiles($this->base(), $this->writeContent());
 
             info('[Wayfinder] Generated routes in '.$this->base());
+        }
+    }
+
+    private function syncMiddlewareFromHttpKernel(): void
+    {
+        if (! $this->laravel->bound(HttpKernel::class)) {
+            return;
+        }
+
+        $groups = $this->router->getMiddlewareGroups();
+        $aliases = $this->router->getMiddleware();
+
+        // Resolving the kernel syncs its middleware onto the router, overwriting existing groups
+        $this->laravel->make(HttpKernel::class);
+
+        foreach ($groups as $group => $middleware) {
+            foreach ($middleware as $name) {
+                $this->router->pushMiddlewareToGroup($group, $name);
+            }
+        }
+
+        foreach ($aliases as $name => $class) {
+            $this->router->aliasMiddleware($name, $class);
         }
     }
 
