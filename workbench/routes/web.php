@@ -18,6 +18,7 @@ use App\Http\Controllers\NamedInvokableController;
 use App\Http\Controllers\NavigationItemController;
 use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
+use App\Http\Controllers\PaginatedEloquentProductController;
 use App\Http\Controllers\ParameterNameController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
@@ -49,6 +50,10 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 
 Route::get('/eloquent-products', [EloquentProductController::class, 'index'])->name('eloquent-products.index');
 Route::get('/eloquent-products/{product}', [EloquentProductController::class, 'show'])->name('eloquent-products.show');
+
+Route::get('/paginated-eloquent-products/paginate', [PaginatedEloquentProductController::class, 'paginate'])->name('paginated-eloquent-products.paginate');
+Route::get('/paginated-eloquent-products/simple-paginate', [PaginatedEloquentProductController::class, 'simplePaginate'])->name('paginated-eloquent-products.simple-paginate');
+Route::get('/paginated-eloquent-products/cursor-paginate', [PaginatedEloquentProductController::class, 'cursorPaginate'])->name('paginated-eloquent-products.cursor-paginate');
 
 Route::get('/date-time', [DateTimeController::class, 'show'])->name('date-time.show');
 
