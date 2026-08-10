@@ -62,6 +62,10 @@ class TypeScriptConverter extends AbstractConverter
         $nullSuffix = $result->isNullable() ? ' | null' : '';
 
         if (array_is_list($value)) {
+            if (empty($value)) {
+                return 'unknown[]'.$nullSuffix;
+            }
+
             $types = TypeScript::union(array_map($this->convert(...), $value));
 
             if (str_contains($types, '|')) {
