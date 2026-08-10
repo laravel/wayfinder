@@ -115,6 +115,8 @@ class GenerateCommand extends Command
         }
 
         if ($this->config->get('wayfinder.generate.enums', true)) {
+            $enumConverter->withMethods($this->config->get('wayfinder.generate.enum_methods', false));
+
             $this->ranger->onEnum(fn ($enum) => $this->results[] = $enumConverter->convert($enum));
         }
 
