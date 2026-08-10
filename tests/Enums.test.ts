@@ -6,6 +6,7 @@ import {
     Archived,
 } from "../workbench/resources/js/wayfinder/App/Enums/PostStatus";
 import { UnitEnum } from "../workbench/resources/js/wayfinder/App/Enums/UnitEnum";
+import { EmptyEnum } from "../workbench/resources/js/wayfinder/App/Enums/EmptyEnum";
 import type { App } from "../workbench/resources/js/wayfinder/types";
 import {
     ProductStatus,
@@ -84,5 +85,14 @@ describe("Enums", () => {
     test("only exports non-reserved case constants individually", () => {
         expect(used).toBe("used");
         expect(Active).toBe("active");
+    });
+
+    test("enum without cases is an empty object", () => {
+        expect(EmptyEnum).toEqual({});
+        expect(Object.keys(EmptyEnum)).toEqual([]);
+    });
+
+    test("namespaced type for an enum without cases is never", () => {
+        expectTypeOf<App.Enums.EmptyEnum>().toEqualTypeOf<never>();
     });
 });

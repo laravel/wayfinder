@@ -17,12 +17,14 @@ class Enums extends Converter
             $path,
             TypeScript::type(
                 $name,
-                TypeScript::union(
-                    collect($enum->cases)
-                        ->map(fn ($case) => is_string($case) ? "'{$case}'" : (string) $case)
-                        ->values()
-                        ->all(),
-                ),
+                $enum->cases === []
+                    ? 'never'
+                    : TypeScript::union(
+                        collect($enum->cases)
+                            ->map(fn ($case) => is_string($case) ? "'{$case}'" : (string) $case)
+                            ->values()
+                            ->all(),
+                    ),
             )
                 ->referenceClass($enum->name, $enum->filePath())
                 ->export(),
@@ -42,7 +44,9 @@ class Enums extends Converter
             }
         }
 
-        $content[] = '';
+        if ($content !== []) {
+            $content[] = '';
+        }
 
         $obj = TypeScript::object()->inline();
 
