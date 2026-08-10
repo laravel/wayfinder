@@ -329,5 +329,9 @@ class Routes extends Converter
         if ($routes->first(fn (Route $route) => $route->parameters()->isNotEmpty())) {
             $this->imports[$path]->add($pathKey, 'applyUrlDefaults');
         }
+
+        if ($routes->first(fn (Route $route) => $route->parameters()->first(fn (RouteParameter $parameter) => RouteMethod::hasNullableKey($parameter)))) {
+            $this->imports[$path]->add($pathKey, 'requireParameter');
+        }
     }
 }

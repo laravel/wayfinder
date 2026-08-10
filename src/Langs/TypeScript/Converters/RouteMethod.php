@@ -4,7 +4,12 @@ namespace Laravel\Wayfinder\Langs\TypeScript\Converters;
 
 use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
+use Laravel\Ranger\Support\RouteParameter;
 use Laravel\Ranger\Support\Verb;
+use Laravel\Surveyor\Types\Contracts\Type as TypeContract;
+use Laravel\Surveyor\Types\NullType;
+use Laravel\Surveyor\Types\Type;
+use Laravel\Surveyor\Types\UnionType;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Langs\TypeScript\ObjectBuilder;
 
@@ -63,6 +68,12 @@ class RouteMethod
             $this->withComponentFormMethod(),
             $this->withForm ? "{$this->name}.form = {$this->name}Form" : '',
         ]));
+    }
+
+    public static function hasNullableKey(RouteParameter $parameter): bool
+    {
+        return $parameter->key !== null
+            && collect($parameter->types)->contains(self::isNullableType(...));
     }
 
     public function computedMethods(): array
@@ -164,12 +175,20 @@ class RouteMethod
         $tuple = TypeScript::tuple();
 
         foreach ($this->route->parameters() as $parameter) {
-            $types = array_map(fn ($type) => TypeScript::fromSurveyorType($type), $parameter->types);
+            $types = array_map(
+                fn ($type) => TypeScript::fromSurveyorType($type),
+                $this->parameterTypes($parameter),
+            );
             $baseTypes = $types;
 
             if ($parameter->key) {
+                // Model objects keep a nullable binding column so they can be
+                // passed straight through; the generated body throws if the
+                // value turns out to be null.
+                $keyTypes = array_map(fn ($type) => TypeScript::fromSurveyorType($type), $parameter->types);
+
                 $paramTypeObject = TypeScript::typeObject();
-                $paramTypeObject->key($parameter->key)->value(TypeScript::union($baseTypes));
+                $paramTypeObject->key($parameter->key)->value(TypeScript::union($keyTypes));
                 $baseTypes[] = (string) $paramTypeObject;
             }
 
@@ -188,6 +207,51 @@ class RouteMethod
         }
 
         return $this->argTypes = $argTypes;
+    }
+
+    /**
+     * A URL can never carry a null parameter, so passing null directly is not
+     * allowed even when the binding column is nullable (e.g. `{post:slug}`
+     * where `slug` is nullable).
+     *
+     * @return array<int, TypeContract>
+     */
+    protected function parameterTypes(RouteParameter $parameter): array
+    {
+        $types = array_values(array_filter(
+            array_map($this->withoutNull(...), $parameter->types),
+            fn (TypeContract $type) => ! $type instanceof NullType,
+        ));
+
+        return $types === [] ? [Type::string(), Type::number()] : $types;
+    }
+
+    protected static function isNullableType(TypeContract $type): bool
+    {
+        if ($type instanceof UnionType) {
+            return collect($type->types)->contains(self::isNullableType(...));
+        }
+
+        return $type->isNullable() || $type instanceof NullType;
+    }
+
+    protected function withoutNull(TypeContract $type): TypeContract
+    {
+        if ($type instanceof UnionType) {
+            $types = array_values(array_filter(
+                array_map($this->withoutNull(...), $type->types),
+                fn (TypeContract $inner) => ! $inner instanceof NullType,
+            ));
+
+            return $types === [] ? Type::null() : Type::union(...$types);
+        }
+
+        if (! $type->isNullable()) {
+            return $type;
+        }
+
+        // The analyzed type is shared with the model converters, so copy before clearing nullability.
+        return (clone $type)->nullable(false);
     }
 
     protected function definition(): string
@@ -230,10 +294,18 @@ class RouteMethod
                 }
                 TS;
 
-                if ($this->route->parameters()->first()->key) {
+                $parameter = $this->route->parameters()->first();
+
+                if ($parameter->key) {
+                    $keyValue = "{$this->argsParam}.{$parameter->key}";
+
+                    if (self::hasNullableKey($parameter)) {
+                        $keyValue = sprintf('requireParameter(%s, "%s")', $keyValue, $parameter->name);
+                    }
+
                     $body[] = <<<TS
-                    if (typeof {$this->argsParam} === "object" && !Array.isArray({$this->argsParam}) && "{$this->route->parameters()->first()->key}" in {$this->argsParam}) {
-                        {$this->argsParam} = { {$this->route->parameters()->first()->name}: {$this->argsParam}.{$this->route->parameters()->first()->key} }
+                    if (typeof {$this->argsParam} === "object" && !Array.isArray({$this->argsParam}) && "{$parameter->key}" in {$this->argsParam}) {
+                        {$this->argsParam} = { {$parameter->name}: {$keyValue} }
                     }
                     TS;
                 }
@@ -287,6 +359,10 @@ class RouteMethod
 
                 if ($parameter->default !== null) {
                     $val = sprintf('(%s) ?? "%s"', $val, $parameter->default);
+                }
+
+                if (self::hasNullableKey($parameter)) {
+                    $val = sprintf('requireParameter(%s, "%s")', $val, $parameter->name);
                 }
 
                 $keyVal->value($val);
