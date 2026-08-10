@@ -6,6 +6,8 @@ import DisallowedMethodNameController, {
 import method2fa from "../workbench/resources/js/wayfinder/routes/2fa";
 import defaultMethod from "../workbench/resources/js/wayfinder/routes/default";
 import disallowed from "../workbench/resources/js/wayfinder/routes/disallowed";
+import publicMethod from "../workbench/resources/js/wayfinder/routes/public";
+import staticMethod from "../workbench/resources/js/wayfinder/routes/static";
 
 test("will append `method` to invalid methods", () => {
     expect(method404.url()).toBe("/disallowed/404");
@@ -29,5 +31,17 @@ test("will properly handle reserved JS words", () => {
     expect(defaultMethod.login.url()).toBe("/disallowed/default");
     expect(DisallowedMethodNameController["default"].url()).toBe(
         "/disallowed/default"
+    );
+});
+
+test("will properly handle strict mode reserved JS words", () => {
+    expect(publicMethod.assets.url()).toBe("/disallowed/public");
+    expect(DisallowedMethodNameController["public"].url()).toBe(
+        "/disallowed/public"
+    );
+
+    expect(staticMethod.files.url()).toBe("/disallowed/static");
+    expect(DisallowedMethodNameController["static"].url()).toBe(
+        "/disallowed/static"
     );
 });
