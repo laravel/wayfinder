@@ -339,6 +339,60 @@ function setStatus(status: App.Enums.PostStatus) {
 }
 ```
 
+### Enum Methods
+
+Enums often carry methods alongside their cases:
+
+```php
+enum PostStatus: string
+{
+    case Draft = 'draft';
+    case Published = 'published';
+    case Archived = 'archived';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Published => 'Live',
+            self::Archived => 'Archived',
+        };
+    }
+
+    public function isVisible(): bool
+    {
+        return $this === self::Published;
+    }
+}
+```
+
+Set `WAYFINDER_GENERATE_ENUM_METHODS=true` and Wayfinder calls each method on each case and writes the results to a companion constant, keyed by case value:
+
+```typescript
+export const PostStatusMeta = {
+    draft: { label: "Draft", isVisible: false },
+    published: { label: "Live", isVisible: true },
+    archived: { label: "Archived", isVisible: false },
+} as const;
+```
+
+Because the keys are case values, a value straight from the server is the lookup key:
+
+```typescript
+import PostStatus, {
+    PostStatusMeta,
+} from "@/wayfinder/App/Enums/PostStatus";
+
+PostStatusMeta[post.status].label;
+PostStatusMeta[PostStatus.Published].isVisible;
+```
+
+Only methods that take no required arguments are called. Static, magic, protected and private methods are skipped, as are methods returning `void` or `never`.
+
+If a method throws for one case, that case alone loses the entry, and the same goes for a value that has no TypeScript equivalent — a plain object, for instance. Strings, numbers, booleans, `null`, arrays, backed enums, `JsonSerializable`, `Arrayable` and `Stringable` all convert.
+
+This runs your code at generation time, which is why it is off by default. Bear in mind that anything depending on the current locale, the database or the environment is frozen as it was when the command ran — a `label()` returning `__('post.draft')` bakes in one translation.
+
 ## Inertia.js Integration
 
 Wayfinder provides first-class support for Inertia.js applications, automatically generating types for your page props and shared data.
@@ -588,6 +642,7 @@ return [
         ],
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
+        'enum_methods' => env('WAYFINDER_GENERATE_ENUM_METHODS', false),
     ],
 
     'format' => [
@@ -616,6 +671,7 @@ return [
 | `generate.broadcast.events`      | Generate broadcast event types         | `true`                    |
 | `generate.environment_variables` | Generate Vite env variable types       | `true`                    |
 | `generate.enums`                 | Generate PHP enum types                | `true`                    |
+| `generate.enum_methods`          | Resolve enum methods for each case     | `false`                   |
 | `format.enabled`                 | Format generated files with Biome      | `false`                   |
 | `cache.enabled`                  | Enable caching for faster regeneration | `true`                    |
 | `cache.directory`                | Directory for cache files              | `storage/wayfinder-cache` |

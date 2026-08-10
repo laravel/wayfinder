@@ -24,6 +24,7 @@ return [
         ],
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
+        'enum_methods' => env('WAYFINDER_GENERATE_ENUM_METHODS', false),
     ],
 
     // Format the generated files
