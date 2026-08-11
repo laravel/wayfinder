@@ -20,7 +20,8 @@ class Route
         private BaseRoute $base,
         private Collection $paramDefaults,
         private ?string $forcedScheme,
-        private ?string $forcedRoot
+        private ?string $forcedRoot,
+        private bool $relative = false
     ) {
         //
     }
@@ -101,7 +102,7 @@ class Route
             $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
         }
 
-        if (($domain = $this->domain()) !== null) {
+        if (! $this->relative && ($domain = $this->domain()) !== null) {
             $uri = ($this->scheme() ?? '//').$domain.$uri;
         }
 
@@ -114,6 +115,32 @@ class Route
         }
 
         return Js::from($uri, JSON_UNESCAPED_SLASHES)->toHtml();
+    }
+
+    /**
+     * The path-only URI (no scheme or domain). Used to deduplicate routes that
+     * share the same path but are bound to different domains (e.g. multiple
+     * central domains in a multi-tenant app).
+     */
+    public function pathUri(): string
+    {
+        $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
+
+        $uri = str($this->base->uri)->start('/')->toString();
+
+        if (($basePath = $this->basePath()) !== '') {
+            $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
+        }
+
+        $uri = str($uri)
+            ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
+            ->toString();
+
+        if ($uri !== '/') {
+            $uri = rtrim($uri, '/');
+        }
+
+        return $uri;
     }
 
     public function scheme(): ?string
