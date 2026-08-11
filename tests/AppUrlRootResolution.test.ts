@@ -52,3 +52,30 @@ test("does not inject APP_URL port into explicit domain routes", () => {
         "url: '//{defaultDomain?}.au/default-parameters-domain/{param}'",
     );
 });
+
+test("can generate relative urls for explicit domain routes", () => {
+    const outputPath = "/tmp/wayfinder-relative-urls";
+
+    rmSync(outputPath, { recursive: true, force: true });
+
+    execFileSync(
+        testbench,
+        [
+            "wayfinder:generate",
+            `--path=${outputPath}`,
+            "--with-form",
+            "--relative",
+        ],
+    );
+
+    const contents = readFileSync(
+        path.join(
+            outputPath,
+            "actions/App/Http/Controllers/DomainController.ts",
+        ),
+        "utf8",
+    );
+
+    expect(contents).toContain("url: '/fixed-domain/{param}'");
+    expect(contents).toContain("url: '/default-parameters-domain/{param}'");
+});
