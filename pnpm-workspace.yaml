@@ -1,0 +1,3 @@
+shamefullyHoist: true
+allowBuilds:
+  esbuild: true
