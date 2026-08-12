@@ -138,8 +138,6 @@ class GenerateCommand extends Command
         $this->ranger->walk();
 
         $this->writeFiles();
-
-        AnalyzedCache::freezeFileTimes(false);
     }
 
     protected function getBasePaths(): array
