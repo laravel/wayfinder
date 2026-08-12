@@ -59,6 +59,7 @@ class GenerateCommand extends Command
         Enums $enumConverter,
         Routes $routesConverter,
     ) {
+        AnalyzedCache::freezeFileTimes();
         AnalyzedCache::setCacheDirectory($this->config->get('wayfinder.cache.directory'));
 
         if ($this->option('fresh') || ! $this->config->get('wayfinder.cache.enabled')) {
