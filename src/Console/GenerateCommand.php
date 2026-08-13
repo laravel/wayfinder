@@ -158,6 +158,13 @@ class GenerateCommand extends Command
         return [app_path()];
     }
 
+    protected function hasInteractiveTerminal(): bool
+    {
+        return $this->output->isDecorated()
+            && defined('STDOUT')
+            && stream_isatty(STDOUT);
+    }
+
     protected function writeFiles(): void
     {
         $this->files->ensureDirectoryExists($this->generatedDirectory);
@@ -181,22 +188,23 @@ class GenerateCommand extends Command
         $validResults = array_filter($this->results);
 
         if (count($validResults) > 0) {
-            $progress = progress('Writing files...', count($validResults));
-            $progress->start();
+            $progress = $this->hasInteractiveTerminal()
+                ? tap(progress('Writing files...', count($validResults)))->start()
+                : null;
 
             foreach ($validResults as $result) {
-                $progress->label($result->name);
+                $progress?->label($result->name);
                 $path = join_paths($this->generatedDirectory, $result->name);
 
                 $this->files->ensureDirectoryExists(dirname($path));
                 $this->writeFile($path, $result->content());
                 $writtenPaths[] = $path;
 
-                $progress->advance();
+                $progress?->advance();
             }
 
-            $progress->label('Done!');
-            $progress->render();
+            $progress?->label('Done!');
+            $progress?->render();
         }
 
         $namespaced = TypeScript::getNamespacedFormatted();
