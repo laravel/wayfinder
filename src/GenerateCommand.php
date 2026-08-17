@@ -258,6 +258,8 @@ class GenerateCommand extends Command
         $isInvokable = $routes->first()->hasInvokableController();
         $method = $routes->first()->jsMethod();
 
+        $duplicateUris = $routes->duplicates(fn (Route $route) => $route->uri());
+
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $method,
             'original_method' => $routes->first()->originalJsMethod(),
@@ -270,12 +272,20 @@ class GenerateCommand extends Command
             ...$this->safeParamNames($method),
             'routes' => $routes->map(fn ($r) => [
                 'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().hash('xxh128', $r->uri()),
+                'tempMethod' => $r->jsMethod().hash('xxh128', $this->routeKey($r, $duplicateUris)),
                 'parameters' => $r->parameters(),
                 'verbs' => $r->verbs(),
                 'uri' => $r->uri(),
+                'key' => $this->routeKey($r, $duplicateUris),
             ]),
         ])->render());
+    }
+
+    private function routeKey(Route $route, Collection $duplicateUris): string
+    {
+        return $duplicateUris->contains($route->uri())
+            ? $route->uriWithVerbs()
+            : $route->uri();
     }
 
     private function writeControllerMethodExport(Route $route, string $path): void
