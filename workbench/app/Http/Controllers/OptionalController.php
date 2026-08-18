@@ -13,4 +13,9 @@ class OptionalController
     {
         //
     }
+
+    public function emptyDefault()
+    {
+        //
+    }
 }

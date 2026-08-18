@@ -3,7 +3,8 @@ import path from "node:path";
 
 const testbenchDir = path.join(__dirname, "vendor", "bin", "testbench");
 
-const artisan = (command: string): void => console.error(execSync(`${testbenchDir} ${command}`).toString('utf8'))
+const artisan = (command: string, env: NodeJS.ProcessEnv = {}): void =>
+    console.error(execSync(`${testbenchDir} ${command}`, { env: { ...process.env, ...env } }).toString('utf8'))
 
 export function setup(): void {
     try {
@@ -12,6 +13,10 @@ export function setup(): void {
             : artisan('route:clear')
 
         artisan('wayfinder:generate --path=workbench/resources/js --with-form')
+
+        artisan('wayfinder:generate --path=workbench/resources/js-forced-root --with-form', {
+            WAYFINDER_FORCE_ROOT_URL: 'https://tenant-a.example.test:8443',
+        })
     } catch (error) {
         console.error(`Wayfinder build error\n----------${error.output}\n----------`);
 

@@ -14,6 +14,8 @@ use ReflectionClass;
 
 class Route
 {
+    private const ORIGIN_PARAMETER_NAME = 'wayfinderOrigin';
+
     private ?array $parsedRoot = null;
 
     public function __construct(
@@ -77,13 +79,19 @@ class Route
 
         $signatureParams = collect($this->base->signatureParameters(UrlRoutable::class));
 
-        return collect($this->base->parameterNames())->map(fn ($name) => new Parameter(
+        $parameters = collect($this->base->parameterNames())->map(fn ($name) => new Parameter(
             $name,
             $optionalParameters->has($name) || $this->paramDefaults->has($name),
             $this->base->bindingFieldFor($name),
             $this->paramDefaults->get($name),
             $signatureParams->first(fn ($p) => Str::snake($p->getName()) === Str::snake($name)),
         ));
+
+        if ($origin = $this->originParameter()) {
+            $parameters->push($origin);
+        }
+
+        return $parameters;
     }
 
     public function verbs(): Collection
@@ -101,8 +109,10 @@ class Route
             $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
         }
 
-        if (($domain = $this->domain()) !== null) {
-            $uri = ($this->scheme() ?? '//').$domain.$uri;
+        if ($this->domain() !== null) {
+            $uri = $this->hasExplicitDomain()
+                ? ($this->scheme() ?? '//').$this->domain().$uri
+                : $this->originParameter()->placeholder.$uri;
         }
 
         $uri = str($uri)
@@ -154,6 +164,33 @@ class Route
         }
 
         return null;
+    }
+
+    public function hasExplicitDomain(): bool
+    {
+        return (bool) $this->base->getDomain();
+    }
+
+    /**
+     * A domain baked in only via URL::forceRootUrl() (not an explicit
+     * Route::domain() binding) reflects the environment the routes were
+     * generated in, not a real per-route domain constraint. Rather than
+     * freezing that value into the generated URL, expose it as an optional,
+     * runtime-overridable parameter with the generate-time value as its
+     * default - the same mechanism already used for other URL defaults.
+     */
+    private function originParameter(): ?Parameter
+    {
+        if ($this->hasExplicitDomain() || ($domain = $this->domain()) === null) {
+            return null;
+        }
+
+        return new Parameter(
+            self::ORIGIN_PARAMETER_NAME,
+            true,
+            null,
+            ($this->scheme() ?? '//').$domain,
+        );
     }
 
     public function name(): ?string

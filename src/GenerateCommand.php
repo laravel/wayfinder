@@ -323,7 +323,7 @@ class GenerateCommand extends Command
             $imports[] = 'applyUrlDefaults';
         }
 
-        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->optional))) {
+        if ($routes->contains(fn (Route $route) => $route->parameters()->contains(fn (Parameter $parameter) => $parameter->canBeMissingSegment()))) {
             $imports[] = 'validateParameters';
         }
 

@@ -5,7 +5,10 @@ export default tseslint.config(
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {
-        files: ["workbench/resources/js/**/*.{ts,tsx}"],
+        files: [
+            "workbench/resources/js/**/*.{ts,tsx}",
+            "workbench/resources/js-forced-root/**/*.{ts,tsx}",
+        ],
         rules: {
             "no-duplicate-imports": "error",
         },

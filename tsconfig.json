@@ -23,6 +23,7 @@
     },
     "include": [
         "workbench/resources/js/**/*.ts",
+        "workbench/resources/js-forced-root/**/*.ts",
         "resources/js/**/*.ts",
         "tests/**/*.ts"
     ],

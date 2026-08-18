@@ -53,6 +53,7 @@ Route::get('/', function () {
 
 Route::post('/optional/{parameter?}', [OptionalController::class, 'optional'])->name('optional');
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
+Route::get('/empty-default/{emptyUrlDefault}/thing/{slug?}', [OptionalController::class, 'emptyDefault']);
 
 Route::get('/users/{user}', [ModelBindingController::class, 'show']);
 Route::get('/audit-entries/{audit_entry}', [AuditEntryController::class, 'show']);

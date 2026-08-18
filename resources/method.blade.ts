@@ -35,9 +35,9 @@
     {!! $args !!} = applyUrlDefaults({!! $args !!})
 @endif
 
-@if ($parameters->where('optional')->isNotEmpty())
+@if ($parameters->filter->canBeMissingSegment()->isNotEmpty())
     validateParameters({!! $args !!}, [
-    @foreach ($parameters->where('optional') as $parameter)
+    @foreach ($parameters->filter->canBeMissingSegment() as $parameter)
         "{!! $parameter->name !!}",
     @endforeach
     ])
@@ -49,9 +49,9 @@
         @if ($parameter->key)
             {!! $parameter->name !!}: {!! when($parameter->default !== null, '(') !!}typeof {!! $args !!}{!! when($parameters->every->optional, '?') !!}.{!! $parameter->name !!} === 'object'
                 ? {!! $args !!}.{!! $parameter->name !!}.{!! $parameter->key ?? 'id' !!}
-                : {!! $args !!}{!! when($parameters->every->optional, '?') !!}.{!! $parameter->name !!}{!! when($parameter->default !== null, ') ?? ') !!}@if ($parameter->default !== null)@js($parameter->default)@endif,
+                : {!! $args !!}{!! when($parameters->every->optional, '?') !!}.{!! $parameter->name !!}{!! when($parameter->default !== null, ') ?? ') !!}@if ($parameter->default !== null){!! \Illuminate\Support\Js::from($parameter->default, JSON_UNESCAPED_SLASHES)->toHtml() !!}@endif,
         @else
-            {!! $parameter->name !!}: {!! $args !!}{!! when($parameters->every->optional, '?') !!}.{!! $parameter->name !!}{!! when($parameter->default !== null, ' ?? ') !!}@if ($parameter->default !== null)@js($parameter->default)@endif,
+            {!! $parameter->name !!}: {!! $args !!}{!! when($parameters->every->optional, '?') !!}.{!! $parameter->name !!}{!! when($parameter->default !== null, ' ?? ') !!}@if ($parameter->default !== null){!! \Illuminate\Support\Js::from($parameter->default, JSON_UNESCAPED_SLASHES)->toHtml() !!}@endif,
         @endif
     @endforeach
     }

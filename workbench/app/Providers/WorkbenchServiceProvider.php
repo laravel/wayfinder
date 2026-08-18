@@ -24,6 +24,10 @@ class WorkbenchServiceProvider extends ServiceProvider
 
         URL::defaults([
             'defaultDomain' => 'tim.macdonald',
+            // Non-scalar URL::defaults() values are coerced to '' at generate time.
+            'emptyUrlDefault' => new class
+            {
+            },
         ]);
     }
 
@@ -32,6 +36,8 @@ class WorkbenchServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if ($root = env('WAYFINDER_FORCE_ROOT_URL')) {
+            URL::forceRootUrl($root);
+        }
     }
 }

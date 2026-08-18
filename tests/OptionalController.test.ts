@@ -1,5 +1,6 @@
 import { describe, expect, it, test } from "vitest";
 import {
+    emptyDefault,
     manyOptional,
     optional,
 } from "../workbench/resources/js/actions/App/Http/Controllers/OptionalController";
@@ -42,5 +43,21 @@ describe("manyOptional", async () => {
         expect(manyOptional.definition.url).toBe(
             "/many-optional/{one?}/{two?}/{three?}",
         );
+    });
+});
+
+describe("emptyDefault", async () => {
+    it("throws rather than silently producing a hole when an empty-default parameter is skipped ahead of a real optional one", () => {
+        expect(() => emptyDefault.url({ slug: "x" })).toThrow();
+    });
+
+    it("still produces a double slash when every optional segment (including the empty-default one) is omitted, a pre-existing limitation of trailing-optional URL building", () => {
+        expect(emptyDefault.url()).toBe("/empty-default//thing");
+    });
+
+    test("url", () => {
+        expect(
+            emptyDefault.url({ emptyUrlDefault: "acme", slug: "x" }),
+        ).toBe("/empty-default/acme/thing/x");
     });
 });
