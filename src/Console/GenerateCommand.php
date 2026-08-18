@@ -62,9 +62,13 @@ class GenerateCommand extends Command
         AnalyzedCache::freezeFileTimes();
         AnalyzedCache::setCacheDirectory($this->config->get('wayfinder.cache.directory'));
 
-        if ($this->option('fresh') || ! $this->config->get('wayfinder.cache.enabled')) {
+        $cacheEnabled = $this->config->get('wayfinder.cache.enabled');
+
+        if ($this->option('fresh') || ! $cacheEnabled) {
             AnalyzedCache::clear();
-        } else {
+        }
+
+        if ($cacheEnabled) {
             AnalyzedCache::enable();
         }
 

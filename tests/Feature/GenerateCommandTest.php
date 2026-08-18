@@ -47,8 +47,7 @@ class GenerateCommandTest extends TestCase
             '--path='.$this->tempPath,
             '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
             '--base-path='.join_paths($this->rootPath, 'workbench'),
-            '--fresh',
-        ], $this->rootPath);
+        ], $this->rootPath, ['WAYFINDER_CACHE_ENABLED' => 'false']);
 
         $process->setTimeout(60);
         $process->run();
