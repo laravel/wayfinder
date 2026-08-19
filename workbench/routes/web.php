@@ -72,6 +72,7 @@ Route::get('/users/by-token/{user:remember_token}', [ModelBindingController::cla
 
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}', [UrlDefaultsController::class, 'onlyDefaults']);
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}/also/{timezone}', [UrlDefaultsController::class, 'mixedDefaults']);
+Route::middleware(UrlDefaultsMiddleware::class)->post('/with-quoted-defaults/{quoted}', [UrlDefaultsController::class, 'quotedDefaults']);
 
 Route::get('/keys/{key}', [KeyController::class, 'show']);
 Route::get('/keys/{key:uuid}/edit', [KeyController::class, 'edit']);
