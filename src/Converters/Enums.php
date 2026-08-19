@@ -31,7 +31,7 @@ class Enums extends Converter
                     ? 'never'
                     : TypeScript::union(
                         collect($enum->cases)
-                            ->map(fn ($case) => is_string($case) ? "'{$case}'" : (string) $case)
+                            ->map(fn ($case) => is_string($case) ? TypeScript::quote($case) : (string) $case)
                             ->values()
                             ->all(),
                     ),

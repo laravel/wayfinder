@@ -17,3 +17,7 @@ Broadcast::channel('chat.{roomId}.messages', function ($user, $roomId) {
 Broadcast::channel('public-announcements', function ($user) {
     return true;
 });
+
+Broadcast::channel('quirky.`tick`-$dollar.{roomId}', function ($user, $roomId) {
+    return true;
+});

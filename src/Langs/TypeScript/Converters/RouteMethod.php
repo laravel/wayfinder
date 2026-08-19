@@ -358,7 +358,7 @@ class RouteMethod
                 }
 
                 if ($parameter->default !== null) {
-                    $val = sprintf('(%s) ?? "%s"', $val, $parameter->default);
+                    $val = sprintf('(%s) ?? %s', $val, TypeScript::quote((string) $parameter->default));
                 }
 
                 if (self::hasNullableKey($parameter)) {
