@@ -8,6 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Laravel\Ranger\Ranger;
 use Laravel\Ranger\Support\Config as RangerConfig;
+use Laravel\Ranger\Support\Inventory;
 use Laravel\Surveyor\Analyzer\AnalyzedCache;
 use Laravel\Wayfinder\Converters\BroadcastChannels;
 use Laravel\Wayfinder\Converters\BroadcastEvents;
@@ -59,17 +60,25 @@ class GenerateCommand extends Command
         Enums $enumConverter,
         Routes $routesConverter,
     ) {
+        $cacheDirectory = $this->config->get('wayfinder.cache.directory');
+
         AnalyzedCache::freezeFileTimes();
-        AnalyzedCache::setCacheDirectory($this->config->get('wayfinder.cache.directory'));
+        AnalyzedCache::setCacheDirectory($cacheDirectory);
+        RangerConfig::set('cache.directory', $cacheDirectory);
 
         $cacheEnabled = $this->config->get('wayfinder.cache.enabled');
 
         if ($this->option('fresh') || ! $cacheEnabled) {
             AnalyzedCache::clear();
+            Inventory::clear();
         }
 
         if ($cacheEnabled) {
             AnalyzedCache::enable();
+        } else {
+            // Ranger keeps its index whenever it has somewhere to put it, so
+            // the directory is taken away rather than a stale index left behind.
+            RangerConfig::set('cache.directory', null);
         }
 
         ResultConverter::register(TypeScriptConverter::class);
