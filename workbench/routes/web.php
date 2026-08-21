@@ -7,6 +7,7 @@ use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
 use App\Http\Controllers\EloquentProductController;
+use App\Http\Controllers\IgnoredController;
 use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
 use App\Http\Controllers\Prism\PrismController;
 use App\Http\Controllers\ResourceTestController;
+use App\Http\Controllers\SecretsController;
 use App\Http\Controllers\TwoRoutesSameActionController;
 use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
@@ -159,3 +161,8 @@ Route::prefix('mixed')->name('mixed.')->group(function () {
     Route::get('items/{item}', [MixedRouteController::class, 'edit'])->name('items.edit');
     Route::patch('items/{item}', [MixedRouteController::class, 'update'])->name('items.update');
 });
+
+Route::get('ignored-controller', [IgnoredController::class, 'index'])->name('ignored.index');
+Route::get('secrets', [SecretsController::class, 'index'])->name('secrets.index');
+Route::get('secrets/reveal', [SecretsController::class, 'reveal'])->name('secrets.reveal');
+Route::get('secrets/resource', [SecretsController::class, 'resource'])->name('secrets.resource');
