@@ -10,6 +10,7 @@ use Laravel\Ranger\Ranger;
 use Laravel\Ranger\Support\Config as RangerConfig;
 use Laravel\Ranger\Support\Inventory;
 use Laravel\Surveyor\Analyzer\AnalyzedCache;
+use Laravel\Surveyor\Support\Markers;
 use Laravel\Wayfinder\Converters\BroadcastChannels;
 use Laravel\Wayfinder\Converters\BroadcastEvents;
 use Laravel\Wayfinder\Converters\Enums;
@@ -65,6 +66,8 @@ class GenerateCommand extends Command
         AnalyzedCache::freezeFileTimes();
         AnalyzedCache::setCacheDirectory($cacheDirectory);
         RangerConfig::set('cache.directory', $cacheDirectory);
+
+        $this->registerIgnoreMarkers();
 
         $cacheEnabled = $this->config->get('wayfinder.cache.enabled');
 
@@ -151,6 +154,22 @@ class GenerateCommand extends Command
         $this->ranger->walk();
 
         $this->writeFiles();
+    }
+
+    /**
+     * Tell the analyzer which attributes and comment tags mean "leave this
+     * out", and fold them into the cache key: they decide what ends up in the
+     * generated files, so a cached run must not answer for a different set.
+     */
+    protected function registerIgnoreMarkers(): void
+    {
+        $attributes = $this->config->get('wayfinder.generate.ignore.attributes', []);
+        $tags = $this->config->get('wayfinder.generate.ignore.tags', ['wayfinder-ignore']);
+
+        Markers::registerAttributes(...$attributes);
+        Markers::registerTags(...$tags);
+
+        AnalyzedCache::setKey(hash('sha256', serialize([$attributes, $tags])));
     }
 
     protected function getBasePaths(): array

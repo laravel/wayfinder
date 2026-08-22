@@ -291,6 +291,8 @@ function displayUser(user: App.Models.User) {
 }
 ```
 
+Attributes listed in `$hidden` are left out, as is anything marked with the `WayfinderIgnore` attribute — see [Leaving Things Out](#leaving-things-out).
+
 ## PHP Enums
 
 Wayfinder converts PHP enums to TypeScript types and constants.
@@ -338,6 +340,8 @@ function setStatus(status: App.Enums.PostStatus) {
     // Only accepts 'draft', 'published', or 'archived'
 }
 ```
+
+A case can be left out of the generated enum, either always or only for some builds — see [Leaving Things Out](#leaving-things-out).
 
 ### Enum Methods
 
@@ -616,6 +620,158 @@ This provides autocomplete and type-checking for `import.meta.env`:
 const appName = import.meta.env.VITE_APP_NAME;
 ```
 
+## Leaving Things Out
+
+Some of what Wayfinder can see should not reach the browser. Mark it with the `WayfinderIgnore` attribute and nothing is generated for it:
+
+```php
+use Laravel\Wayfinder\Attributes\WayfinderIgnore;
+
+#[WayfinderIgnore]
+class InternalController
+{
+    // No action file, no route helper, no request type.
+}
+```
+
+The attribute works on a controller class or a single action, a model, an enum or one of its cases, a broadcast event or channel, and on a model's accessors and relations:
+
+```php
+class UserController
+{
+    public function index() { /* generated */ }
+
+    #[WayfinderIgnore]
+    public function impersonate() { /* not generated */ }
+}
+```
+
+```php
+class User extends Model
+{
+    #[WayfinderIgnore]
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(AuditEntry::class);
+    }
+}
+```
+
+Dropping an action drops everything that hangs off it: the route helper, the form variant, the page type, and the request type. Dropping a model drops relations that point at it, since there is no type left to point to.
+
+### Keeping Something For Some Builds Only
+
+Some declarations belong in local builds and nowhere else: a fake source provider, a seeding endpoint, a debug page. Pass `unless` and the declaration is kept only while the condition holds:
+
+```php
+// config/services.php
+'fake_source_provider' => env('FAKE_SOURCE_PROVIDER', false),
+
+// App\Enums\SourceProvider
+enum SourceProvider: string
+{
+    case Github = 'github';
+    case Gitlab = 'gitlab';
+
+    #[WayfinderIgnore(unless: 'services.fake_source_provider')]
+    case GitFake = 'gitfake';
+}
+```
+
+Locally, with the flag on:
+
+```typescript
+export type SourceProvider = "github" | "gitlab" | "gitfake";
+```
+
+In production, with the flag off or missing:
+
+```typescript
+export type SourceProvider = "github" | "gitlab";
+```
+
+`when` is the other way round, for something to leave out while a condition holds rather than keep:
+
+```php
+class DebugController
+{
+    #[WayfinderIgnore(when: 'services.hide_debug_tools')]
+    public function dump() { /* ... */ }
+}
+```
+
+Either takes a config key, or a `[class, method]` callable for a condition with real logic behind it:
+
+```php
+#[WayfinderIgnore(unless: [SourceProviders::class, 'fakeEnabled'])]
+```
+
+Whatever you pass is answered when the files are generated, by the environment generating them. Wayfinder's output is regenerated per build, so each build gets the answer for where it runs. Nothing is remembered between builds: the analysis cache holds the condition, never the answer to it.
+
+| Condition | `unless` | `when` |
+| --------- | -------- | ------ |
+| Passes | Kept | Left out |
+| Fails, or the config key is missing | Left out | Kept |
+| Cannot be read | Left out | Left out |
+
+A condition Wayfinder cannot read leaves the declaration out whichever argument it was written with, so a typo shows up as a type error rather than shipping something. Only a config key or a callable counts as a condition, so `#[WayfinderIgnore(true)]` is not a way to switch a marker on or off — it is a marker with no condition, which leaves the declaration out. Passing both arguments is allowed and each can only add hiding, so `unless` keeping something does not override `when` leaving it out. Reach for one or the other.
+
+One consequence worth planning for: the production build genuinely does not have the member, so code that reads it has to sit somewhere the production build never typechecks.
+
+### Payload Keys
+
+An attribute cannot go on an array key, so mark those with a comment instead. Put `@wayfinder-ignore` above the key or at the end of its line:
+
+```php
+return Inertia::render('Profile', [
+    'name' => $user->name,
+    'apiToken' => $user->api_token, // @wayfinder-ignore
+    'billing' => [
+        'plan' => $user->plan,
+        // @wayfinder-ignore
+        'stripeId' => $user->stripe_id,
+    ],
+]);
+```
+
+```typescript
+export type Profile = Inertia.SharedData & {
+    name: string;
+    billing: { plan: string };
+};
+```
+
+The key is gone, not emptied, so code that still reads it fails to compile. This works anywhere Wayfinder reads an array: page props, `toArray()` on a resource, `broadcastWith()`, and the rules of a form request.
+
+A marker hides a member from its own type. If something else hands the same value out under a key of its own, that key needs its own marker.
+
+For a plain database column on a model, Eloquent's `$hidden` and `#[Hidden]` already keep it out, and Wayfinder follows them.
+
+### Traits
+
+Nothing is generated for a trait, so a marker on the trait itself has nothing to hide. Mark the members inside it, which works whether the trait is used by one model or twenty:
+
+```php
+trait HasAvatar
+{
+    #[WayfinderIgnore]
+    public function avatarPath(): Attribute { /* ... */ }
+}
+```
+
+### Markers From Other Packages
+
+To honor an attribute you cannot change, or a different comment tag, list them in `config/wayfinder.php`:
+
+```php
+'ignore' => [
+    'attributes' => [\Vendor\Package\Attributes\Internal::class],
+    'tags' => ['wayfinder-ignore', 'ignore'],
+],
+```
+
+Your own attributes need no registration. Any attribute implementing `Laravel\Surveyor\Contracts\Ignored` is honored.
+
 ## Configuration
 
 The configuration file is located at `config/wayfinder.php`:
@@ -623,6 +779,10 @@ The configuration file is located at `config/wayfinder.php`:
 ```php
 return [
     'generate' => [
+        'ignore' => [
+            'attributes' => [],
+            'tags' => ['wayfinder-ignore'],
+        ],
         'route' => [
             'actions' => env('WAYFINDER_GENERATE_ROUTE_ACTIONS', true),
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
@@ -660,6 +820,8 @@ return [
 
 | Option                           | Description                            | Default                   |
 | -------------------------------- | -------------------------------------- | ------------------------- |
+| `generate.ignore.attributes`     | Extra attributes that leave a declaration out | `[]`               |
+| `generate.ignore.tags`           | Comment tags that leave an array key out | `['wayfinder-ignore']`  |
 | `generate.route.actions`         | Generate controller action files       | `true`                    |
 | `generate.route.named`           | Generate named route files             | `true`                    |
 | `generate.route.form_variant`    | Include `.form` method variants        | `true`                    |

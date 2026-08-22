@@ -2,6 +2,13 @@
 
 return [
     'generate' => [
+        // Leave declarations out of the generated files
+        'ignore' => [
+            // Attribute classes treated the same as Laravel\Wayfinder\Attributes\WayfinderIgnore
+            'attributes' => [],
+            // Comment tags that leave out the array key they sit on
+            'tags' => ['wayfinder-ignore'],
+        ],
         'route' => [
             'actions' => env('WAYFINDER_GENERATE_ROUTE_ACTIONS', true),
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
