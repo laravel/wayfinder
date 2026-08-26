@@ -29,6 +29,8 @@ class PruneStaleFilesTest extends TestCase
 
         Route::get('/prune-test/alpha', fn () => '')->name('prune.test.alpha');
         Route::get('/prune-test/beta', fn () => '')->name('prune.test.beta');
+        Route::get('/photos', fn () => '')->name('photos.index');
+        Route::get('/photos/window', fn () => '')->name('photos.index.window');
     }
 
     protected function tearDown(): void
@@ -55,6 +57,16 @@ class PruneStaleFilesTest extends TestCase
         $this->assertDirectoryExists($routes);
         $this->assertNotEmpty($this->files->allFiles($routes));
         $this->assertFileExists(join_paths($routes, 'prune', 'test', 'index.ts'));
+    }
+
+    public function test_leaf_index_route_imports_nested_index_barrel(): void
+    {
+        $this->generate();
+
+        $index = $this->files->get(join_paths($this->tempPath, 'routes', 'photos', 'index.ts'));
+
+        $this->assertStringContainsString("from './index/index'", $index);
+        $this->assertStringNotContainsString("from './index'", str_replace("from './index/index'", '', $index));
     }
 
     public function test_stale_files_are_removed_while_current_files_are_kept(): void

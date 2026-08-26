@@ -393,7 +393,12 @@ class GenerateCommand extends Command
         if (! ($this->content[$indexPath] ?? false)) {
             $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index')->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
         } else {
-            $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
+            $imports = $childKeys->only($keysWithGrandkids->keys())->map(function ($alias, $key) {
+                // A leaf named `index` shares its path with a nested index barrel.
+                $path = $key === 'index' ? './index/index' : "./{$key}";
+
+                return "import {$alias['safe']} from '{$path}'";
+            })->implode(PHP_EOL);
         }
 
         if ($imports) {
