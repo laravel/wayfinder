@@ -5,7 +5,7 @@ namespace Laravel\Wayfinder\Converters;
 use Laravel\Ranger\Components\Enum;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
-use Laravel\Wayfinder\Support\EnumMethods;
+use Laravel\Wayfinder\Support\EnumMeta;
 
 class Enums extends Converter
 {
@@ -74,13 +74,13 @@ class Enums extends Converter
             ->asConst()
             ->link($enum->name, $enum->filepath());
 
-        $methods = $this->withMethods && $enum->cases !== []
-            ? EnumMethods::resolve($enum->name)
-            : [];
+        // Resolving meta calls the enum's own methods, so ranger is only asked
+        // for it when it is going to be written.
+        $meta = $this->withMethods ? EnumMeta::literals($enum->meta()) : [];
 
-        if ($methods !== []) {
+        if ($meta !== []) {
             $content[] = '';
-            $content[] = $this->methodConstant($name, $enum, $methods);
+            $content[] = $this->metaConstant($name, $enum, $meta);
         }
 
         $content[] = '';
@@ -90,35 +90,35 @@ class Enums extends Converter
     }
 
     /**
-     * @param  array<string, array<string, string>>  $methods
+     * @param  array<string, array<string, string>>  $meta
      */
-    protected function methodConstant(string $name, Enum $enum, array $methods): string
+    protected function metaConstant(string $name, Enum $enum, array $meta): string
     {
         $obj = TypeScript::object();
 
         // Keyed by case value rather than case name so a value handed back by
         // the server can be used as the lookup key directly.
         foreach ($enum->cases as $case => $value) {
-            if (! isset($methods[$case])) {
+            if (! isset($meta[$case])) {
                 continue;
             }
 
             $values = TypeScript::object();
 
-            foreach ($methods[$case] as $method => $literal) {
+            foreach ($meta[$case] as $method => $literal) {
                 $values->key($method)->value($literal);
             }
 
             $obj->key((string) $value)->value((string) $values);
         }
 
-        return (string) TypeScript::constant($this->methodConstantName($name, $enum), (string) $obj)
+        return (string) TypeScript::constant($this->metaConstantName($name, $enum), (string) $obj)
             ->export()
             ->asConst()
             ->link($enum->name, $enum->filepath());
     }
 
-    protected function methodConstantName(string $name, Enum $enum): string
+    protected function metaConstantName(string $name, Enum $enum): string
     {
         $taken = array_keys($enum->cases);
         $constant = $name.'Meta';

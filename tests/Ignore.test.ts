@@ -27,6 +27,17 @@ describe("Ignore", () => {
         expect(types()).not.toContain("Inertia.Pages.Reveal");
     });
 
+    test("a marked enum method is dropped and its siblings are kept", () => {
+        const enumFile = readFileSync(
+            join(wayfinderPath, "App/Enums/OrderStatus.ts"),
+            "utf-8",
+        );
+
+        expect(enumFile).toContain("label:");
+        expect(enumFile).not.toContain("internalCode");
+        expect(enumFile).not.toContain("note:");
+    });
+
     test("a marked page prop is dropped from the page type", () => {
         const secrets = types()
             .split("export type Secrets")[1]

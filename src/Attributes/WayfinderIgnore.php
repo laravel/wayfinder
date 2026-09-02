@@ -10,8 +10,8 @@ use Laravel\Surveyor\Contracts\ConditionallyIgnored;
  *
  * On a class, nothing is generated for it at all. On a controller method, the
  * route it handles is dropped along with its form variant, page type, and
- * request type. On a property, accessor, relation, or enum case, that member is
- * dropped from the type around it.
+ * request type. On a property, accessor, relation, enum case, or enum method,
+ * that member is dropped from the type around it.
  *
  * Pass `unless` to keep it only while a condition holds, or `when` to leave it
  * out only while one holds. Since generation runs per build, a condition is
