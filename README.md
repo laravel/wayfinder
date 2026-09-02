@@ -391,7 +391,7 @@ PostStatusMeta[post.status].label;
 PostStatusMeta[PostStatus.Published].isVisible;
 ```
 
-Only methods that take no required arguments are called. Static, magic, protected and private methods are skipped, as are methods returning `void` or `never`.
+Only methods that take no required arguments are called. Static, magic, protected and private methods are skipped, as are methods returning `void` or `never`, and any method marked with `WayfinderIgnore` — see [Leaving Things Out](#leaving-things-out).
 
 If a method throws for one case, that case alone loses the entry, and the same goes for a value that has no TypeScript equivalent — a plain object, for instance. Strings, numbers, booleans, `null`, arrays, backed enums, `JsonSerializable`, `Arrayable` and `Stringable` all convert.
 
@@ -634,7 +634,7 @@ class InternalController
 }
 ```
 
-The attribute works on a controller class or a single action, a model, an enum or one of its cases, a broadcast event or channel, and on a model's accessors and relations:
+The attribute works on a controller class or a single action, a model, an enum or one of its cases or methods, a broadcast event or channel, and on a model's accessors and relations:
 
 ```php
 class UserController

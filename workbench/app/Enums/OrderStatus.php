@@ -5,6 +5,7 @@ namespace App\Enums;
 use App\Enums\Concerns\HasIcon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
+use Laravel\Wayfinder\Attributes\WayfinderIgnore;
 use RuntimeException;
 use stdClass;
 
@@ -121,6 +122,18 @@ enum OrderStatus: string
     public static function fallback(): self
     {
         return self::Pending;
+    }
+
+    #[WayfinderIgnore]
+    public function internalCode(): string
+    {
+        return 'code-'.$this->value;
+    }
+
+    #[WayfinderIgnore(unless: 'services.expose_order_notes')]
+    public function note(): string
+    {
+        return 'note-'.$this->value;
     }
 
     protected function internalName(): string
