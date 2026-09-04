@@ -30,7 +30,7 @@
         "phpstan/phpdoc-parser": "^2.3"
     },
     "require-dev": {
-        "inertiajs/inertia-laravel": "^2.0",
+        "inertiajs/inertia-laravel": "^3.0",
         "laravel/pint": "^1.21",
         "orchestra/testbench": "^10.1|^11.0"
     },
