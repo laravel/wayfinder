@@ -15,6 +15,7 @@
         "@eslint/js": "^9.29.0",
         "@inertiajs/core": "^3.1.0",
         "@types/node": "^22.7.5",
+        "axios": "^1.20.0",
         "eslint": "^9.29.0",
         "happy-dom": ">=20.8.9",
         "typescript-eslint": "^8.34.1",
