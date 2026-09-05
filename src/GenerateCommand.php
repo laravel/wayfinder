@@ -390,10 +390,15 @@ class GenerateCommand extends Command
             ];
         });
 
+        // A child named "index" is written to "index/index.ts", but every resolver
+        // prefers the sibling "index.ts" for "./index", so it has to be imported
+        // by its full path or the barrel silently ends up importing itself.
+        $importPath = fn ($key) => $key === 'index' ? './index/index' : "./{$key}";
+
         if (! ($this->content[$indexPath] ?? false)) {
-            $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index')->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
+            $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index' || $keysWithGrandkids->has($key))->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
         } else {
-            $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from './{$key}'")->implode(PHP_EOL);
+            $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
         }
 
         if ($imports) {
