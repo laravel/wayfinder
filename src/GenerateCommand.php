@@ -270,22 +270,20 @@ class GenerateCommand extends Command
             'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
             ...$this->safeParamNames($method),
-            'routes' => $routes->map(fn ($r) => [
-                'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().hash('xxh128', $this->routeKey($r, $duplicateUris)),
-                'parameters' => $r->parameters(),
-                'verbs' => $r->verbs(),
-                'uri' => $r->uri(),
-                'key' => $this->routeKey($r, $duplicateUris),
-            ]),
-        ])->render());
-    }
+            'routes' => $routes->map(function (Route $r) use ($duplicateUris) {
+                $uri = $r->uri();
+                $key = $duplicateUris->contains($uri) ? $r->verbPrefixedUri() : $uri;
 
-    private function routeKey(Route $route, Collection $duplicateUris): string
-    {
-        return $duplicateUris->contains($route->uri())
-            ? $route->uriWithVerbs()
-            : $route->uri();
+                return [
+                    'method' => $r->jsMethod(),
+                    'tempMethod' => $r->jsMethod().hash('xxh128', $key),
+                    'parameters' => $r->parameters(),
+                    'verbs' => $r->verbs(),
+                    'uri' => $uri,
+                    'key' => $key,
+                ];
+            }),
+        ])->render());
     }
 
     private function writeControllerMethodExport(Route $route, string $path): void
