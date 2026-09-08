@@ -36,11 +36,12 @@ class RouteMethod
         protected bool $named = false,
         protected array $relatedRoutes = [],
         protected bool $tmpMethod = false,
+        protected ?string $tmpMethodKey = null,
     ) {
         $this->name = TypeScript::safeMethod($this->jsMethod($route), 'Method');
 
         if ($this->tmpMethod) {
-            $this->name = $this->tmpMethod($route);
+            $this->name = $this->tmpMethod($route, $this->tmpMethodKey ?? $route->uri());
         }
 
         $this->hasParameters = $route->parameters()->isNotEmpty();
@@ -93,13 +94,23 @@ class RouteMethod
     {
         $output = [];
 
-        foreach ($this->relatedRoutes as $route) {
+        $duplicateUris = collect($this->relatedRoutes)->duplicates(fn (Route $route) => $route->uri());
+
+        $keys = array_map(
+            fn (Route $route) => $duplicateUris->contains($route->uri())
+                ? $this->verbPrefixedUri($route)
+                : $route->uri(),
+            $this->relatedRoutes,
+        );
+
+        foreach ($this->relatedRoutes as $index => $route) {
             $routeMethod = new static(
                 route: $route,
                 withForm: $this->withForm,
                 withInertiaComponent: $this->withInertiaComponent,
                 named: $this->named,
                 tmpMethod: true,
+                tmpMethodKey: $keys[$index],
             );
 
             $output[] = $routeMethod->controllerMethod();
@@ -107,8 +118,8 @@ class RouteMethod
 
         $object = TypeScript::object();
 
-        foreach ($this->relatedRoutes as $route) {
-            $object->key($route->uri())->value($this->tmpMethod($route));
+        foreach ($this->relatedRoutes as $index => $route) {
+            $object->key($keys[$index])->value($this->tmpMethod($route, $keys[$index]));
         }
 
         $const = TypeScript::constant($this->name, $object)->export($this->named || ! $this->route->hasInvokableController());
@@ -521,9 +532,20 @@ class RouteMethod
         return $block;
     }
 
-    protected function tmpMethod(Route $route): string
+    protected function tmpMethod(Route $route, string $key): string
     {
-        return $this->jsMethod($route).hash('xxh128', $route->uri());
+        return $this->jsMethod($route).hash('xxh128', $key);
+    }
+
+    protected function verbPrefixedUri(Route $route): string
+    {
+        $verbs = $route->verbs()->pluck('actual');
+
+        if ($verbs->contains('get')) {
+            $verbs = $verbs->reject(fn (string $verb) => $verb === 'head');
+        }
+
+        return $verbs->implode('|').' '.$route->uri();
     }
 
     protected function withComponentMethod(): string
