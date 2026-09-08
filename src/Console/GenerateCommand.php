@@ -422,7 +422,12 @@ class GenerateCommand extends Command
         }
 
         foreach ($dirs as $d) {
-            $imports->addWildcard("./{$d}", TypeScript::safeMethod($d, 'Method'), default: true);
+            // A subdirectory named "index" holds its barrel at "index/index.ts",
+            // but every resolver prefers the sibling "index.ts" for "./index", so
+            // it has to be named in full or this barrel imports itself.
+            $from = $d === 'index' ? './index/index' : "./{$d}";
+
+            $imports->addWildcard($from, TypeScript::safeMethod($d, 'Method'), default: true);
             $object->key(TypeScript::safeMethod($d, 'Method'))->rawKey();
         }
 
