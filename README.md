@@ -175,6 +175,26 @@ import { index } from "@/actions/App/Http/Controllers/ClientPaymentsController";
 index["/clients/{client}/payments"]({ client: 1 });
 ```
 
+If two of those routes share a URI and differ only by verb, each key is prefixed with the verb, so you can still pick the one you want:
+
+```php
+Route::get('/exports/{report}', ExportController::class)
+    ->name('exports.show');
+
+Route::post('/exports/{report}', ExportController::class)
+    ->middleware('throttle:5,1')
+    ->name('exports.run');
+```
+
+```ts
+import ExportController from "@/actions/App/Http/Controllers/ExportController";
+
+ExportController["get /exports/{report}"]({ report: 1 });
+ExportController["post /exports/{report}"]({ report: 1 });
+```
+
+A route that answers to more than one verb joins them with `|`, as in `ExportController["put|patch /exports/{report}"]`. Exports whose URIs are already unique keep the plain URI keys shown above.
+
 In most cases it is easier to import the route by name from your generated `routes/` directory instead:
 
 ```ts

@@ -9,11 +9,12 @@
 
 /**
 * Multiple routes resolve to {!! $controller !!}::{!! $original_method !!}, so this export is a
-* dictionary keyed by URI rather than a callable. Call a specific route with `{!! $method !!}['<uri>'](...)`,
-* or import the route by name from your generated `routes/` directory.
+* dictionary keyed by URI rather than a callable, with the verbs prefixed where two routes share a URI.
+* Call a specific route with `{!! $method !!}['<key>'](...)`, or import the route by name from your
+* generated `routes/` directory.
 */
 {!! when($shouldExport, 'export ') !!}const {!! $method !!} = {
 @foreach ($routes as $route)
-    {!! $route['uri'] !!}: {!! $route['tempMethod'] !!},
+    {!! $route['key'] !!}: {!! $route['tempMethod'] !!},
 @endforeach
 }{{PHP_EOL}}

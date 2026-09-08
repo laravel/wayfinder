@@ -93,27 +93,12 @@ class Route
 
     public function uri(): string
     {
-        $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
+        return Js::from($this->rawUri(), JSON_UNESCAPED_SLASHES)->toHtml();
+    }
 
-        $uri = str($this->base->uri)->start('/')->toString();
-
-        if (($basePath = $this->basePath()) !== '') {
-            $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
-        }
-
-        if (($domain = $this->domain()) !== null) {
-            $uri = ($this->scheme() ?? '//').$domain.$uri;
-        }
-
-        $uri = str($uri)
-            ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
-            ->toString();
-
-        if ($uri !== '/') {
-            $uri = rtrim($uri, '/');
-        }
-
-        return Js::from($uri, JSON_UNESCAPED_SLASHES)->toHtml();
+    public function verbPrefixedUri(): string
+    {
+        return Js::from($this->keyVerbs()->implode('|').' '.$this->rawUri(), JSON_UNESCAPED_SLASHES)->toHtml();
     }
 
     public function scheme(): ?string
@@ -211,6 +196,38 @@ class Route
         }
 
         return 0;
+    }
+
+    private function keyVerbs(): Collection
+    {
+        $verbs = $this->verbs()->pluck('actual');
+
+        return $verbs->contains('get') ? $verbs->reject(fn ($verb) => $verb === 'head') : $verbs;
+    }
+
+    private function rawUri(): string
+    {
+        $defaultParams = $this->paramDefaults->mapWithKeys(fn ($value, $key) => ["{{$key}}" => "{{$key}?}"]);
+
+        $uri = str($this->base->uri)->start('/')->toString();
+
+        if (($basePath = $this->basePath()) !== '') {
+            $uri = str($basePath)->finish('/')->append(ltrim($uri, '/'))->toString();
+        }
+
+        if (($domain = $this->domain()) !== null) {
+            $uri = ($this->scheme() ?? '//').$domain.$uri;
+        }
+
+        $uri = str($uri)
+            ->replace($defaultParams->keys()->toArray(), $defaultParams->values()->toArray())
+            ->toString();
+
+        if ($uri !== '/') {
+            $uri = rtrim($uri, '/');
+        }
+
+        return $uri;
     }
 
     private function finalJsMethod(string $method): string

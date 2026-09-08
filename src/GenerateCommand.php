@@ -258,6 +258,8 @@ class GenerateCommand extends Command
         $isInvokable = $routes->first()->hasInvokableController();
         $method = $routes->first()->jsMethod();
 
+        $duplicateUris = $routes->duplicates(fn (Route $route) => $route->uri());
+
         $this->appendContent($path, $this->view->make('wayfinder::multi-method', [
             'method' => $method,
             'original_method' => $routes->first()->originalJsMethod(),
@@ -268,13 +270,19 @@ class GenerateCommand extends Command
             'shouldExport' => ! $isInvokable,
             'withForm' => $this->option('with-form') ?? false,
             ...$this->safeParamNames($method),
-            'routes' => $routes->map(fn ($r) => [
-                'method' => $r->jsMethod(),
-                'tempMethod' => $r->jsMethod().hash('xxh128', $r->uri()),
-                'parameters' => $r->parameters(),
-                'verbs' => $r->verbs(),
-                'uri' => $r->uri(),
-            ]),
+            'routes' => $routes->map(function (Route $r) use ($duplicateUris) {
+                $uri = $r->uri();
+                $key = $duplicateUris->contains($uri) ? $r->verbPrefixedUri() : $uri;
+
+                return [
+                    'method' => $r->jsMethod(),
+                    'tempMethod' => $r->jsMethod().hash('xxh128', $key),
+                    'parameters' => $r->parameters(),
+                    'verbs' => $r->verbs(),
+                    'uri' => $uri,
+                    'key' => $key,
+                ];
+            }),
         ])->render());
     }
 
