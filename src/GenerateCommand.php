@@ -397,6 +397,7 @@ class GenerateCommand extends Command
 
         $importable = ($this->content[$indexPath] ?? false)
             ? $childKeys->only($keysWithGrandkids->keys())
+            // A childless "index" is a leaf written into this same file, so it needs no import.
             : $childKeys->filter(fn ($_, $key) => $key !== 'index' || $keysWithGrandkids->has($key));
 
         $imports = $importable->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
