@@ -395,11 +395,11 @@ class GenerateCommand extends Command
         // by its full path or the barrel silently ends up importing itself.
         $importPath = fn ($key) => $key === 'index' ? './index/index' : "./{$key}";
 
-        if (! ($this->content[$indexPath] ?? false)) {
-            $imports = $childKeys->filter(fn ($_, $key) => $key !== 'index' || $keysWithGrandkids->has($key))->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
-        } else {
-            $imports = $childKeys->only($keysWithGrandkids->keys())->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
-        }
+        $importable = ($this->content[$indexPath] ?? false)
+            ? $childKeys->only($keysWithGrandkids->keys())
+            : $childKeys->filter(fn ($_, $key) => $key !== 'index' || $keysWithGrandkids->has($key));
+
+        $imports = $importable->map(fn ($alias, $key) => "import {$alias['safe']} from '{$importPath($key)}'")->implode(PHP_EOL);
 
         if ($imports) {
             $this->prependContent($indexPath, $imports);
