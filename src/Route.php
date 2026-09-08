@@ -96,7 +96,7 @@ class Route
         return Js::from($this->rawUri(), JSON_UNESCAPED_SLASHES)->toHtml();
     }
 
-    public function uriWithVerbs(): string
+    public function verbPrefixedUri(): string
     {
         return Js::from($this->keyVerbs()->implode('|').' '.$this->rawUri(), JSON_UNESCAPED_SLASHES)->toHtml();
     }
