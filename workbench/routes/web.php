@@ -171,3 +171,8 @@ Route::get('ignored-controller', [IgnoredController::class, 'index'])->name('ign
 Route::get('secrets', [SecretsController::class, 'index'])->name('secrets.index');
 Route::get('secrets/reveal', [SecretsController::class, 'reveal'])->name('secrets.reveal');
 Route::get('secrets/resource', [SecretsController::class, 'resource'])->name('secrets.resource');
+
+Route::get('/photos', fn () => 'ok')->name('photos.index');
+Route::get('/photos/window', fn () => 'ok')->name('photos.index.window');
+
+Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');
