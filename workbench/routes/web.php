@@ -104,3 +104,8 @@ Route::prefix('/api/v1')->name('api.v1.')->group(function () {
         Route::get('/', fn () => 'ok')->name('index');
     });
 });
+
+Route::get('/photos', fn () => 'ok')->name('photos.index');
+Route::get('/photos/window', fn () => 'ok')->name('photos.index.window');
+
+Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');
