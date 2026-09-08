@@ -176,6 +176,47 @@ Use these with HTML forms, for example, in React:
 </form>
 ```
 
+### Multiple Routes To The Same Action
+
+If two or more routes point at the same controller method, Wayfinder can't tell which URL you meant from the action alone, so the generated export becomes a dictionary keyed by URI instead of a callable:
+
+```php
+Route::get('clients/{client}/payments', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.index');
+
+Route::get('clients/{client}/payments-archive', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.archive');
+```
+
+```typescript
+import { index } from "@/wayfinder/App/Http/Controllers/ClientPaymentsController";
+
+// `index` is not callable directly — pick the URI you want:
+index["/clients/{client}/payments"]({ client: 1 });
+```
+
+If two of those routes share a URI and differ only by verb, each key is prefixed with the verb, so you can still pick the one you want:
+
+```php
+Route::get('/exports/{report}', ExportController::class)
+    ->name('exports.show');
+
+Route::post('/exports/{report}', ExportController::class)
+    ->middleware('throttle:5,1')
+    ->name('exports.run');
+```
+
+```typescript
+import ExportController from "@/wayfinder/App/Http/Controllers/ExportController";
+
+ExportController["get /exports/{report}"]({ report: 1 });
+ExportController["post /exports/{report}"]({ report: 1 });
+```
+
+A route that answers to more than one verb joins them with `|`, as in `ExportController["put|patch /exports/{report}"]`. Exports whose URIs are already unique keep the plain URI keys shown above.
+
+In most cases it is easier to import the route by name instead, as described below.
+
 ## Named Routes
 
 Wayfinder also generates files organized by route names, making it easy to access routes the same way you would with Laravel's `route()` helper.
