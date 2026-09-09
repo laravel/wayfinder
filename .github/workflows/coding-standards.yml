@@ -11,9 +11,12 @@ permissions:
 
 jobs:
   lint:
+    permissions:
+      contents: write
     uses: laravel/.github/.github/workflows/coding-standards.yml@41cb33d868e3f67ea2c9bb53f1ebd9a379400f63 # main
     with:
       php: "8.3"
+
   format:
     runs-on: ubuntu-latest
     permissions:
