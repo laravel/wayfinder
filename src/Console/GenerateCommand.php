@@ -30,9 +30,12 @@ use Symfony\Component\Finder\Finder;
 use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\progress;
+use function Laravel\Prompts\warning;
 
 class GenerateCommand extends Command
 {
+    protected const MEMORY_LIMIT = '1536M';
+
     protected $signature = 'wayfinder:generate {--path=} {--base-path=} {--app-path=} {--fresh}';
 
     protected $description = 'Generate TypeScript files for your Laravel application';
@@ -61,6 +64,8 @@ class GenerateCommand extends Command
         Enums $enumConverter,
         Routes $routesConverter,
     ) {
+        $this->raiseMemoryLimit();
+
         $cacheDirectory = $this->config->get('wayfinder.cache.directory');
 
         AnalyzedCache::freezeFileTimes();
@@ -154,6 +159,43 @@ class GenerateCommand extends Command
         $this->ranger->walk();
 
         $this->writeFiles();
+    }
+
+    protected function raiseMemoryLimit(): void
+    {
+        $configured = $this->config->get('wayfinder.memory_limit');
+
+        if (! in_array($configured, [null, ''])) {
+            if (@ini_set('memory_limit', (string) $configured) !== false) {
+                return;
+            }
+
+            warning("PHP would not take the configured memory limit [{$configured}], using ".self::MEMORY_LIMIT.' instead.');
+        }
+
+        $current = $this->toBytes((string) ini_get('memory_limit'));
+
+        // A negative limit is already uncapped. Anything else that does not
+        // read as a size is a limit to leave alone rather than guess at.
+        if ($current <= 0 || $current >= $this->toBytes(self::MEMORY_LIMIT)) {
+            return;
+        }
+
+        // Environments that forbid changing the limit keep the one they have.
+        @ini_set('memory_limit', self::MEMORY_LIMIT);
+    }
+
+    protected function toBytes(string $limit): int
+    {
+        $limit = trim($limit);
+        $value = (int) $limit;
+
+        return match (strtoupper(substr($limit, -1))) {
+            'G' => $value * 1024 ** 3,
+            'M' => $value * 1024 ** 2,
+            'K' => $value * 1024,
+            default => $value,
+        };
     }
 
     /**

@@ -43,4 +43,6 @@ return [
         'enabled' => env('WAYFINDER_CACHE_ENABLED', true),
         'directory' => env('WAYFINDER_CACHE_DIRECTORY', storage_path('wayfinder-cache')),
     ],
+
+    'memory_limit' => env('WAYFINDER_MEMORY_LIMIT'),
 ];
