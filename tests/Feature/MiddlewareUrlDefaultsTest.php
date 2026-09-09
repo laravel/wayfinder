@@ -49,6 +49,8 @@ class MiddlewareUrlDefaultsTest extends TestCase
 
     public function test_url_defaults_are_resolved_from_an_aliased_middleware(): void
     {
+        // Registering via afterResolving mirrors withMiddleware(): the alias only reaches
+        // the router when the HTTP kernel resolves, which is what console never does.
         $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setMiddlewareAliases([
             'url-defaults' => UrlDefaultsMiddleware::class,
         ]));
