@@ -27,6 +27,8 @@ class GenerateCommand extends Command
 
     private $urlDefaults = [];
 
+    private $globalMiddleware = [];
+
     private $pathDirectory = 'actions';
 
     private $content = [];
@@ -58,18 +60,12 @@ class GenerateCommand extends Command
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
 
-        $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
+        $globalUrlDefaults = collect(URL::getDefaultParameters())
+            ->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '')
+            ->merge($this->urlDefaultsForMiddleware($this->globalMiddleware));
 
         $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
-            $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
-                if ($middleware instanceof \Closure) {
-                    return [];
-                }
-
-                $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
-
-                return $this->urlDefaults[$middleware];
-            })->flatMap(fn ($r) => $r);
+            $defaults = $this->urlDefaultsForMiddleware($this->router->gatherRouteMiddleware($route));
 
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
@@ -111,7 +107,7 @@ class GenerateCommand extends Command
         $aliases = $this->router->getMiddleware();
 
         // Resolving the kernel syncs its middleware onto the router, overwriting existing groups
-        $this->laravel->make(HttpKernel::class);
+        $kernel = $this->laravel->make(HttpKernel::class);
 
         foreach ($groups as $group => $middleware) {
             foreach ($middleware as $name) {
@@ -122,6 +118,22 @@ class GenerateCommand extends Command
         foreach ($aliases as $name => $class) {
             $this->router->aliasMiddleware($name, $class);
         }
+
+        // Global middleware is never synced to the router, and the getter is not on the kernel contract
+        if (method_exists($kernel, 'getGlobalMiddleware')) {
+            $this->globalMiddleware = $kernel->getGlobalMiddleware();
+        }
+    }
+
+    private function urlDefaultsForMiddleware(array $middleware): Collection
+    {
+        return collect($middleware)
+            ->reject(fn ($name) => $name instanceof \Closure)
+            ->flatMap(function ($name) {
+                $this->urlDefaults[$name] ??= $this->getDefaultsForMiddleware($name);
+
+                return $this->urlDefaults[$name];
+            });
     }
 
     private function writeWayfinderHelperFile(): void

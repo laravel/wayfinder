@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\GlobalUrlDefaultsMiddleware;
 use App\Http\Middleware\UrlDefaultsMiddleware;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Filesystem\Filesystem;
@@ -60,6 +61,30 @@ class MiddlewareUrlDefaultsTest extends TestCase
         $this->assertStringContainsString("url: '/alias-defaults/{locale?}'", $this->generate('alias'));
     }
 
+    public function test_url_defaults_are_resolved_from_a_kernel_middleware_group(): void
+    {
+        $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setMiddlewareGroups([
+            'tenant' => [UrlDefaultsMiddleware::class],
+        ]));
+
+        Route::middleware('tenant')->get('/kernel-group-defaults/{locale}', fn () => '')->name('kernel.defaults');
+
+        $this->assertStringContainsString("url: '/kernel-group-defaults/{locale?}'", $this->generate('kernel'));
+    }
+
+    public function test_url_defaults_are_resolved_from_global_middleware(): void
+    {
+        // Global middleware never reaches the router, so this only works if the defaults
+        // are read off the kernel itself.
+        $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setGlobalMiddleware([
+            UrlDefaultsMiddleware::class,
+        ]));
+
+        Route::get('/global-defaults/{locale}', fn () => '')->name('global.defaults');
+
+        $this->assertStringContainsString("url: '/global-defaults/{locale?}'", $this->generate('global'));
+    }
+
     public function test_url_defaults_are_resolved_from_a_middleware_pushed_onto_a_group(): void
     {
         Route::pushMiddlewareToGroup('web', UrlDefaultsMiddleware::class);
@@ -67,5 +92,17 @@ class MiddlewareUrlDefaultsTest extends TestCase
         Route::middleware('web')->get('/group-defaults/{locale}', fn () => '')->name('group.defaults');
 
         $this->assertStringContainsString("url: '/group-defaults/{locale?}'", $this->generate('group'));
+    }
+
+    public function test_route_middleware_defaults_win_over_global_middleware_defaults(): void
+    {
+        $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setGlobalMiddleware([
+            GlobalUrlDefaultsMiddleware::class,
+        ]));
+
+        Route::middleware(UrlDefaultsMiddleware::class)
+            ->get('/precedence/{locale}', fn () => '')->name('precedence.show');
+
+        $this->assertStringContainsString("@param locale - Default: 'en'", $this->generate('precedence'));
     }
 }
