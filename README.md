@@ -598,6 +598,8 @@ return [
         'enabled' => env('WAYFINDER_CACHE_ENABLED', true),
         'directory' => env('WAYFINDER_CACHE_DIRECTORY', storage_path('wayfinder-cache')),
     ],
+
+    'memory_limit' => env('WAYFINDER_MEMORY_LIMIT'),
 ];
 ```
 
@@ -619,6 +621,13 @@ return [
 | `format.enabled`                 | Format generated files with Biome      | `false`                   |
 | `cache.enabled`                  | Enable caching for faster regeneration | `true`                    |
 | `cache.directory`                | Directory for cache files              | `storage/wayfinder-cache` |
+| `memory_limit`                   | What to run generation under           | `null`                    |
+
+Generation analyzes your application's class graph, which takes more memory than
+PHP's 128M default, so `wayfinder:generate` raises `memory_limit` to `1536M` when
+it finds it set lower. Set `memory_limit` to say what to use instead, in
+`php.ini`'s format (`'768M'`, `'2G'`, or `'-1'` for no limit). Wayfinder takes it
+as given, higher or lower.
 
 ## Syncing Across Repositories
 
