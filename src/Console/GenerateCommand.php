@@ -8,7 +8,9 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Laravel\Ranger\Ranger;
 use Laravel\Ranger\Support\Config as RangerConfig;
+use Laravel\Ranger\Support\Inventory;
 use Laravel\Surveyor\Analyzer\AnalyzedCache;
+use Laravel\Surveyor\Support\Markers;
 use Laravel\Wayfinder\Converters\BroadcastChannels;
 use Laravel\Wayfinder\Converters\BroadcastEvents;
 use Laravel\Wayfinder\Converters\Enums;
@@ -64,12 +66,27 @@ class GenerateCommand extends Command
     ) {
         $this->raiseMemoryLimit();
 
-        AnalyzedCache::setCacheDirectory($this->config->get('wayfinder.cache.directory'));
+        $cacheDirectory = $this->config->get('wayfinder.cache.directory');
 
-        if ($this->option('fresh') || ! $this->config->get('wayfinder.cache.enabled')) {
+        AnalyzedCache::freezeFileTimes();
+        AnalyzedCache::setCacheDirectory($cacheDirectory);
+        RangerConfig::set('cache.directory', $cacheDirectory);
+
+        $this->registerIgnoreMarkers();
+
+        $cacheEnabled = $this->config->get('wayfinder.cache.enabled');
+
+        if ($this->option('fresh') || ! $cacheEnabled) {
             AnalyzedCache::clear();
-        } else {
+            Inventory::clear();
+        }
+
+        if ($cacheEnabled) {
             AnalyzedCache::enable();
+        } else {
+            // Ranger keeps its index whenever it has somewhere to put it, so
+            // the directory is taken away rather than a stale index left behind.
+            RangerConfig::set('cache.directory', null);
         }
 
         ResultConverter::register(TypeScriptConverter::class);
@@ -120,6 +137,8 @@ class GenerateCommand extends Command
         }
 
         if ($this->config->get('wayfinder.generate.enums', true)) {
+            $enumConverter->withMethods($this->config->get('wayfinder.generate.enum_methods', false));
+
             $this->ranger->onEnum(fn ($enum) => $this->results[] = $enumConverter->convert($enum));
         }
 
@@ -179,6 +198,22 @@ class GenerateCommand extends Command
         };
     }
 
+    /**
+     * Tell the analyzer which attributes and comment tags mean "leave this
+     * out", and fold them into the cache key: they decide what ends up in the
+     * generated files, so a cached run must not answer for a different set.
+     */
+    protected function registerIgnoreMarkers(): void
+    {
+        $attributes = $this->config->get('wayfinder.generate.ignore.attributes', []);
+        $tags = $this->config->get('wayfinder.generate.ignore.tags', ['wayfinder-ignore']);
+
+        Markers::registerAttributes(...$attributes);
+        Markers::registerTags(...$tags);
+
+        AnalyzedCache::setKey(hash('sha256', serialize([$attributes, $tags])));
+    }
+
     protected function getBasePaths(): array
     {
         if ($this->option('base-path')) {
@@ -195,6 +230,13 @@ class GenerateCommand extends Command
         }
 
         return [app_path()];
+    }
+
+    protected function hasInteractiveTerminal(): bool
+    {
+        return $this->output->isDecorated()
+            && defined('STDOUT')
+            && stream_isatty(STDOUT);
     }
 
     protected function writeFiles(): void
@@ -220,22 +262,23 @@ class GenerateCommand extends Command
         $validResults = array_filter($this->results);
 
         if (count($validResults) > 0) {
-            $progress = progress('Writing files...', count($validResults));
-            $progress->start();
+            $progress = $this->hasInteractiveTerminal()
+                ? tap(progress('Writing files...', count($validResults)))->start()
+                : null;
 
             foreach ($validResults as $result) {
-                $progress->label($result->name);
+                $progress?->label($result->name);
                 $path = join_paths($this->generatedDirectory, $result->name);
 
                 $this->files->ensureDirectoryExists(dirname($path));
                 $this->writeFile($path, $result->content());
                 $writtenPaths[] = $path;
 
-                $progress->advance();
+                $progress?->advance();
             }
 
-            $progress->label('Done!');
-            $progress->render();
+            $progress?->label('Done!');
+            $progress?->render();
         }
 
         $namespaced = TypeScript::getNamespacedFormatted();
@@ -421,7 +464,12 @@ class GenerateCommand extends Command
         }
 
         foreach ($dirs as $d) {
-            $imports->addWildcard("./{$d}", TypeScript::safeMethod($d, 'Method'), default: true);
+            // A subdirectory named "index" holds its barrel at "index/index.ts",
+            // but every resolver prefers the sibling "index.ts" for "./index", so
+            // it has to be named in full or this barrel imports itself.
+            $from = $d === 'index' ? './index/index' : "./{$d}";
+
+            $imports->addWildcard($from, TypeScript::safeMethod($d, 'Method'), default: true);
             $object->key(TypeScript::safeMethod($d, 'Method'))->rawKey();
         }
 

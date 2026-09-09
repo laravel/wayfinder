@@ -159,6 +159,17 @@ export const validateParameters = (
     }
 };
 
+export const requireParameter = <T>(
+    value: T,
+    name: string,
+): Exclude<T, null> => {
+    if (value === null) {
+        throw Error(`Parameter "${name}" is null. Unable to generate a URL.`);
+    }
+
+    return value as Exclude<T, null>;
+};
+
 export const setUrlDefaults = (params: UrlDefaults | (() => UrlDefaults)) => {
     urlDefaults = typeof params === "function" ? params : () => params;
 };

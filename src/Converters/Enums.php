@@ -5,9 +5,19 @@ namespace Laravel\Wayfinder\Converters;
 use Laravel\Ranger\Components\Enum;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Results\Result;
+use Laravel\Wayfinder\Support\EnumMeta;
 
 class Enums extends Converter
 {
+    protected bool $withMethods = false;
+
+    public function withMethods(bool $withMethods = true): static
+    {
+        $this->withMethods = $withMethods;
+
+        return $this;
+    }
+
     public function convert(Enum $enum): Result
     {
         $name = str($enum->name)->afterLast('\\')->toString();
@@ -17,12 +27,14 @@ class Enums extends Converter
             $path,
             TypeScript::type(
                 $name,
-                TypeScript::union(
-                    collect($enum->cases)
-                        ->map(fn ($case) => is_string($case) ? "'{$case}'" : (string) $case)
-                        ->values()
-                        ->all(),
-                ),
+                $enum->cases === []
+                    ? 'never'
+                    : TypeScript::union(
+                        collect($enum->cases)
+                            ->map(fn ($case) => is_string($case) ? TypeScript::quote($case) : (string) $case)
+                            ->values()
+                            ->all(),
+                    ),
             )
                 ->referenceClass($enum->name, $enum->filePath())
                 ->export(),
@@ -42,7 +54,9 @@ class Enums extends Converter
             }
         }
 
-        $content[] = '';
+        if ($content !== []) {
+            $content[] = '';
+        }
 
         $obj = TypeScript::object()->inline();
 
@@ -60,9 +74,59 @@ class Enums extends Converter
             ->asConst()
             ->link($enum->name, $enum->filepath());
 
+        // Resolving meta calls the enum's own methods, so ranger is only asked
+        // for it when it is going to be written.
+        $meta = $this->withMethods ? EnumMeta::literals($enum->meta()) : [];
+
+        if ($meta !== []) {
+            $content[] = '';
+            $content[] = $this->metaConstant($name, $enum, $meta);
+        }
+
         $content[] = '';
         $content[] = TypeScript::block($name)->exportDefault();
 
         return new Result($path.'.ts', implode(PHP_EOL, $content));
+    }
+
+    /**
+     * @param  array<string, array<string, string>>  $meta
+     */
+    protected function metaConstant(string $name, Enum $enum, array $meta): string
+    {
+        $obj = TypeScript::object();
+
+        // Keyed by case value rather than case name so a value handed back by
+        // the server can be used as the lookup key directly.
+        foreach ($enum->cases as $case => $value) {
+            if (! isset($meta[$case])) {
+                continue;
+            }
+
+            $values = TypeScript::object();
+
+            foreach ($meta[$case] as $method => $literal) {
+                $values->key($method)->value($literal);
+            }
+
+            $obj->key((string) $value)->value((string) $values);
+        }
+
+        return (string) TypeScript::constant($this->metaConstantName($name, $enum), (string) $obj)
+            ->export()
+            ->asConst()
+            ->link($enum->name, $enum->filepath());
+    }
+
+    protected function metaConstantName(string $name, Enum $enum): string
+    {
+        $taken = array_keys($enum->cases);
+        $constant = $name.'Meta';
+
+        while (in_array($constant, $taken, true)) {
+            $constant .= 'Meta';
+        }
+
+        return $constant;
     }
 }

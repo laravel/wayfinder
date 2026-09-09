@@ -7,19 +7,24 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   lint:
-    uses: laravel/.github/.github/workflows/coding-standards.yml@main
+    uses: laravel/.github/.github/workflows/coding-standards.yml@41cb33d868e3f67ea2c9bb53f1ebd9a379400f63 # main
     with:
       php: "8.3"
   format:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: true
 
       - name: Install dependencies
         run: npm install
@@ -28,6 +33,6 @@ jobs:
         run: npm run format
 
       - name: Commit formatted files
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
         with:
           commit_message: "Fix code style"

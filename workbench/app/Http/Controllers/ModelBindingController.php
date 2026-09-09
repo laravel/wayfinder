@@ -10,4 +10,9 @@ class ModelBindingController
     {
         //
     }
+
+    public function nullableBinding(User $user)
+    {
+        //
+    }
 }

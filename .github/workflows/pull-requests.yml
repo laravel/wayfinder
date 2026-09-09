@@ -9,4 +9,4 @@ permissions:
 
 jobs:
   uneditable:
-    uses: laravel/.github/.github/workflows/pull-requests.yml@main
+    uses: laravel/.github/.github/workflows/pull-requests.yml@41cb33d868e3f67ea2c9bb53f1ebd9a379400f63 # main

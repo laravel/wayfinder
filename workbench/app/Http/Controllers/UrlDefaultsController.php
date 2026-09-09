@@ -13,4 +13,9 @@ class UrlDefaultsController
     {
         //
     }
+
+    public function quotedDefaults()
+    {
+        //
+    }
 }

@@ -65,8 +65,7 @@ class GenerateCommandTest extends TestCase
             '--path='.$this->tempPath,
             '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
             '--base-path='.join_paths($this->rootPath, 'workbench'),
-            '--fresh',
-        ], $this->rootPath, $env);
+        ], $this->rootPath, ['WAYFINDER_CACHE_ENABLED' => 'false', ...$env]);
 
         $process->setTimeout(60);
         $process->run();
@@ -162,7 +161,7 @@ class GenerateCommandTest extends TestCase
         // A cold cache needs more than PHP's 128M default (laravel/wayfinder#167).
         // 64M rather than 128M so the two ways this can stop testing anything
         // stay far off: booting far enough to raise the limit takes ~32M, and
-        // an unraised run needs ~131M.
+        // an unraised run needs ~160M.
         $process = $this->runGenerate(['-d', 'memory_limit=64M']);
 
         $this->assertTrue(

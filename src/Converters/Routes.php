@@ -133,7 +133,7 @@ class Routes extends Converter
 
                     $inFile = in_array($firstSubDir, array_column($this->exports[$path], 'originalMethod'));
 
-                    $resultImports->addDefault('./'.$firstSubDir, $safeFirstSubDirMethod = TypeScript::safeMethod($firstSubDir, 'Method'), safe: $inFile);
+                    $resultImports->addDefault($this->subDirImportPath($firstSubDir), $safeFirstSubDirMethod = TypeScript::safeMethod($firstSubDir, 'Method'), safe: $inFile);
 
                     $subDirImportNames->push($safeFirstSubDirMethod);
 
@@ -200,6 +200,16 @@ class Routes extends Converter
             ->filter(fn (Route $route) => $route->name())
             ->groupBy(fn (Route $route) => str_contains($route->name(), '.') ? str($route->name())->beforeLast('.')->toString() : '')
             ->each($this->writeNamedFile(...));
+    }
+
+    /**
+     * A subdirectory named "index" holds its barrel at "index/index.ts", but
+     * every resolver prefers the sibling "index.ts" for "./index", so it has
+     * to be named in full or the barrel silently imports itself.
+     */
+    protected function subDirImportPath(string $subDir): string
+    {
+        return $subDir === 'index' ? './index/index' : './'.$subDir;
     }
 
     protected function writeNamedFile(Collection $routes, string $namespace): void
@@ -328,6 +338,10 @@ class Routes extends Converter
 
         if ($routes->first(fn (Route $route) => $route->parameters()->isNotEmpty())) {
             $this->imports[$path]->add($pathKey, 'applyUrlDefaults');
+        }
+
+        if ($routes->first(fn (Route $route) => $route->parameters()->first(fn (RouteParameter $parameter) => RouteMethod::hasNullableKey($parameter)))) {
+            $this->imports[$path]->add($pathKey, 'requireParameter');
         }
     }
 }
