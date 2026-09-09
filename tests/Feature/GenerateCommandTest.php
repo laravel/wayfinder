@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
+use Laravel\Wayfinder\Console\GenerateCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
@@ -163,6 +165,96 @@ class GenerateCommandTest extends TestCase
                 .$process->getErrorOutput().$process->getOutput()
         );
         $this->assertFileExists(join_paths($this->tempPath, 'index.ts'));
+    }
+
+    public function test_a_capped_memory_limit_is_raised_to_a_bound(): void
+    {
+        // Not removed: a runaway analysis should still stop with a PHP error
+        // rather than being killed by the OS without one.
+        $this->assertSame('1536M', $this->limitAfterRaising('256M'));
+    }
+
+    public function test_a_memory_limit_above_the_bound_is_left_alone(): void
+    {
+        $this->assertSame('2048M', $this->limitAfterRaising('2048M'));
+    }
+
+    public function test_an_uncapped_memory_limit_is_left_alone(): void
+    {
+        $this->assertSame('-1', $this->limitAfterRaising('-1'));
+    }
+
+    public function test_a_configured_limit_is_used_above_the_bound(): void
+    {
+        $this->assertSame('4096M', $this->limitAfterRaising('256M', '4096M'));
+    }
+
+    public function test_a_configured_limit_is_used_below_the_bound(): void
+    {
+        // Someone who has named a limit has overridden the bound, not asked to
+        // be raised to it.
+        $this->assertSame('256M', $this->limitAfterRaising('512M', '256M'));
+    }
+
+    public function test_a_configured_limit_can_remove_the_cap(): void
+    {
+        $this->assertSame('-1', $this->limitAfterRaising('256M', '-1'));
+    }
+
+    public function test_a_configured_limit_php_rejects_falls_back_to_the_bound(): void
+    {
+        $this->assertSame('1536M', $this->limitAfterRaising('256M', 'not-a-size'));
+    }
+
+    public function test_a_rejected_configured_limit_is_reported_and_generation_continues(): void
+    {
+        $process = new Process([
+            PHP_BINARY,
+            '-d',
+            'memory_limit=128M',
+            join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
+            'wayfinder:generate',
+            '--path='.$this->tempPath,
+            '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
+            '--base-path='.join_paths($this->rootPath, 'workbench'),
+            '--fresh',
+        ], $this->rootPath, ['WAYFINDER_MEMORY_LIMIT' => 'not-a-size']);
+
+        $process->setTimeout(60);
+        $process->run();
+
+        $output = $process->getOutput().$process->getErrorOutput();
+
+        $this->assertTrue($process->isSuccessful(), 'wayfinder:generate failed: '.$output);
+        $this->assertStringContainsString('not-a-size', $output);
+        $this->assertFileExists(join_paths($this->tempPath, 'index.ts'));
+    }
+
+    /**
+     * Run raiseMemoryLimit() against a starting limit, optionally with one
+     * configured, and report where it left it. Every value has to be above
+     * what the suite is already using, or PHP refuses it.
+     */
+    private function limitAfterRaising(string $start, ?string $configured = null): string
+    {
+        $original = ini_get('memory_limit');
+
+        try {
+            ini_set('memory_limit', $start);
+
+            $command = (new \ReflectionClass(GenerateCommand::class))->newInstanceWithoutConstructor();
+
+            (new \ReflectionProperty($command, 'config'))->setValue(
+                $command,
+                new Repository(['wayfinder' => ['memory_limit' => $configured]]),
+            );
+
+            (new \ReflectionMethod($command, 'raiseMemoryLimit'))->invoke($command);
+
+            return (string) ini_get('memory_limit');
+        } finally {
+            ini_set('memory_limit', $original);
+        }
     }
 
     public function test_noop_regenerate_does_not_touch_any_file(): void
