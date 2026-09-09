@@ -94,6 +94,21 @@ class MiddlewareUrlDefaultsTest extends TestCase
         $this->assertStringContainsString("url: '/group-defaults/{locale?}'", $this->generate('group'));
     }
 
+    public function test_url_defaults_are_dropped_when_the_middleware_is_excluded_by_alias(): void
+    {
+        // Excluded middleware runs through the same alias map, so without the kernel's aliases
+        // the exclusion is missed and the parameter is wrongly reported as optional.
+        $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setMiddlewareAliases([
+            'url-defaults' => UrlDefaultsMiddleware::class,
+        ]));
+
+        Route::middleware(UrlDefaultsMiddleware::class)
+            ->withoutMiddleware('url-defaults')
+            ->get('/excluded-defaults/{locale}', fn () => '')->name('excluded.defaults');
+
+        $this->assertStringContainsString("url: '/excluded-defaults/{locale}'", $this->generate('excluded'));
+    }
+
     public function test_route_middleware_defaults_win_over_global_middleware_defaults(): void
     {
         $this->app->afterResolving(Kernel::class, fn ($kernel) => $kernel->setGlobalMiddleware([
