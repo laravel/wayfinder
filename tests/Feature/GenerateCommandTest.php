@@ -43,22 +43,40 @@ class GenerateCommandTest extends TestCase
 
     private function generate(): void
     {
+        $process = $this->runGenerate();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            'wayfinder:generate failed: '.$this->outputOf($process)
+        );
+    }
+
+    /**
+     * @param  list<string>  $phpArgs  Passed to PHP itself, ahead of the script.
+     * @param  array<string, string>  $env  Added to the environment it inherits.
+     */
+    private function runGenerate(array $phpArgs = [], array $env = []): Process
+    {
         $process = new Process([
+            PHP_BINARY,
+            ...$phpArgs,
             join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
             'wayfinder:generate',
             '--path='.$this->tempPath,
             '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
             '--base-path='.join_paths($this->rootPath, 'workbench'),
             '--fresh',
-        ], $this->rootPath);
+        ], $this->rootPath, $env);
 
         $process->setTimeout(60);
         $process->run();
 
-        $this->assertTrue(
-            $process->isSuccessful(),
-            'wayfinder:generate failed: '.$process->getErrorOutput().$process->getOutput()
-        );
+        return $process;
+    }
+
+    private function outputOf(Process $process): string
+    {
+        return $process->getErrorOutput().$process->getOutput();
     }
 
     public function test_generated_files_exist_after_generate(): void
@@ -145,25 +163,11 @@ class GenerateCommandTest extends TestCase
         // 64M rather than 128M so the two ways this can stop testing anything
         // stay far off: booting far enough to raise the limit takes ~32M, and
         // an unraised run needs ~131M.
-        $process = new Process([
-            PHP_BINARY,
-            '-d',
-            'memory_limit=64M',
-            join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
-            'wayfinder:generate',
-            '--path='.$this->tempPath,
-            '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
-            '--base-path='.join_paths($this->rootPath, 'workbench'),
-            '--fresh',
-        ], $this->rootPath);
-
-        $process->setTimeout(60);
-        $process->run();
+        $process = $this->runGenerate(['-d', 'memory_limit=64M']);
 
         $this->assertTrue(
             $process->isSuccessful(),
-            'wayfinder:generate failed under a 64M memory limit: '
-                .$process->getErrorOutput().$process->getOutput()
+            'wayfinder:generate failed under a 64M memory limit: '.$this->outputOf($process)
         );
         $this->assertFileExists(join_paths($this->tempPath, 'index.ts'));
     }
@@ -209,22 +213,12 @@ class GenerateCommandTest extends TestCase
 
     public function test_a_rejected_configured_limit_is_reported_and_generation_continues(): void
     {
-        $process = new Process([
-            PHP_BINARY,
-            '-d',
-            'memory_limit=128M',
-            join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
-            'wayfinder:generate',
-            '--path='.$this->tempPath,
-            '--app-path='.join_paths($this->rootPath, 'workbench', 'app'),
-            '--base-path='.join_paths($this->rootPath, 'workbench'),
-            '--fresh',
-        ], $this->rootPath, ['WAYFINDER_MEMORY_LIMIT' => 'not-a-size']);
+        $process = $this->runGenerate(
+            ['-d', 'memory_limit=128M'],
+            ['WAYFINDER_MEMORY_LIMIT' => 'not-a-size'],
+        );
 
-        $process->setTimeout(60);
-        $process->run();
-
-        $output = $process->getOutput().$process->getErrorOutput();
+        $output = $this->outputOf($process);
 
         $this->assertTrue($process->isSuccessful(), 'wayfinder:generate failed: '.$output);
         $this->assertStringContainsString('not-a-size', $output);
