@@ -139,15 +139,16 @@ class GenerateCommandTest extends TestCase
         $this->assertSame($beforeMtime, filemtime($sample));
     }
 
-    public function test_generate_completes_under_default_memory_limit(): void
+    public function test_generate_completes_under_a_low_memory_limit(): void
     {
-        // The static analysis pass can exceed PHP's default 128M limit on a
-        // cold cache (laravel/wayfinder#167). Generation must complete rather
-        // than fatal with an out-of-memory error.
+        // A cold cache needs more than PHP's 128M default (laravel/wayfinder#167).
+        // 64M rather than 128M so the two ways this can stop testing anything
+        // stay far off: booting far enough to raise the limit takes ~32M, and
+        // an unraised run needs ~131M.
         $process = new Process([
             PHP_BINARY,
             '-d',
-            'memory_limit=128M',
+            'memory_limit=64M',
             join_paths($this->rootPath, 'vendor', 'bin', 'testbench'),
             'wayfinder:generate',
             '--path='.$this->tempPath,
@@ -161,7 +162,7 @@ class GenerateCommandTest extends TestCase
 
         $this->assertTrue(
             $process->isSuccessful(),
-            'wayfinder:generate failed under the default 128M memory limit: '
+            'wayfinder:generate failed under a 64M memory limit: '
                 .$process->getErrorOutput().$process->getOutput()
         );
         $this->assertFileExists(join_paths($this->tempPath, 'index.ts'));
