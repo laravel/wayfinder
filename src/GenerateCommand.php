@@ -3,6 +3,7 @@
 namespace Laravel\Wayfinder;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\Route as BaseRoute;
 use Illuminate\Routing\Router;
@@ -25,6 +26,8 @@ class GenerateCommand extends Command
     private ?string $forcedRoot;
 
     private $urlDefaults = [];
+
+    private $globalMiddleware = [];
 
     private $pathDirectory = 'actions';
 
@@ -52,21 +55,17 @@ class GenerateCommand extends Command
         $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
 
+        $this->syncMiddlewareFromHttpKernel();
+
         $this->forcedScheme = (new ReflectionProperty($this->url, 'forceScheme'))->getValue($this->url);
         $this->forcedRoot = (new ReflectionProperty($this->url, 'forcedRoot'))->getValue($this->url);
 
-        $globalUrlDefaults = collect(URL::getDefaultParameters())->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '');
+        $globalUrlDefaults = collect(URL::getDefaultParameters())
+            ->map(fn ($v) => is_scalar($v) || is_null($v) ? $v : '')
+            ->merge($this->urlDefaultsForMiddleware($this->globalMiddleware));
 
         $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
-            $defaults = collect($this->router->gatherRouteMiddleware($route))->map(function ($middleware) {
-                if ($middleware instanceof \Closure) {
-                    return [];
-                }
-
-                $this->urlDefaults[$middleware] ??= $this->getDefaultsForMiddleware($middleware);
-
-                return $this->urlDefaults[$middleware];
-            })->flatMap(fn ($r) => $r);
+            $defaults = $this->urlDefaultsForMiddleware($this->router->gatherRouteMiddleware($route));
 
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
@@ -96,6 +95,45 @@ class GenerateCommand extends Command
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+    }
+
+    private function syncMiddlewareFromHttpKernel(): void
+    {
+        if (! $this->laravel->bound(HttpKernel::class)) {
+            return;
+        }
+
+        $groups = $this->router->getMiddlewareGroups();
+        $aliases = $this->router->getMiddleware();
+
+        // Resolving the kernel syncs its middleware onto the router, overwriting existing groups
+        $kernel = $this->laravel->make(HttpKernel::class);
+
+        foreach ($groups as $group => $middleware) {
+            foreach ($middleware as $name) {
+                $this->router->pushMiddlewareToGroup($group, $name);
+            }
+        }
+
+        foreach ($aliases as $name => $class) {
+            $this->router->aliasMiddleware($name, $class);
+        }
+
+        // Global middleware is never synced to the router, and the getter is not on the kernel contract
+        if (method_exists($kernel, 'getGlobalMiddleware')) {
+            $this->globalMiddleware = $kernel->getGlobalMiddleware();
+        }
+    }
+
+    private function urlDefaultsForMiddleware(array $middleware): Collection
+    {
+        return collect($middleware)
+            ->reject(fn ($name) => $name instanceof \Closure)
+            ->flatMap(function ($name) {
+                $this->urlDefaults[$name] ??= $this->getDefaultsForMiddleware($name);
+
+                return $this->urlDefaults[$name];
+            });
     }
 
     private function writeWayfinderHelperFile(): void
