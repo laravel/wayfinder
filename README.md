@@ -135,6 +135,9 @@ Add query parameters to any route:
 PostController.index({ query: { page: 2, sort: "created_at" } });
 // { url: '/posts?page=2&sort=created_at', method: 'get' }
 
+PostController.index({ query: { active: [true, false] } });
+// { url: '/posts?active[]=1&active[]=0', method: 'get' }
+
 // Merge with existing query string
 PostController.index({ mergeQuery: { page: 3 } });
 ```
