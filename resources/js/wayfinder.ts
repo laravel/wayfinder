@@ -1,4 +1,4 @@
-type QueryParamValue = string | number | boolean;
+export type QueryParamValue = string | number | boolean;
 
 export type QueryParams = {
     [key: string]:
