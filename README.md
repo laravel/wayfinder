@@ -585,12 +585,16 @@ Wayfinder generates:
 
 ```typescript
 export type BroadcastEvent =
-    | ".App.Events.OrderShipped"
-    | ".App.Events.UserNotification";
+    | ".App\\Events\\OrderShipped"
+    | ".App\\Events\\UserNotification";
 
 export const BroadcastEvents = {
-    "App.Events.OrderShipped": ".App.Events.OrderShipped",
-    "App.Events.UserNotification": ".App.Events.UserNotification",
+    App: {
+        Events: {
+            OrderShipped: ".App\\Events\\OrderShipped",
+            UserNotification: ".App\\Events\\UserNotification",
+        },
+    },
 } as const;
 
 // Event payload types in types.d.ts
@@ -609,9 +613,12 @@ If you have `@laravel/echo-vue` or `@laravel/echo-react` installed, Wayfinder ge
 
 ```typescript
 // echo-broadcast-events.d.ts
+import "@laravel/echo-vue";
+import { App } from "./types";
+
 declare module "@laravel/echo-vue" {
     interface Events {
-        ".App.Events.OrderShipped": {
+        ".App\\Events\\OrderShipped": {
             orderId: number;
             trackingNumber: string;
             carrier: string;
@@ -623,7 +630,10 @@ declare module "@laravel/echo-vue" {
 This provides full type safety when listening to events:
 
 ```typescript
-useEcho("orders." + orderId).listen("OrderShipped", (e) => {
+import { useEcho } from "@laravel/echo-vue";
+import { BroadcastEvents } from "@/wayfinder/broadcast-events";
+
+useEcho("orders." + orderId, BroadcastEvents.App.Events.OrderShipped, (e) => {
     // e is fully typed!
     console.log(e.trackingNumber);
 });

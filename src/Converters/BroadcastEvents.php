@@ -65,14 +65,13 @@ class BroadcastEvents extends Converter
             ),
         );
 
-        $content = [];
+        $imports = Imports::create()->addSideEffect($echoPackage);
 
         if ($namespaceRoots->isNotEmpty()) {
-            $content[] = (string) Imports::create()->add('./types', $namespaceRoots->all());
-            $content[] = '';
+            $imports->add('./types', $namespaceRoots->all());
         }
 
-        return implode(PHP_EOL, $content).PHP_EOL.TypeScript::module(
+        return $imports.PHP_EOL.PHP_EOL.TypeScript::module(
             $echoPackage,
             TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL))
         );
@@ -127,6 +126,6 @@ class BroadcastEvents extends Converter
 
     protected function toEventName(string $name)
     {
-        return '.'.str_replace('\\', '.', $name);
+        return '.'.$name;
     }
 }
