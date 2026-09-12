@@ -614,7 +614,6 @@ If you have `@laravel/echo-vue` or `@laravel/echo-react` installed, Wayfinder ge
 ```typescript
 // echo-broadcast-events.d.ts
 import "@laravel/echo-vue";
-import { App } from "./types";
 
 declare module "@laravel/echo-vue" {
     interface Events {
