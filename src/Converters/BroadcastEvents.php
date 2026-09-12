@@ -24,9 +24,6 @@ class BroadcastEvents extends Converter
         $results = [];
 
         $namespacedEvents = $events->filter(fn ($event) => str_contains($event->name, '\\'));
-        $namespaceRoots = $namespacedEvents
-            ->map(fn (BroadcastEvent $event) => str($event->name)->before('\\')->toString())
-            ->unique();
         $grouped = $events->groupBy(fn (BroadcastEvent $event) => $event->name);
 
         $namespacedEvents->each(
@@ -43,14 +40,14 @@ class BroadcastEvents extends Converter
 
         $results[] = new Result('broadcast-events.ts', $this->fileContent($grouped));
 
-        if ($echoPackageContent = $this->echoFileContent($grouped, $namespaceRoots)) {
+        if ($echoPackageContent = $this->echoFileContent($grouped)) {
             $results[] = new Result('echo-broadcast-events.d.ts', $echoPackageContent);
         }
 
         return $results;
     }
 
-    protected function echoFileContent(Collection $grouped, Collection $namespaceRoots): ?string
+    protected function echoFileContent(Collection $grouped): ?string
     {
         $echoPackage = Npm::findFirstInstalledPackage(['@laravel/echo-vue', '@laravel/echo-react']);
 
@@ -58,21 +55,29 @@ class BroadcastEvents extends Converter
             return null;
         }
 
-        $eventsInterface = $grouped->map(
-            fn ($events, $key) => (string) TypeScript::objectKeyValue(
+        $eventPayloads = $grouped->map(
+            fn ($events) => (string) TypeScript::objectToTypeObject($events->first()->data->value, false),
+        );
+
+        $eventsInterface = $eventPayloads->map(
+            fn ($payload, $key) => (string) TypeScript::objectKeyValue(
                 $this->toEventName($key),
-                TypeScript::objectToTypeObject($events->first()->data->value, false)
+                $payload,
             ),
         );
 
-        $content = [];
+        // Ignore JSON-quoted payload keys when discovering type references.
+        $unquotedPayloads = preg_replace('/"(?:[^"\\\\]|\\\\.)*"/', '', $eventPayloads->implode(PHP_EOL));
 
-        if ($namespaceRoots->isNotEmpty()) {
-            $content[] = (string) Imports::create()->add('./types', $namespaceRoots->all());
-            $content[] = '';
+        preg_match_all('/(?<!\.)([A-Z][a-zA-Z0-9]*)(?=\.[A-Z])/', $unquotedPayloads, $matches);
+
+        $imports = Imports::create()->addSideEffect($echoPackage);
+
+        if (count($matches[0]) > 0) {
+            $imports->add('./types', $matches[0]);
         }
 
-        return implode(PHP_EOL, $content).PHP_EOL.TypeScript::module(
+        return $imports.PHP_EOL.PHP_EOL.TypeScript::module(
             $echoPackage,
             TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL))
         );
@@ -127,6 +132,6 @@ class BroadcastEvents extends Converter
 
     protected function toEventName(string $name)
     {
-        return '.'.str_replace('\\', '.', $name);
+        return '.'.$name;
     }
 }
