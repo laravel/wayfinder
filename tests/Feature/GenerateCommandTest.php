@@ -87,6 +87,21 @@ class GenerateCommandTest extends TestCase
         $this->assertNotEmpty($this->files->allFiles($this->tempPath));
     }
 
+    public function test_source_references_are_relative_to_the_base_path(): void
+    {
+        $this->generate();
+
+        $basePath = join_paths($this->rootPath, 'workbench').DIRECTORY_SEPARATOR;
+
+        $contents = collect($this->files->allFiles($this->tempPath))
+            ->map(fn ($file) => $this->files->get($file->getPathname()))
+            ->implode(PHP_EOL);
+
+        $this->assertStringNotContainsString($basePath, $contents);
+        $this->assertMatchesRegularExpression('#@see app/Http/Controllers/\w+\.php:\d+#', $contents);
+        $this->assertMatchesRegularExpression('#@see \[[^\]]+\]\(app/[^)]+\.php\)#', $contents);
+    }
+
     public function test_stale_files_are_removed_while_current_files_are_kept(): void
     {
         $this->generate();

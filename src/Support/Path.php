@@ -30,4 +30,19 @@ class Path
 
         return null;
     }
+
+    public static function relativeToBasePath(string $path): string
+    {
+        foreach (static::$basePaths as $basePath) {
+            foreach (array_unique([$basePath, realpath($basePath) ?: $basePath]) as $candidate) {
+                $prefix = rtrim($candidate, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+                if (str_starts_with($path, $prefix)) {
+                    return str_replace(DIRECTORY_SEPARATOR, '/', substr($path, strlen($prefix)));
+                }
+            }
+        }
+
+        return $path;
+    }
 }
