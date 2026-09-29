@@ -3,6 +3,7 @@
 namespace Laravel\Wayfinder\Langs\Concerns;
 
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Support\Path;
 
 trait HasMeta
 {
@@ -13,7 +14,6 @@ trait HasMeta
         $class = $this->prepClass($class);
 
         if ($path) {
-            $path = $this->prepPath($path);
             $this->link("{$class}::{$method}", $path);
         } else {
             $this->meta[] = sprintf('@see %s::%s', $class, $method);
@@ -27,7 +27,6 @@ trait HasMeta
         $class = $this->prepClass($class);
 
         if ($path) {
-            $path = $this->prepPath($path);
             $this->link($class, $path);
         } else {
             $this->meta[] = '@see '.$class;
@@ -38,14 +37,14 @@ trait HasMeta
 
     public function link(string $text, ?string $url = null): static
     {
-        $this->meta[] = sprintf('@see [%s](%s)', $text, $url ?? $text);
+        $this->meta[] = sprintf('@see [%s](%s)', $text, $url === null ? $text : $this->prepPath($url));
 
         return $this;
     }
 
     public function referenceFile(string $path, ?int $lineNumber = null): static
     {
-        $this->meta[] = sprintf('@see %s:%d', str($path)->start(DIRECTORY_SEPARATOR)->toString(), $lineNumber);
+        $this->meta[] = sprintf('@see %s:%d', $this->prepPath($path), $lineNumber);
 
         return $this;
     }
@@ -73,6 +72,6 @@ trait HasMeta
 
     protected function prepPath(string $path): string
     {
-        return str($path)->start(DIRECTORY_SEPARATOR)->toString();
+        return Path::relativeToBasePath($path);
     }
 }
