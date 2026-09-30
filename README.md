@@ -94,6 +94,15 @@ show.url(1); // "/posts/1"
 show.head(1); // { url: "/posts/1", method: "head" }
 ```
 
+Routes registered with the [`QUERY`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/QUERY) method, such as `Route::match(['QUERY'], '/search', ...)`, receive a `query` method like any other verb:
+
+```ts
+import { search } from "@/actions/App/Http/Controllers/SearchController";
+
+search(); // { url: "/search", method: "query" }
+search.query(); // { url: "/search", method: "query" }
+```
+
 Wayfinder functions accept a variety of shapes for their arguments:
 
 ```ts
@@ -243,6 +252,8 @@ const Page = () => (
     </form>
 );
 ```
+
+Since HTML forms only support `GET` and `POST`, `QUERY` routes are spoofed the same way as `PUT`, `PATCH`, and `DELETE`: `search.form()` produces `<form action="/search?_method=QUERY" method="post">`.
 
 ## Query Parameters
 
