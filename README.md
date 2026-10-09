@@ -159,6 +159,13 @@ PostController.index.head();
 PostController.update.patch({ post: 1 });
 ```
 
+Routes registered with the [`QUERY`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/QUERY) method, such as `Route::match(['QUERY'], '/search', ...)`, receive a `query` variant like any other verb:
+
+```typescript
+SearchController.index(); // { url: '/search', method: 'query' }
+SearchController.index.query(); // { url: '/search', method: 'query' }
+```
+
 ### Form-Safe Routes
 
 HTML forms only support GET and POST methods. Wayfinder provides `.form` variants that automatically add Laravel's `_method` field for method spoofing:
@@ -169,6 +176,9 @@ PostController.update.form({ post: 1 });
 
 PostController.destroy.form({ post: 1 });
 // { action: '/posts/1?_method=DELETE', method: 'post' }
+
+SearchController.index.form();
+// { action: '/search?_method=QUERY', method: 'post' }
 ```
 
 Use these with HTML forms, for example, in React:

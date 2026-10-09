@@ -9,7 +9,8 @@ export type QueryParams = {
         | QueryParams;
 };
 
-type Method = "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
+type Method =
+    "get" | "post" | "put" | "delete" | "patch" | "head" | "options" | "query";
 type UrlDefaults = Record<string, unknown>;
 
 let urlDefaults: () => UrlDefaults = () => ({});
