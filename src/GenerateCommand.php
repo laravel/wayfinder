@@ -19,7 +19,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form} {--relative}';
 
     private ?string $forcedScheme;
 
@@ -67,7 +67,13 @@ class GenerateCommand extends Command
         $routes = collect($this->router->getRoutes())->map(function (BaseRoute $route) use ($globalUrlDefaults) {
             $defaults = $this->urlDefaultsForMiddleware($this->router->gatherRouteMiddleware($route));
 
-            return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
+            return new Route(
+                $route,
+                $globalUrlDefaults->merge($defaults),
+                $this->forcedScheme,
+                $this->forcedRoot,
+                (bool) $this->option('relative'),
+            );
         });
 
         $this->writeWayfinderHelperFile();
