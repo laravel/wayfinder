@@ -2,7 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.21...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.22...main)
+
+## [v0.1.22](https://github.com/laravel/wayfinder/compare/v0.1.21...v0.1.22) - 2026-10-15
+
+### What's Changed
+
+* Fix plural in wayfinder-development skill description by [@Hashim1999164](https://github.com/Hashim1999164) in https://github.com/laravel/wayfinder/pull/291
+* Key routes that share a URI by verb by [@lazerg](https://github.com/lazerg) in https://github.com/laravel/wayfinder/pull/303
+* Fix barrel self-import when a route name is both a leaf and a prefix … by [@imanimen](https://github.com/imanimen) in https://github.com/laravel/wayfinder/pull/317
+* Resolve middleware aliases when inferring URL defaults by [@lazerg](https://github.com/lazerg) in https://github.com/laravel/wayfinder/pull/295
+* Remove security policy in favor of the org-wide default by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/wayfinder/pull/327
+* Support the QUERY HTTP method by [@joelbutcher](https://github.com/joelbutcher) in https://github.com/laravel/wayfinder/pull/324
+
+### New Contributors
+
+* [@Hashim1999164](https://github.com/Hashim1999164) made their first contribution in https://github.com/laravel/wayfinder/pull/291
+* [@lazerg](https://github.com/lazerg) made their first contribution in https://github.com/laravel/wayfinder/pull/303
+* [@imanimen](https://github.com/imanimen) made their first contribution in https://github.com/laravel/wayfinder/pull/317
+* [@joelbutcher](https://github.com/joelbutcher) made their first contribution in https://github.com/laravel/wayfinder/pull/324
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.21...v0.1.22
 
 ## [v0.1.21](https://github.com/laravel/wayfinder/compare/v0.1.20...v0.1.21) - 2026-08-04
 
