@@ -20,9 +20,20 @@ class BindingResolver
 
     protected static $columns = [];
 
+    protected static bool $useModelDocblocks = false;
+
     protected static ?PhpDocParser $docParser = null;
 
     protected static ?Lexer $lexer = null;
+
+    public static function useModelDocblocks(bool $use): void
+    {
+        if (self::$useModelDocblocks !== $use) {
+            self::$columns = [];
+        }
+
+        self::$useModelDocblocks = $use;
+    }
 
     public static function resolveTypeAndKey(string $routable, $key): array
     {
@@ -46,6 +57,10 @@ class BindingResolver
 
     protected static function getColumns(Model $model): array
     {
+        if (self::$useModelDocblocks) {
+            return self::parseDocBlock($model);
+        }
+
         try {
             return $model->getConnection()->getSchemaBuilder()->getColumns($model->getTable());
         } catch (Throwable) {

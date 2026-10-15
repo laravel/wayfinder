@@ -62,6 +62,12 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+The `--model-docblocks` option reads Eloquent `@property` docblocks for route model binding types instead of querying the database schema:
+
+```
+php artisan wayfinder:generate --model-docblocks
+```
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ### Deploying

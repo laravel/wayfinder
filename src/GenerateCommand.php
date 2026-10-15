@@ -19,7 +19,7 @@ use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
 {
-    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--with-form}';
+    protected $signature = 'wayfinder:generate {--path=} {--skip-actions} {--skip-routes} {--model-docblocks} {--with-form}';
 
     private ?string $forcedScheme;
 
@@ -52,6 +52,8 @@ class GenerateCommand extends Command
 
     public function handle()
     {
+        BindingResolver::useModelDocblocks((bool) $this->option('model-docblocks'));
+
         $this->view->addNamespace('wayfinder', __DIR__.'/../resources');
         $this->view->addExtension('blade.ts', 'blade');
 
