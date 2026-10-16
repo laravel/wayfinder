@@ -62,6 +62,12 @@ php artisan wayfinder:generate --skip-actions
 php artisan wayfinder:generate --skip-routes
 ```
 
+The `--skip-database` option skips the database schema when typing route model bindings and reads the model's `@property` docblocks instead. Use it when the database is unreachable at build time. Bindings without a matching `@property` tag fall back to `string | number`:
+
+```
+php artisan wayfinder:generate --skip-database
+```
+
 You can safely `.gitignore` the `wayfinder`, `actions`, and `routes` directories as they are completely re-generated on every build.
 
 ### Deploying
