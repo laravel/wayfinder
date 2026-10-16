@@ -12,7 +12,7 @@ use Orchestra\Testbench\TestCase;
 
 use function Illuminate\Filesystem\join_paths;
 
-class ModelDocblocksTest extends TestCase
+class SkipDatabaseTest extends TestCase
 {
     private string $tempPath;
 
@@ -38,7 +38,7 @@ class ModelDocblocksTest extends TestCase
         parent::setUp();
 
         $this->files = new Filesystem;
-        $this->tempPath = join_paths(sys_get_temp_dir(), 'wayfinder-docblocks-'.uniqid());
+        $this->tempPath = join_paths(sys_get_temp_dir(), 'wayfinder-skip-database-'.uniqid());
 
         Schema::create('docblock_posts', function (Blueprint $table) {
             $table->id();
@@ -56,19 +56,19 @@ class ModelDocblocksTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_model_docblocks_are_used_instead_of_the_schema(): void
+    public function test_skipping_the_database_reads_model_docblocks(): void
     {
         $this->assertStringContainsString('post: number', $this->generate());
 
-        $this->assertStringContainsString('post: string', $this->generate(modelDocblocks: true));
+        $this->assertStringContainsString('post: string', $this->generate(skipDatabase: true));
     }
 
-    private function generate(bool $modelDocblocks = false): string
+    private function generate(bool $skipDatabase = false): string
     {
         $this->artisan('wayfinder:generate', [
             '--path' => $this->tempPath,
             '--skip-actions' => true,
-            '--model-docblocks' => $modelDocblocks,
+            '--skip-database' => $skipDatabase,
         ])->assertSuccessful();
 
         return $this->files->get(join_paths($this->tempPath, 'routes', 'docblock-posts', 'index.ts'));

@@ -20,19 +20,19 @@ class BindingResolver
 
     protected static $columns = [];
 
-    protected static bool $useModelDocblocks = false;
+    protected static bool $skipDatabase = false;
 
     protected static ?PhpDocParser $docParser = null;
 
     protected static ?Lexer $lexer = null;
 
-    public static function useModelDocblocks(bool $use): void
+    public static function skipDatabase(bool $skip): void
     {
-        if (self::$useModelDocblocks !== $use) {
+        if (self::$skipDatabase !== $skip) {
             self::$columns = [];
         }
 
-        self::$useModelDocblocks = $use;
+        self::$skipDatabase = $skip;
     }
 
     public static function resolveTypeAndKey(string $routable, $key): array
@@ -57,15 +57,15 @@ class BindingResolver
 
     protected static function getColumns(Model $model): array
     {
-        if (self::$useModelDocblocks) {
-            return self::parseDocBlock($model);
+        if (! self::$skipDatabase) {
+            try {
+                return $model->getConnection()->getSchemaBuilder()->getColumns($model->getTable());
+            } catch (Throwable) {
+                //
+            }
         }
 
-        try {
-            return $model->getConnection()->getSchemaBuilder()->getColumns($model->getTable());
-        } catch (Throwable) {
-            return self::parseDocBlock($model);
-        }
+        return self::parseDocBlock($model);
     }
 
     protected static function parseDocBlock(Model $model): array
