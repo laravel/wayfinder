@@ -113,3 +113,5 @@ Route::get('/photos', fn () => 'ok')->name('photos.index');
 Route::get('/photos/window', fn () => 'ok')->name('photos.index.window');
 
 Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');
+
+Route::redirect('/old-photos', '/photos')->name('photos.redirect');

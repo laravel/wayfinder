@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { index, show } from "../workbench/resources/js/actions/App/Http/Controllers/SearchController";
 import search from "../workbench/resources/js/routes/search";
+import photos from "../workbench/resources/js/routes/photos";
 
 describe("query only route", () => {
     test("properties", () => {
@@ -100,5 +101,16 @@ describe("get and query route", () => {
             url: "/search/posts",
             method: "query",
         });
+    });
+});
+
+describe("redirect route", () => {
+    test("every registered verb", () => {
+        for (const method of photos.redirect.definition.methods) {
+            expect(photos.redirect[method]()).toEqual({
+                url: "/old-photos",
+                method,
+            });
+        }
     });
 });
