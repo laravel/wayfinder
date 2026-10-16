@@ -114,7 +114,7 @@ class TypeScript
         return str($view)
             ->pipe(function (Stringable $str) {
                 // Clean up function arguments
-                $matches = $str->matchAll('/ = \(([^)]+\))/')
+                $matches = $str->matchAll('/ = (\((?:[^()]++|(?1))*\))/')
                     ->concat($str->matchAll('/\.url\(\s*args,\s+\{/'))
                     ->concat($str->matchAll('/\.url\(\s*args,\s+options\s*\)/'))
                     ->concat($str->matchAll('/\.url\(\s*options\s*\)/'))
