@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.22...main)
+## [Unreleased](https://github.com/laravel/wayfinder/compare/v0.1.23...main)
+
+## [v0.1.23](https://github.com/laravel/wayfinder/compare/v0.1.22...v0.1.23) - 2026-10-16
+
+### What's Changed
+
+* Bump shivammathur/setup-php from 2.37.2 to 2.40.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/wayfinder/pull/332
+* Add a flag to skip database connection by [@sweptsquash](https://github.com/sweptsquash) in https://github.com/laravel/wayfinder/pull/331
+
+### New Contributors
+
+* [@sweptsquash](https://github.com/sweptsquash) made their first contribution in https://github.com/laravel/wayfinder/pull/331
+
+**Full Changelog**: https://github.com/laravel/wayfinder/compare/v0.1.22...v0.1.23
 
 ## [v0.1.22](https://github.com/laravel/wayfinder/compare/v0.1.21...v0.1.22) - 2026-10-15
 
