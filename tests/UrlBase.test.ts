@@ -38,15 +38,15 @@ test("it ignores a trailing slash on the url base", () => {
 });
 
 test("it resolves a function url base on every call", () => {
-    let base = "/dublin";
+    let base = "/site-a";
 
     setUrlBase(() => base);
 
-    expect(index.url()).toBe("/dublin/posts");
+    expect(index.url()).toBe("/site-a/posts");
 
-    base = "/belfast";
+    base = "/site-b";
 
-    expect(index.url()).toBe("/belfast/posts");
+    expect(index.url()).toBe("/site-b/posts");
 });
 
 test("it does not prefix domain urls", () => {
