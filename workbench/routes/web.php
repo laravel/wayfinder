@@ -24,6 +24,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
 use App\Http\Controllers\Prism\PrismController;
 use App\Http\Controllers\ResourceTestController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SecretsController;
 use App\Http\Controllers\SharedUriController;
 use App\Http\Controllers\TwoRoutesSameActionController;
@@ -98,6 +99,9 @@ Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 's
 Route::get('/shared-uri/{name}', SharedUriController::class);
 Route::post('/shared-uri/{name}', SharedUriController::class);
 Route::match(['put', 'patch'], '/shared-uri/{name}', SharedUriController::class);
+
+Route::match(['QUERY'], '/search', [SearchController::class, 'index'])->name('search.index');
+Route::match(['GET', 'QUERY'], '/search/{type}', [SearchController::class, 'show'])->name('search.show');
 
 Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->name('disallowed.404');
