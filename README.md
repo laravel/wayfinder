@@ -315,6 +315,20 @@ const options = {
 show.url(1, options); // "/posts/1?page=2&q=shirt"
 ```
 
+## URL Base
+
+Wayfinder prefixes generated URLs with the path of `APP_URL` at build time. If one build serves the application under several paths, for example behind a proxy that strips `/dublin` or `/belfast`, set the base at runtime instead:
+
+```ts
+import { setUrlBase } from "@/wayfinder";
+
+setUrlBase(new URL(document.baseURI).pathname);
+
+show.url(1); // "/dublin/posts/1"
+```
+
+`setUrlBase` also accepts a function, which is called each time a URL is generated. The base applies to root-relative URLs only; routes with a domain keep their URL. Generate the definitions with an `APP_URL` without a path when you set the base at runtime, so the path is not added twice.
+
 ## Wayfinder and Inertia
 
 When using [Inertia](https://inertiajs.com), you can pass the result of a Wayfinder method directly to the `submit` method of `useForm`, it will automatically resolve the correct URL and method:
