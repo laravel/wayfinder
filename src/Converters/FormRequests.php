@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\Route;
 use Laravel\Ranger\Components\Validator;
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Support\RouteTypes;
 use Laravel\Wayfinder\Validation\Rules;
 use ReflectionClass;
 
@@ -21,6 +22,10 @@ class FormRequests extends Converter
 
     public function add(?Validator $validator, Route $route): void
     {
+        if (RouteTypes::namespace($route) === null) {
+            return;
+        }
+
         if ($validator === null) {
             $this->nullValidators[$this->routeControllerRequestKey($route)] ??= [];
             $this->nullValidators[$this->routeControllerRequestKey($route)][] = $route;
@@ -28,10 +33,8 @@ class FormRequests extends Converter
             return;
         }
 
-        if ($route->hasController()) {
-            $this->controllers[$this->routeControllerRequestKey($route)] ??= [];
-            $this->controllers[$this->routeControllerRequestKey($route)][] = [$validator, $route];
-        }
+        $this->controllers[$this->routeControllerRequestKey($route)] ??= [];
+        $this->controllers[$this->routeControllerRequestKey($route)][] = [$validator, $route];
     }
 
     public function convert(): void
@@ -48,7 +51,7 @@ class FormRequests extends Converter
             );
 
             foreach ($info as $i) {
-                $block->referenceMethod($i[1]->controller(), $i[1]->method(), $i[1]->controllerPath());
+                RouteTypes::reference($block, $i[1]);
             }
 
             $block->link($validator->name, (new ReflectionClass($validator->name))->getFileName());
@@ -177,11 +180,7 @@ class FormRequests extends Converter
 
     protected function routeControllerRequestKey(Route $route): string
     {
-        return TypeScript::fqn(
-            $route->controller(),
-            ucwords($route->method()),
-            'Request',
-        );
+        return RouteTypes::namespace($route).'\\Request';
     }
 
     protected function addControllerDefinition(array $routes, string $definition): void
@@ -189,11 +188,7 @@ class FormRequests extends Converter
         $type = TypeScript::type('Request', $definition)->export();
 
         foreach ($routes as $route) {
-            $type->referenceMethod(
-                $route->controller(),
-                $route->method(),
-                $route->controllerPath(),
-            );
+            RouteTypes::reference($type, $route);
         }
 
         TypeScript::addFqnToNamespaced(

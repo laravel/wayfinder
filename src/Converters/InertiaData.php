@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Laravel\Ranger\Components\InertiaResponse;
 use Laravel\Ranger\Components\Route;
 use Laravel\Wayfinder\Langs\TypeScript;
+use Laravel\Wayfinder\Support\RouteTypes;
 
 class InertiaData extends Converter
 {
@@ -23,8 +24,7 @@ class InertiaData extends Converter
             ->studly();
         $type = $this->getType($response);
 
-        TypeScript::addFqnToNamespaced($fqn, TypeScript::type($name, $type)->export())
-            ->referenceMethod($route->controller(), $route->method(), $route->controllerPath());
+        RouteTypes::reference(TypeScript::addFqnToNamespaced($fqn, TypeScript::type($name, $type)->export()), $route);
 
         return ($route->hasController()) ? $fqn : null;
     }

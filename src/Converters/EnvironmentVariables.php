@@ -24,7 +24,8 @@ class EnvironmentVariables extends Converter
 
         $viteVars = $viteVars
             ->map(fn (EnvironmentVariable $var) => TypeScript::indent(
-                "readonly {$var->key}: ".TypeScript::fromPhpType(gettype($var->value))
+                // Vite hands every .env value to the client as a string, empty ones included.
+                "readonly {$var->key}: string"
             ))
             ->join(PHP_EOL);
 

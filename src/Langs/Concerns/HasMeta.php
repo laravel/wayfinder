@@ -45,6 +45,11 @@ trait HasMeta
 
     public function referenceFile(string $path, ?int $lineNumber = null): static
     {
+        // Ranger stands in "[serialized-closure]" or "[unknown]" when it has no real file to point at.
+        if (str_starts_with($path, '[')) {
+            return $this;
+        }
+
         $this->meta[] = sprintf('@see %s:%d', str($path)->start(DIRECTORY_SEPARATOR)->toString(), $lineNumber);
 
         return $this;

@@ -24,6 +24,8 @@ return [
         'inertia' => [
             'shared_data' => env('WAYFINDER_GENERATE_INERTIA_SHARED_DATA', true),
             'component' => env('WAYFINDER_GENERATE_INERTIA_COMPONENT', false),
+            // Augment @inertiajs/core's InertiaConfig with the shared data and error types
+            'config' => env('WAYFINDER_GENERATE_INERTIA_CONFIG', true),
         ],
         'broadcast' => [
             'channels' => env('WAYFINDER_GENERATE_BROADCAST_CHANNELS', true),
@@ -32,11 +34,6 @@ return [
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
         'enum_methods' => env('WAYFINDER_GENERATE_ENUM_METHODS', false),
-    ],
-
-    // Format the generated files
-    'format' => [
-        'enabled' => env('WAYFINDER_FORMAT_ENABLED', false),
     ],
 
     'cache' => [

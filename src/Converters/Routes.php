@@ -16,6 +16,7 @@ use Laravel\Wayfinder\Langs\TypeScript\Converters\RouteMethod;
 use Laravel\Wayfinder\Langs\TypeScript\Import;
 use Laravel\Wayfinder\Langs\TypeScript\Imports;
 use Laravel\Wayfinder\Results\Result;
+use Laravel\Wayfinder\Support\RouteTypes;
 
 use function Illuminate\Filesystem\join_paths;
 
@@ -66,34 +67,35 @@ class Routes extends Converter
             $this->writeNamedRoutesFile($routes);
         }
 
-        $routes->unique(fn (Route $route) => $route->controller().':'.$route->method())->each(function (Route $route) {
-            $responseTypes = [];
+        $routes->filter(fn (Route $route) => RouteTypes::namespace($route) !== null)
+            ->unique(fn (Route $route) => RouteTypes::namespace($route))
+            ->each(function (Route $route) {
+                $responseTypes = [];
 
-            foreach ($route->possibleResponses() as $response) {
-                $responseTypes[] = match (true) {
-                    $response instanceof InertiaResponse => $this->inertiaDataConverter->convert($response, $route),
-                    $response instanceof JsonResponse => $this->jsonDataConverter->convert($response, $route),
-                    $response instanceof ResourceResponse => $this->resourceDataConverter->convert($response, $route),
-                    $response instanceof JsonApiResponse => $this->jsonApiDataConverter->convert($response, $route),
-                    default => null,
-                };
-            }
+                foreach ($route->possibleResponses() as $response) {
+                    $responseTypes[] = match (true) {
+                        $response instanceof InertiaResponse => $this->inertiaDataConverter->convert($response, $route),
+                        $response instanceof JsonResponse => $this->jsonDataConverter->convert($response, $route),
+                        $response instanceof ResourceResponse => $this->resourceDataConverter->convert($response, $route),
+                        $response instanceof JsonApiResponse => $this->jsonApiDataConverter->convert($response, $route),
+                        default => null,
+                    };
+                }
 
-            $responseTypes = array_filter($responseTypes);
+                $responseTypes = array_filter($responseTypes);
 
-            if (count($responseTypes) > 0) {
-                TypeScript::addFqnToNamespaced(
-                    [$route->controller(), ucwords($route->method()), 'Response'],
-                    TypeScript::type('Response', implode(' | ', $responseTypes))->export(),
-                )->referenceMethod(
-                    $route->controller(),
-                    $route->method(),
-                    $route->controllerPath(),
-                );
-            }
+                if (count($responseTypes) > 0) {
+                    RouteTypes::reference(
+                        TypeScript::addFqnToNamespaced(
+                            RouteTypes::namespace($route).'\\Response',
+                            TypeScript::type('Response', implode(' | ', $responseTypes))->export(),
+                        ),
+                        $route,
+                    );
+                }
 
-            $this->formRequestConverter->add($route->requestValidator(), $route);
-        });
+                $this->formRequestConverter->add($route->requestValidator(), $route);
+            });
 
         $this->formRequestConverter->convert();
 

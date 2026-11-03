@@ -517,6 +517,8 @@ export namespace Inertia {
 }
 ```
 
+Wayfinder also writes `inertia-config.d.ts`, which augments `@inertiajs/core`'s `InertiaConfig` so `usePage().props` knows your shared data without any setup. If your app already declares `sharedPageProps` itself (the starter kits do, in `resources/js/types/global.d.ts`), the two declarations clash: TypeScript reports an error when `skipLibCheck` is off, and otherwise silently keeps whichever file it reads first. Remove your declaration to use Wayfinder's, or set `generate.inertia.config` to `false` to keep yours.
+
 ## Broadcast Channels
 
 Wayfinder generates type-safe helpers for Laravel broadcast channels.
@@ -833,8 +835,11 @@ The configuration file is located at `config/wayfinder.php`:
 ```php
 return [
     'generate' => [
+        // Leave declarations out of the generated files
         'ignore' => [
+            // Attribute classes treated the same as Laravel\Wayfinder\Attributes\WayfinderIgnore
             'attributes' => [],
+            // Comment tags that leave out the array key they sit on
             'tags' => ['wayfinder-ignore'],
         ],
         'route' => [
@@ -842,13 +847,18 @@ return [
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
             'form_variant' => env('WAYFINDER_GENERATE_FORM_VARIANT', true),
             'ignore' => [
+                // Patterns to ignore for URLs (e.g. 'nova-api/*')
                 'urls' => [],
-                'names' => ['nova.*'],
+                // Patterns to ignore for route names (e.g. 'nova.*')
+                'names' => ['boost.*', 'nova.*'],
             ],
         ],
         'models' => env('WAYFINDER_GENERATE_MODELS', true),
         'inertia' => [
             'shared_data' => env('WAYFINDER_GENERATE_INERTIA_SHARED_DATA', true),
+            'component' => env('WAYFINDER_GENERATE_INERTIA_COMPONENT', false),
+            // Augment @inertiajs/core's InertiaConfig with the shared data and error types
+            'config' => env('WAYFINDER_GENERATE_INERTIA_CONFIG', true),
         ],
         'broadcast' => [
             'channels' => env('WAYFINDER_GENERATE_BROADCAST_CHANNELS', true),
@@ -857,10 +867,6 @@ return [
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
         'enum_methods' => env('WAYFINDER_GENERATE_ENUM_METHODS', false),
-    ],
-
-    'format' => [
-        'enabled' => env('WAYFINDER_FORMAT_ENABLED', false),
     ],
 
     'cache' => [
@@ -882,15 +888,16 @@ return [
 | `generate.route.named`           | Generate named route files             | `true`                    |
 | `generate.route.form_variant`    | Include `.form` method variants        | `true`                    |
 | `generate.route.ignore.urls`     | URL patterns to ignore                 | `[]`                      |
-| `generate.route.ignore.names`    | Route name patterns to ignore          | `['nova.*']`              |
+| `generate.route.ignore.names`    | Route name patterns to ignore          | `['boost.*', 'nova.*']`   |
 | `generate.models`                | Generate model types                   | `true`                    |
 | `generate.inertia.shared_data`   | Generate Inertia shared data types     | `true`                    |
+| `generate.inertia.component`     | Type the `component` of Inertia route helpers | `false`            |
+| `generate.inertia.config`        | Write `inertia-config.d.ts`, typing shared data and errors in `@inertiajs/core` | `true` |
 | `generate.broadcast.channels`    | Generate broadcast channel helpers     | `true`                    |
 | `generate.broadcast.events`      | Generate broadcast event types         | `true`                    |
 | `generate.environment_variables` | Generate Vite env variable types       | `true`                    |
 | `generate.enums`                 | Generate PHP enum types                | `true`                    |
 | `generate.enum_methods`          | Resolve enum methods for each case     | `false`                   |
-| `format.enabled`                 | Format generated files with Biome      | `false`                   |
 | `cache.enabled`                  | Enable caching for faster regeneration | `true`                    |
 | `cache.directory`                | Directory for cache files              | `storage/wayfinder-cache` |
 | `memory_limit`                   | What to run generation under           | `null`                    |

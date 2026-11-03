@@ -34,4 +34,18 @@ describe("EnvironmentVariables", () => {
         const content = readFileSync(viteEnvPath, "utf-8");
         expect(content).toContain("VITE_APP_NAME");
     });
+
+    test("types every value as a string, as Vite exposes them", () => {
+        const content = readFileSync(viteEnvPath, "utf-8");
+        for (const key of [
+            "VITE_APP_NAME",
+            "VITE_DEV_PORT",
+            "VITE_SAMPLE_RATE",
+            "VITE_FEATURE_FLAG",
+            "VITE_EMPTY",
+        ]) {
+            expect(content).toContain(`readonly ${key}: string`);
+        }
+        expect(content).not.toMatch(/readonly VITE_\w+: (number|boolean|null)/);
+    });
 });

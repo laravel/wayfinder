@@ -11,6 +11,13 @@ use Laravel\Wayfinder\Results\Result;
 
 class InertiaSharedData extends Converter
 {
+    protected bool $withModuleOverride = true;
+
+    public function withModuleOverride(bool $withModuleOverride): void
+    {
+        $this->withModuleOverride = $withModuleOverride;
+    }
+
     /**
      * @return array<Result>
      */
@@ -26,7 +33,7 @@ class InertiaSharedData extends Converter
 
         $results = [];
 
-        if ($moduleOverrideResult = $this->moduleOverrideResult($data)) {
+        if ($this->withModuleOverride && $moduleOverrideResult = $this->moduleOverrideResult($data)) {
             $results[] = $moduleOverrideResult;
         }
 

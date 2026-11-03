@@ -186,3 +186,7 @@ Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');
 
 Route::get('/backups/{backup}/download', fn () => 'ok')->name('backups.download.show');
 Route::post('/backups/{backup}/download', fn () => 'ok')->name('backups.download.download');
+
+Route::get('/closure-json/first', fn () => response()->json(['first' => 1]))->name('closure-json.first');
+Route::get('/closure-json/second', fn () => response()->json(['second' => 'two']))->name('closure-json.second');
+Route::get('/closure-json/unnamed', fn () => response()->json(['unnamed' => true]));
