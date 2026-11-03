@@ -158,6 +158,7 @@ Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
 Route::get('/products/{product}', [ResourceTestController::class, 'show'])->name('products.show');
 Route::get('/products', [ResourceTestController::class, 'index'])->name('products.index');
 Route::get('/products/wrapped', [ResourceTestController::class, 'wrapped'])->name('products.wrapped');
+Route::get('/products/unwrapped', [ResourceTestController::class, 'unwrapped'])->name('products.unwrapped');
 Route::get('/categories/json-api/{category}', [ResourceTestController::class, 'jsonApi'])->name('categories.jsonApi');
 Route::get('/categories/json-api', [ResourceTestController::class, 'jsonApiCollection'])->name('categories.jsonApi.collection');
 Route::get('/users-resource/{user}', [ResourceTestController::class, 'user'])->name('users-resource.show');
