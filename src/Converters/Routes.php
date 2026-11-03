@@ -154,7 +154,10 @@ class Routes extends Converter
                             ->toString(),
                         'Object',
                     ),
-                    $subDirImportNames->toArray()
+                    [
+                        ...$subDirImportNames->toArray(),
+                        ...$this->declaredNames($content),
+                    ],
                 );
 
                 $content[] = '';
@@ -200,6 +203,13 @@ class Routes extends Converter
             ->filter(fn (Route $route) => $route->name())
             ->groupBy(fn (Route $route) => str_contains($route->name(), '.') ? str($route->name())->beforeLast('.')->toString() : '')
             ->each($this->writeNamedFile(...));
+    }
+
+    protected function declaredNames(array $content): array
+    {
+        preg_match_all('/^(?:export\s+)?const\s+([A-Za-z_$][\w$]*)/m', implode(PHP_EOL, $content), $matches);
+
+        return $matches[1];
     }
 
     /**

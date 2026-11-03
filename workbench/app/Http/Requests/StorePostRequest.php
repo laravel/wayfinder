@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PostStatus;
+use App\Enums\Priority;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePostRequest extends FormRequest
 {
@@ -30,6 +33,19 @@ class StorePostRequest extends FormRequest
             'meta.description' => ['nullable', 'string'],
             'meta.keywords' => ['nullable', 'array'],
             'meta.keywords.*' => ['string'],
+            'cover' => ['nullable', 'image'],
+            'attachments' => ['array'],
+            'attachments.*' => ['file', 'max:2048'],
+            'matrix.*.*' => ['integer'],
+            'authors' => ['required', 'array'],
+            'authors.*.name' => ['required', 'string'],
+            'authors.*.email' => ['nullable', 'email'],
+            'seo.title' => ['required', 'string'],
+            'seo.slug' => ['nullable', 'string'],
+            'notes' => ['required', 'max:500'],
+            'state' => ['required', Rule::enum(PostStatus::class)],
+            'priority' => ['nullable', 'string', Rule::enum(Priority::class)],
+            'channel' => ['required', 'string', Rule::in(array_keys(config('wayfinder.unknown_channels', [])))],
         ];
     }
 }

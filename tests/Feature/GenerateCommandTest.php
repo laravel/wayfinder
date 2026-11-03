@@ -87,6 +87,29 @@ class GenerateCommandTest extends TestCase
         $this->assertNotEmpty($this->files->allFiles($this->tempPath));
     }
 
+    public function test_echo_events_augment_the_global_events_interface(): void
+    {
+        $packageJson = join_paths($this->rootPath, 'vendor', 'orchestra', 'testbench-core', 'laravel', 'package.json');
+        $original = $this->files->exists($packageJson) ? $this->files->get($packageJson) : null;
+
+        $this->files->put($packageJson, json_encode(['dependencies' => ['@laravel/echo-vue' => '*']]));
+
+        try {
+            $this->generate();
+        } finally {
+            $original === null ? $this->files->delete($packageJson) : $this->files->put($packageJson, $original);
+        }
+
+        $echo = $this->files->get(join_paths($this->tempPath, 'echo-broadcast-events.d.ts'));
+
+        $this->assertStringContainsString('declare global {', $echo);
+        $this->assertStringContainsString('export {};', $echo);
+        $this->assertStringNotContainsString('declare module', $echo);
+        $this->assertStringContainsString('".App\\\\Events\\\\OrderShipped": { orderId: number, trackingNumber: string, carrier: string }', $echo);
+        $this->assertStringContainsString('".server.provisioned": { serverId: number, ip: string }', $echo);
+        $this->assertStringNotContainsString('BaseServerEvent', $echo);
+    }
+
     public function test_stale_files_are_removed_while_current_files_are_kept(): void
     {
         $this->generate();

@@ -285,6 +285,26 @@ class TypeScript
         return '{ '.$keys->implode(', ').' }';
     }
 
+    /**
+     * Only the generator knows, once every converter has run, which classes
+     * received a type of their own, so references stay marked until then.
+     */
+    public static function classReference(string $class): string
+    {
+        $name = str_replace('\\', '.', ltrim($class, '\\'));
+
+        return "\u{27EA}wayfinder:{$name}\u{27EB}";
+    }
+
+    public static function resolveClassReferences(string $content): string
+    {
+        return preg_replace_callback(
+            '/\x{27EA}wayfinder:([^\x{27EB}]+)\x{27EB}/u',
+            fn ($match) => empty(self::$namespaced[$match[1]]) ? 'unknown' : $match[1],
+            $content,
+        );
+    }
+
     public static function fqn(...$parts): string
     {
         return implode('\\', $parts);

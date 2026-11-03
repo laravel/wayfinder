@@ -68,16 +68,111 @@ class FormRequests extends Converter
 
     protected function resolveDefinition($rules): string
     {
-        $internalDefinition = collect($rules)
-            ->map($this->toDefinition(...))
-            ->values()
-            ->implode(PHP_EOL);
+        $tree = $this->buildTree($this->flattenRules($rules));
 
-        if ($internalDefinition === '') {
+        if ($tree['children'] === []) {
             return self::DEFAULT;
         }
 
-        return '{'.$internalDefinition.'}';
+        return $this->renderObject($tree['children']);
+    }
+
+    /**
+     * Rules arrive keyed by Laravel's dotted paths ("meta.keywords.*"), or
+     * occasionally already nested, so both are brought to dotted form.
+     *
+     * @return array<string, Collection>
+     */
+    protected function flattenRules($rules, string $prefix = ''): array
+    {
+        $flat = [];
+
+        foreach ($rules as $key => $value) {
+            $path = $prefix.$key;
+
+            if ($value instanceof Collection) {
+                $value = $value->all();
+            }
+
+            if (is_array($value) && ! array_is_list($value)) {
+                $flat += $this->flattenRules($value, $path.'.');
+
+                continue;
+            }
+
+            $flat[$path] = collect($value);
+        }
+
+        return $flat;
+    }
+
+    /**
+     * @param  array<string, Collection>  $rules
+     */
+    protected function buildTree(array $rules): array
+    {
+        $root = ['rules' => null, 'children' => []];
+
+        foreach ($rules as $path => $fieldRules) {
+            $node = &$root;
+
+            foreach (explode('.', (string) $path) as $segment) {
+                $node['children'][$segment] ??= ['rules' => null, 'children' => []];
+                $node = &$node['children'][$segment];
+            }
+
+            $node['rules'] = $fieldRules;
+            unset($node);
+        }
+
+        return $root;
+    }
+
+    protected function renderObject(array $children): string
+    {
+        $fields = collect($children)
+            ->reject(fn ($node, $key) => $key === '*')
+            ->map(fn ($node, $key) => TypeScript::quoteKey((string) $key)
+                .($this->isRequired($node) ? '' : '?')
+                .': '.$this->renderNode($node));
+
+        return '{ '.$fields->implode(', ').' }';
+    }
+
+    protected function renderNode(array $node): string
+    {
+        $rules = $node['rules'] ? new Rules($node['rules']) : null;
+        $children = $node['children'];
+
+        if ($children === []) {
+            return $rules?->resolveFieldType() ?? 'unknown';
+        }
+
+        $type = array_keys($children) === ['*']
+            ? $this->arrayOf($this->renderNode($children['*']))
+            : $this->renderObject($children);
+
+        return $rules?->isNullable() ? $type.' | null' : $type;
+    }
+
+    protected function arrayOf(string $type): string
+    {
+        return str_contains($type, '|') ? "({$type})[]" : "{$type}[]";
+    }
+
+    /**
+     * A parent without rules of its own must be present whenever one of its
+     * named children is required, matching how Laravel validates dotted keys.
+     */
+    protected function isRequired(array $node): bool
+    {
+        if ($node['rules']) {
+            return (new Rules($node['rules']))->isRequired();
+        }
+
+        return collect($node['children'])
+            ->reject(fn ($child, $key) => $key === '*')
+            ->contains(fn ($child) => $this->isRequired($child));
     }
 
     protected function routeControllerRequestKey(Route $route): string
@@ -105,58 +200,5 @@ class FormRequests extends Converter
             $this->routeControllerRequestKey($routes[0]),
             $type,
         );
-    }
-
-    protected function toDefinition($rules, $key, $indent = 1)
-    {
-        $key = TypeScript::quoteKey($key);
-        $def = TypeScript::indent($key, $indent);
-
-        if (($rules instanceof Collection && array_is_list($rules->all())) || (is_array($rules) && array_is_list($rules))) {
-            $collection = $rules instanceof Collection ? $rules : collect($rules);
-            $rulesHelper = new Rules($collection);
-
-            if ($rulesHelper->isRequired()) {
-                $def .= ': ';
-            } else {
-                $def .= '?: ';
-            }
-
-            $def .= $rulesHelper->resolveFieldType().';';
-
-            return $def;
-        }
-
-        $wildcard = in_array('*', array_keys($rules instanceof Collection ? $rules->all() : $rules));
-        $subDef = '';
-
-        foreach ($rules as $subKey => $subRules) {
-            if ($subKey === '*') {
-                foreach ($subRules as $grandKey => $subRule) {
-                    $subDef .= PHP_EOL.$this->toDefinition($subRule, $grandKey, $indent + 1);
-                }
-            } else {
-                $subDef .= PHP_EOL.$this->toDefinition($subRules, $subKey, $indent + 1);
-            }
-        }
-
-        // Match any colon without a preceding question mark
-        if (preg_match('/(?<!\?)\:/', $subDef) || $wildcard) {
-            // If anything below is required,
-            // we need to ensure the parent is also required
-            $def .= ': {';
-        } else {
-            $def .= '?: {';
-        }
-
-        $def .= $subDef;
-
-        if ($wildcard) {
-            $def .= PHP_EOL.TypeScript::indent('}[]');
-        } else {
-            $def .= PHP_EOL.TypeScript::indent('}');
-        }
-
-        return $def;
     }
 }

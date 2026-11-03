@@ -4,6 +4,7 @@ namespace Laravel\Wayfinder\Converters;
 
 use Illuminate\Support\Collection;
 use Laravel\Ranger\Components\BroadcastEvent;
+use Laravel\Surveyor\Types\ArrayType;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Langs\TypeScript\Imports;
 use Laravel\Wayfinder\Langs\TypeScript\ObjectKeyValueBuilder;
@@ -24,9 +25,6 @@ class BroadcastEvents extends Converter
         $results = [];
 
         $namespacedEvents = $events->filter(fn ($event) => str_contains($event->name, '\\'));
-        $namespaceRoots = $namespacedEvents
-            ->map(fn (BroadcastEvent $event) => str($event->name)->before('\\')->toString())
-            ->unique();
         $grouped = $events->groupBy(fn (BroadcastEvent $event) => $event->name);
 
         $namespacedEvents->each(
@@ -34,7 +32,7 @@ class BroadcastEvents extends Converter
                 $event->name,
                 TypeScript::type(
                     str($event->name)->afterLast('\\'),
-                    TypeScript::objectToTypeObject($event->data->value, false),
+                    $this->payloadType($event),
                 )
                     ->referenceClass($event->className, $event->filePath())
                     ->export(),
@@ -43,16 +41,16 @@ class BroadcastEvents extends Converter
 
         $results[] = new Result('broadcast-events.ts', $this->fileContent($grouped));
 
-        if ($echoPackageContent = $this->echoFileContent($grouped, $namespaceRoots)) {
+        if ($echoPackageContent = $this->echoFileContent($grouped, $namespacedEvents)) {
             $results[] = new Result('echo-broadcast-events.d.ts', $echoPackageContent);
         }
 
         return $results;
     }
 
-    protected function echoFileContent(Collection $grouped, Collection $namespaceRoots): ?string
+    protected function echoFileContent(Collection $grouped, Collection $namespacedEvents): ?string
     {
-        $echoPackage = Npm::findFirstInstalledPackage(['@laravel/echo-vue', '@laravel/echo-react']);
+        $echoPackage = Npm::findFirstInstalledPackage(['@laravel/echo-vue', '@laravel/echo-react', '@laravel/echo-svelte']);
 
         if (! $echoPackage) {
             return null;
@@ -61,21 +59,29 @@ class BroadcastEvents extends Converter
         $eventsInterface = $grouped->map(
             fn ($events, $key) => (string) TypeScript::objectKeyValue(
                 $this->toEventName($key),
-                TypeScript::objectToTypeObject($events->first()->data->value, false)
+                $this->payloadType($events->first()),
             ),
         );
 
+        $namespaceRoots = $this->referencedRoots($eventsInterface->implode(PHP_EOL));
+
         $content = [];
 
-        if ($namespaceRoots->isNotEmpty()) {
-            $content[] = (string) Imports::create()->add('./types', $namespaceRoots->all());
+        if ($namespaceRoots !== []) {
+            $content[] = (string) Imports::create()->add('./types', $namespaceRoots);
             $content[] = '';
         }
 
-        return implode(PHP_EOL, $content).PHP_EOL.TypeScript::module(
-            $echoPackage,
-            TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL))
-        );
+        // Echo's adapters read a global Events interface, and a global can only
+        // be augmented from a module, hence the empty export.
+        return implode(PHP_EOL, [
+            ...$content,
+            'declare global {',
+            TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL)),
+            '}',
+            '',
+            'export {};',
+        ]);
     }
 
     protected function fileContent(Collection $grouped): string
@@ -125,8 +131,34 @@ class BroadcastEvents extends Converter
         return $block;
     }
 
-    protected function toEventName(string $name)
+    protected function payloadType(BroadcastEvent $event): string
     {
-        return '.'.str_replace('\\', '.', $name);
+        if (! $event->data instanceof ArrayType) {
+            return 'Record<string, unknown>';
+        }
+
+        return (string) TypeScript::objectToTypeObject($event->data->value, false);
+    }
+
+    /**
+     * The namespaces a payload refers to, which have to be imported from types.d.ts.
+     *
+     * @return list<string>
+     */
+    protected function referencedRoots(string $types): array
+    {
+        preg_match_all('/\x{27EA}wayfinder:([A-Za-z_][A-Za-z0-9_]*)\./u', $types, $matches);
+
+        return array_values(array_unique($matches[1]));
+    }
+
+    /**
+     * Echo prefixes its namespace and swaps dots for backslashes unless the
+     * name starts with a dot, so the escaped class name (or broadcastAs()
+     * name) is the only form that matches whatever namespace the client set.
+     */
+    protected function toEventName(string $name): string
+    {
+        return '.'.$name;
     }
 }

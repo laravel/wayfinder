@@ -4,9 +4,9 @@ namespace Laravel\Wayfinder\Registry;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Casts\AsStringable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
-use InvalidArgumentException;
 use Laravel\Surveyor\Analyzer\ArrayableResolver;
 use Laravel\Surveyor\Types;
 use Laravel\Surveyor\Types\Contracts\Type;
@@ -22,6 +22,7 @@ class TypeScriptConverter extends AbstractConverter
             Types\BoolType::class => $this->convertBoolResult($result),
             Types\ClassType::class => $this->convertClassResult($result),
             Types\Entities\ResourceResponse::class => $this->convertResourceResponse($result),
+            Types\Entities\InertiaProp::class => $this->decorate($this->convert($result->data), $result),
             Types\IntType::class, Types\FloatType::class, Types\NumberType::class => $this->convertNumberResult($result),
             Types\IntersectionType::class => $this->convertIntersectionResult($result),
             Types\MixedType::class => $this->convertMixedResult($result),
@@ -29,7 +30,13 @@ class TypeScriptConverter extends AbstractConverter
             Types\StringType::class => $this->convertStringResult($result),
             Types\UnionType::class => $this->convertUnionResult($result),
             Types\CallableType::class => $this->convertCallableResult($result),
-            default => throw new InvalidArgumentException('Unsupported result type: '.get_class($result)),
+            Types\NeverType::class => 'never',
+            // A PHP function that returns nothing sends null.
+            Types\VoidType::class => 'null',
+            Types\ObjectType::class => $this->decorate('Record<string, unknown>', $result),
+            Types\TemplateTagType::class => $result->bound ? $this->convert($result->bound) : 'unknown',
+            // A type this converter doesn't know yet must not stop generation.
+            default => $result instanceof Types\ClassType ? $this->convertClassResult($result) : 'unknown',
         };
     }
 
@@ -109,11 +116,17 @@ class TypeScriptConverter extends AbstractConverter
     {
         $class = ltrim($result->value, '\\');
 
+        if ($result->isClassString()) {
+            return $this->decorate('string', $result);
+        }
+
         $matched = match (true) {
             $class === Stringable::class => 'string',
             $class === AsStringable::class => 'string',
             is_a($class, DateTimeInterface::class, true) => 'string',
             is_a($class, Collection::class, true) => $this->convertCollectionType($result),
+            // Models get a generated type of their own, so they're referenced rather than inlined.
+            is_a($class, Model::class, true) => TypeScript::classReference($class),
             default => null,
         };
 
@@ -124,7 +137,7 @@ class TypeScriptConverter extends AbstractConverter
                 return $this->convert($resolved);
             }
 
-            $matched = str_replace('\\', '.', $class);
+            $matched = TypeScript::classReference($class);
         }
 
         return $this->decorate($matched, $result);
@@ -186,14 +199,18 @@ class TypeScriptConverter extends AbstractConverter
             ->filter()
             ->unique();
 
-        if ($result->count() > 1 && $result->contains(fn ($type) => $type === 'unknown')) {
-            $newResult = $result->filter(fn ($type) => $type !== 'unknown');
-
-            if ($newResult->count() === 1 && $newResult->first() === 'null') {
+        // A union with unknown is unknown; dropping it would claim the other
+        // members are the only possibilities. In an intersection it adds nothing.
+        if ($result->contains(fn ($type) => $type === 'unknown')) {
+            if ($glue === '|') {
                 return 'unknown';
             }
 
-            $result = $newResult;
+            $result = $result->reject(fn ($type) => $type === 'unknown');
+
+            if ($result->isEmpty()) {
+                return 'unknown';
+            }
         }
 
         return $result->implode(' '.$glue.' ');

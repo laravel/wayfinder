@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnonymousMiddlewareController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\ClassReferenceController;
 use App\Http\Controllers\DateTimeController;
 use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
@@ -55,6 +56,7 @@ Route::get('/eloquent-products', [EloquentProductController::class, 'index'])->n
 Route::get('/eloquent-products/{product}', [EloquentProductController::class, 'show'])->name('eloquent-products.show');
 
 Route::get('/date-time', [DateTimeController::class, 'show'])->name('date-time.show');
+Route::get('/class-reference', [ClassReferenceController::class, 'show'])->name('class-reference.show');
 
 Route::get('/dashboard', function () {
     return 'Dashboard';
@@ -180,3 +182,6 @@ Route::get('/photos', fn () => 'ok')->name('photos.index');
 Route::get('/photos/window', fn () => 'ok')->name('photos.index.window');
 
 Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');
+
+Route::get('/backups/{backup}/download', fn () => 'ok')->name('backups.download.show');
+Route::post('/backups/{backup}/download', fn () => 'ok')->name('backups.download.download');
