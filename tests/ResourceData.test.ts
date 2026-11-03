@@ -32,6 +32,12 @@ describe("ResourceData", () => {
         );
     });
 
+    test("unwrapped resource with additional fields nests its data under `data`", () => {
+        expect(types()).toContain(
+            "{ data: { sku: string, label: string }, meta: { version: string } }"
+        );
+    });
+
     test("JsonApiResource emits id/type/attributes/links/meta", () => {
         expect(types()).toContain(
             "{ data: { id: string, type: string, attributes?: { name: string, slug: string, created_at: string }, links?: { self: string }, meta?: { count: number } } }"

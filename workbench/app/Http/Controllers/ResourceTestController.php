@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryJsonApiResource;
 use App\Http\Resources\ProductResource;
+use App\Http\Resources\UnwrappedProductResource;
 use App\Http\Resources\UserJsonApiResource;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\WrappedProductResource;
@@ -25,6 +26,11 @@ class ResourceTestController
     public function wrapped(): JsonResource
     {
         return new WrappedProductResource(null);
+    }
+
+    public function unwrapped(): JsonResource
+    {
+        return new UnwrappedProductResource(null);
     }
 
     public function jsonApi(): JsonApiResource
