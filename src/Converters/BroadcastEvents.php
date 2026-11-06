@@ -71,16 +71,23 @@ class BroadcastEvents extends Converter
 
         preg_match_all('/(?<!\.)([A-Z][a-zA-Z0-9]*)(?=\.[A-Z])/', $unquotedPayloads, $matches);
 
-        $imports = Imports::create()->addSideEffect($echoPackage);
+        $content = [];
 
         if (count($matches[0]) > 0) {
-            $imports->add('./types', $matches[0]);
+            $content[] = (string) Imports::create()->add('./types', $matches[0]);
+            $content[] = '';
         }
 
-        return $imports.PHP_EOL.PHP_EOL.TypeScript::module(
-            $echoPackage,
-            TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL))
-        );
+        // Echo's adapters read a global Events interface, and a global can only
+        // be augmented from a module, hence the empty export.
+        return implode(PHP_EOL, [
+            ...$content,
+            'declare global {',
+            TypeScript::interface('Events', $eventsInterface->implode(PHP_EOL)),
+            '}',
+            '',
+            'export {};',
+        ]);
     }
 
     protected function fileContent(Collection $grouped): string

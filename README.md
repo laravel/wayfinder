@@ -613,9 +613,7 @@ If you have `@laravel/echo-vue` or `@laravel/echo-react` installed, Wayfinder ge
 
 ```typescript
 // echo-broadcast-events.d.ts
-import "@laravel/echo-vue";
-
-declare module "@laravel/echo-vue" {
+declare global {
     interface Events {
         ".App\\Events\\OrderShipped": {
             orderId: number;
@@ -624,6 +622,8 @@ declare module "@laravel/echo-vue" {
         };
     }
 }
+
+export {};
 ```
 
 This provides full type safety when listening to events:
