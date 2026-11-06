@@ -15,31 +15,44 @@ class ResourceData extends Converter
             return null;
         }
 
-        $dataType = (string) TypeScript::objectToTypeObject($response->data, false);
+        $dataType = $this->dataType($response->data);
 
         if ($response->isCollection) {
-            $dataType = "{$dataType}[]";
+            $dataType = $this->group($dataType).'[]';
         }
 
-        if ($response->wrap !== null) {
-            $outer = TypeScript::typeObject();
-            $outer->key($response->wrap)->value($dataType);
+        // Laravel nests an unwrapped resource under `data` whenever extra top-level keys
+        // are added, so the payload never merges with `additional` at runtime.
+        $wrap = $response->wrap ?? (empty($response->additional) ? null : 'data');
 
-            foreach ($response->additional as $key => $type) {
-                $value = $type instanceof Type ? TypeScript::fromSurveyorType($type) : (string) $type;
-                $outer->key($key)->value($value);
-            }
-
-            return (string) $outer;
+        if ($wrap === null) {
+            return $dataType;
         }
 
-        // No wrapping — merge additional into data shape if present
-        if (! empty($response->additional)) {
-            $combined = array_merge($response->data, $response->additional);
+        $outer = TypeScript::typeObject();
+        $outer->key($wrap)->value($dataType);
 
-            return (string) TypeScript::objectToTypeObject($combined, false);
+        foreach ($response->additional as $key => $type) {
+            $value = $type instanceof Type ? TypeScript::fromSurveyorType($type) : (string) $type;
+            $outer->key($key)->value($value);
         }
 
-        return $dataType;
+        return (string) $outer;
+    }
+
+    /**
+     * Older Ranger releases flatten every payload to an array, newer ones keep
+     * non-array shapes (lists, unions) as Surveyor types.
+     */
+    protected function dataType(array|Type $data): string
+    {
+        return $data instanceof Type
+            ? TypeScript::fromSurveyorType($data)
+            : (string) TypeScript::objectToTypeObject($data, false);
+    }
+
+    protected function group(string $type): string
+    {
+        return str_contains($type, '|') ? "({$type})" : $type;
     }
 }
