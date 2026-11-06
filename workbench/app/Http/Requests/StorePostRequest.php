@@ -18,7 +18,9 @@ class StorePostRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
+            'status' => ['nullable', 'in:say "hi",it\'s,back\\slash'],
             'body' => ['required', 'string'],
+            'settings' => ['nullable', 'array:theme,timezone'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'published_at' => ['nullable', 'date'],
             'author_email' => ['nullable', 'email'],

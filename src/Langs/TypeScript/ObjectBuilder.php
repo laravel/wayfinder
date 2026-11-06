@@ -47,6 +47,10 @@ class ObjectBuilder implements Stringable
 
     public function __toString(): string
     {
+        if ($this->keyValuePairs === []) {
+            return '{}'.($this->satisfies ? ' satisfies '.$this->satisfies : '');
+        }
+
         $object = '{';
         $object .= $this->inline ? ' ' : PHP_EOL;
 

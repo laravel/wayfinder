@@ -23,6 +23,11 @@ describe("InertiaData", () => {
         expect(content).toContain("Dashboard");
     });
 
+    test("empty array prop is typed as unknown[]", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        expect(content).toContain("recentActivity?: unknown[]");
+    });
+
     test.skip("InertiaController action types directory exists", () => {
         const inertiaTypesPath = join(
             __dirname,

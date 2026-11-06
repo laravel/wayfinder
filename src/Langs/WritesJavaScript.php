@@ -11,13 +11,16 @@ trait WritesJavaScript
 
     public static function quote(string $string): string
     {
-        foreach (['`', "'", '"'] as $quote) {
-            if (str_starts_with($string, $quote)) {
-                return $string;
-            }
-        }
+        $encoded = json_encode($string, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
-        return '"'.$string.'"';
+        // U+2028 and U+2029 are valid in JSON but were only allowed in JavaScript
+        // string literals from ES2019 on, so keep them escaped.
+        return str_replace(["\u{2028}", "\u{2029}"], ['\u2028', '\u2029'], $encoded);
+    }
+
+    public static function escapeTemplateLiteral(string $string): string
+    {
+        return str_replace(['\\', '`', '${'], ['\\\\', '\\`', '\\${'], $string);
     }
 
     public static function quoteKey(string $key): string

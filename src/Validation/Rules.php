@@ -66,10 +66,10 @@ class Rules
             $object = TypeScript::typeObject();
 
             foreach ($arrayRule->getParams() as $param) {
-                $object->key($param)->value('unknown')->quote();
+                $object->key($param)->value('unknown')->optional();
             }
 
-            return $object.'[]';
+            return (string) $object;
         }
 
         if ($enum = $this->rules->first(fn ($item) => $item->isEnum())) {

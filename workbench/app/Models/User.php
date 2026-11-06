@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Laravel\Wayfinder\Attributes\WayfinderIgnore;
 
 /**
  * @property int $id
@@ -75,5 +76,14 @@ class User extends Authenticatable
     public function favoriteCategories(): HasMany
     {
         return $this->hasMany(Category::class);
+    }
+
+    /**
+     * @return HasMany<AuditLog, $this>
+     */
+    #[WayfinderIgnore]
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
     }
 }

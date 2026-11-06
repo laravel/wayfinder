@@ -10,6 +10,7 @@ class UrlDefaultsMiddleware
     {
         URL::defaults([
             'locale' => 'en',
+            'quoted' => 'say "hi" now',
         ]);
 
         return $next($request);

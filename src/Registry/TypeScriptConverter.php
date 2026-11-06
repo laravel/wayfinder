@@ -3,6 +3,7 @@
 namespace Laravel\Wayfinder\Registry;
 
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Casts\AsStringable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
 use InvalidArgumentException;
@@ -61,6 +62,10 @@ class TypeScriptConverter extends AbstractConverter
         $nullSuffix = $result->isNullable() ? ' | null' : '';
 
         if (array_is_list($value)) {
+            if (empty($value)) {
+                return 'unknown[]'.$nullSuffix;
+            }
+
             $types = TypeScript::union(array_map($this->convert(...), $value));
 
             if (str_contains($types, '|')) {
@@ -106,6 +111,7 @@ class TypeScriptConverter extends AbstractConverter
 
         $matched = match (true) {
             $class === Stringable::class => 'string',
+            $class === AsStringable::class => 'string',
             is_a($class, DateTimeInterface::class, true) => 'string',
             is_a($class, Collection::class, true) => $this->convertCollectionType($result),
             default => null,

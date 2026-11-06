@@ -1,6 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import type { App } from "../workbench/resources/js/wayfinder/types";
 
 describe("FormRequests", () => {
     const typesPath = join(
@@ -17,6 +18,14 @@ describe("FormRequests", () => {
         const content = readFileSync(typesPath, "utf-8");
         expect(content).toContain("export namespace Store");
         expect(content).toContain("export type Request");
+    });
+
+    test("array rules with keys become an object of optional keys", () => {
+        expectTypeOf<
+            App.Http.Controllers.PostController.Store.Request["settings"]
+        >().toEqualTypeOf<
+            { theme?: unknown; timezone?: unknown } | null | undefined
+        >();
     });
 
     test("StorePostRequest generates typed fields", () => {

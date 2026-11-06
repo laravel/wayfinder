@@ -22,13 +22,7 @@ class BroadcastChannels extends Converter
         }
 
         $types = $channels->map(
-            fn (BroadcastChannel $channel) => TypeScript::backtick(
-                preg_replace(
-                    self::PARAM_PATTERN,
-                    TypeScript::templateString(TypeScript::union(['string', 'number'])),
-                    $channel->name,
-                ),
-            ),
+            fn (BroadcastChannel $channel) => $this->channelType($channel->name),
         );
 
         $js = $channels
@@ -39,7 +33,7 @@ class BroadcastChannels extends Converter
             ->map($this->channelChain(...));
 
         $content = [
-            (string) TypeScript::literalUnion('BroadcastChannel', $types)->export(),
+            (string) TypeScript::type('BroadcastChannel', TypeScript::union($types->values()->all()))->export(),
             (string) TypeScript::constant(
                 'BroadcastChannels',
                 TypeScript::objectWithOnlyKeys($js),
@@ -51,13 +45,7 @@ class BroadcastChannels extends Converter
 
     protected function toConstData(BroadcastChannel $channel): array
     {
-        $returnType = TypeScript::backtick(
-            preg_replace(
-                self::PARAM_PATTERN,
-                TypeScript::templateString(TypeScript::union(['string', 'number'])),
-                $channel->name,
-            ),
-        );
+        $returnType = $this->channelType($channel->name);
 
         $parts = collect(explode('.', $channel->name));
 
@@ -152,8 +140,19 @@ class BroadcastChannels extends Converter
         return collect($params)->map(fn ($p) => "{$p}: string | number")->implode(', ');
     }
 
+    protected function channelType(string $name): string
+    {
+        return TypeScript::backtick(
+            preg_replace(
+                self::PARAM_PATTERN,
+                TypeScript::templateString(TypeScript::union(['string', 'number'])),
+                TypeScript::escapeTemplateLiteral($name),
+            ),
+        );
+    }
+
     protected function convertTemplateString(string $templateString): string
     {
-        return str_replace('{', '${', $templateString);
+        return str_replace('{', '${', TypeScript::escapeTemplateLiteral($templateString));
     }
 }

@@ -21,6 +21,7 @@ class TypeScript
     protected static $safeImports = [];
 
     public const RESERVED_KEYWORDS = [
+        'await',
         'break',
         'case',
         'catch',
@@ -32,6 +33,7 @@ class TypeScript
         'delete',
         'do',
         'else',
+        'enum',
         'export',
         'extends',
         'false',
@@ -39,12 +41,20 @@ class TypeScript
         'for',
         'function',
         'if',
+        'implements',
         'import',
         'in',
         'instanceof',
+        'interface',
+        'let',
         'new',
         'null',
+        'package',
+        'private',
+        'protected',
+        'public',
         'return',
+        'static',
         'super',
         'switch',
         'this',
@@ -56,6 +66,7 @@ class TypeScript
         'void',
         'while',
         'with',
+        'yield',
     ];
 
     public static function literalUnion(string $type, array|Collection $values): VariableBuilder

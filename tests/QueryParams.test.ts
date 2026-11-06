@@ -29,6 +29,34 @@ it("can convert array params", () => {
     });
 });
 
+it("can convert readonly array params", () => {
+    const tags = ["bar", "baz"] as const;
+
+    expect(
+        index({
+            query: {
+                tags,
+            },
+        })
+    ).toEqual({
+        url: "/posts?tags%5B%5D=bar&tags%5B%5D=baz",
+        method: "get",
+    });
+});
+
+it("can convert boolean array params", () => {
+    expect(
+        index({
+            query: {
+                active: [true, false],
+            },
+        })
+    ).toEqual({
+        url: "/posts?active%5B%5D=1&active%5B%5D=0",
+        method: "get",
+    });
+});
+
 it("can convert object params", () => {
     expect(
         index({
@@ -42,6 +70,21 @@ it("can convert object params", () => {
         })
     ).toEqual({
         url: "/posts?foo%5Ba%5D=baz&foo%5Bb%5D=qux&bar=something",
+        method: "get",
+    });
+});
+
+it("can convert nested boolean array params", () => {
+    expect(
+        index({
+            query: {
+                filters: {
+                    active: [true, false],
+                },
+            },
+        })
+    ).toEqual({
+        url: "/posts?filters%5Bactive%5D%5B%5D=1&filters%5Bactive%5D%5B%5D=0",
         method: "get",
     });
 });

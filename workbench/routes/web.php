@@ -7,6 +7,7 @@ use App\Http\Controllers\DisallowedMethodNameController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\DuplicateInertiaController;
 use App\Http\Controllers\EloquentProductController;
+use App\Http\Controllers\IgnoredController;
 use App\Http\Controllers\InertiaController;
 use App\Http\Controllers\InvokableController;
 use App\Http\Controllers\InvokablePlusController;
@@ -23,6 +24,9 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
 use App\Http\Controllers\Prism\PrismController;
 use App\Http\Controllers\ResourceTestController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SecretsController;
+use App\Http\Controllers\SharedUriController;
 use App\Http\Controllers\TwoRoutesSameActionController;
 use App\Http\Controllers\UrlDefaultsController;
 use App\Http\Middleware\UrlDefaultsMiddleware;
@@ -68,9 +72,11 @@ Route::post('/optional/{parameter?}', [OptionalController::class, 'optional'])->
 Route::post('/many-optional/{one?}/{two?}/{three?}', [OptionalController::class, 'manyOptional']);
 
 Route::get('/users/{user}', [ModelBindingController::class, 'show']);
+Route::get('/users/by-token/{user:remember_token}', [ModelBindingController::class, 'nullableBinding']);
 
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}', [UrlDefaultsController::class, 'onlyDefaults']);
 Route::middleware(UrlDefaultsMiddleware::class)->post('/with-defaults/{locale}/also/{timezone}', [UrlDefaultsController::class, 'mixedDefaults']);
+Route::middleware(UrlDefaultsMiddleware::class)->post('/with-quoted-defaults/{quoted}', [UrlDefaultsController::class, 'quotedDefaults']);
 
 Route::get('/keys/{key}', [KeyController::class, 'show']);
 Route::get('/keys/{key:uuid}/edit', [KeyController::class, 'edit']);
@@ -90,10 +96,19 @@ Route::get('/nested/controller/child/grandchild', [NestedController::class, 'gra
 Route::get('/two-routes-one-action-1', [TwoRoutesSameActionController::class, 'same']);
 Route::get('/two-routes-one-action-2', [TwoRoutesSameActionController::class, 'same']);
 
+Route::get('/shared-uri/{name}', SharedUriController::class);
+Route::post('/shared-uri/{name}', SharedUriController::class);
+Route::match(['put', 'patch'], '/shared-uri/{name}', SharedUriController::class);
+
+Route::match(['QUERY'], '/search', [SearchController::class, 'index'])->name('search.index');
+Route::match(['GET', 'QUERY'], '/search/{type}', [SearchController::class, 'show'])->name('search.show');
+
 Route::get('/disallowed/delete', [DisallowedMethodNameController::class, 'delete']);
 Route::get('/disallowed/404', [DisallowedMethodNameController::class, '404'])->name('disallowed.404');
 Route::get('/disallowed/2fa', [DisallowedMethodNameController::class, '2fa'])->name('2fa.disallowed');
 Route::get('/disallowed/default', [DisallowedMethodNameController::class, 'default'])->name('default.login');
+Route::get('/disallowed/public', [DisallowedMethodNameController::class, 'public'])->name('public.assets');
+Route::get('/disallowed/static', [DisallowedMethodNameController::class, 'static'])->name('static.files');
 Route::get('/navigation-items/{item}/options', [NavigationItemController::class, 'options']);
 
 Route::get('/anonymous-middleware', [AnonymousMiddlewareController::class, 'show']);
@@ -141,6 +156,7 @@ Route::get('/api/users', [ApiController::class, 'users'])->name('api.users');
 Route::get('/products/{product}', [ResourceTestController::class, 'show'])->name('products.show');
 Route::get('/products', [ResourceTestController::class, 'index'])->name('products.index');
 Route::get('/products/wrapped', [ResourceTestController::class, 'wrapped'])->name('products.wrapped');
+Route::get('/products/unwrapped', [ResourceTestController::class, 'unwrapped'])->name('products.unwrapped');
 Route::get('/categories/json-api/{category}', [ResourceTestController::class, 'jsonApi'])->name('categories.jsonApi');
 Route::get('/categories/json-api', [ResourceTestController::class, 'jsonApiCollection'])->name('categories.jsonApi.collection');
 Route::get('/users-resource/{user}', [ResourceTestController::class, 'user'])->name('users-resource.show');
@@ -155,3 +171,13 @@ Route::prefix('mixed')->name('mixed.')->group(function () {
     Route::get('items/{item}', [MixedRouteController::class, 'edit'])->name('items.edit');
     Route::patch('items/{item}', [MixedRouteController::class, 'update'])->name('items.update');
 });
+
+Route::get('ignored-controller', [IgnoredController::class, 'index'])->name('ignored.index');
+Route::get('secrets', [SecretsController::class, 'index'])->name('secrets.index');
+Route::get('secrets/reveal', [SecretsController::class, 'reveal'])->name('secrets.reveal');
+Route::get('secrets/resource', [SecretsController::class, 'resource'])->name('secrets.resource');
+
+Route::get('/photos', fn () => 'ok')->name('photos.index');
+Route::get('/photos/window', fn () => 'ok')->name('photos.index.window');
+
+Route::get('/albums/recent', fn () => 'ok')->name('albums.index.recent');

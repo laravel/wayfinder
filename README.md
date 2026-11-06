@@ -135,6 +135,9 @@ Add query parameters to any route:
 PostController.index({ query: { page: 2, sort: "created_at" } });
 // { url: '/posts?page=2&sort=created_at', method: 'get' }
 
+PostController.index({ query: { active: [true, false] } });
+// { url: '/posts?active[]=1&active[]=0', method: 'get' }
+
 // Merge with existing query string
 PostController.index({ mergeQuery: { page: 3 } });
 ```
@@ -154,6 +157,13 @@ PostController.destroy({ post: 1 }); // DELETE
 PostController.index.get();
 PostController.index.head();
 PostController.update.patch({ post: 1 });
+```
+
+Routes registered with the [`QUERY`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/QUERY) method, such as `Route::match(['QUERY'], '/search', ...)`, receive a `query` variant like any other verb:
+
+```typescript
+SearchController.index(); // { url: '/search', method: 'query' }
+SearchController.index.query(); // { url: '/search', method: 'query' }
 ```
 
 ### Route Type Helpers
@@ -192,6 +202,9 @@ PostController.update.form({ post: 1 });
 
 PostController.destroy.form({ post: 1 });
 // { action: '/posts/1?_method=DELETE', method: 'post' }
+
+SearchController.index.form();
+// { action: '/search?_method=QUERY', method: 'post' }
 ```
 
 Use these with HTML forms, for example, in React:
@@ -201,6 +214,47 @@ Use these with HTML forms, for example, in React:
     <!-- fields -->
 </form>
 ```
+
+### Multiple Routes To The Same Action
+
+If two or more routes point at the same controller method, Wayfinder can't tell which URL you meant from the action alone, so the generated export becomes a dictionary keyed by URI instead of a callable:
+
+```php
+Route::get('clients/{client}/payments', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.index');
+
+Route::get('clients/{client}/payments-archive', [ClientPaymentsController::class, 'index'])
+    ->name('clients.payments.archive');
+```
+
+```typescript
+import { index } from "@/wayfinder/App/Http/Controllers/ClientPaymentsController";
+
+// `index` is not callable directly — pick the URI you want:
+index["/clients/{client}/payments"]({ client: 1 });
+```
+
+If two of those routes share a URI and differ only by verb, each key is prefixed with the verb, so you can still pick the one you want:
+
+```php
+Route::get('/exports/{report}', ExportController::class)
+    ->name('exports.show');
+
+Route::post('/exports/{report}', ExportController::class)
+    ->middleware('throttle:5,1')
+    ->name('exports.run');
+```
+
+```typescript
+import ExportController from "@/wayfinder/App/Http/Controllers/ExportController";
+
+ExportController["get /exports/{report}"]({ report: 1 });
+ExportController["post /exports/{report}"]({ report: 1 });
+```
+
+A route that answers to more than one verb joins them with `|`, as in `ExportController["put|patch /exports/{report}"]`. Exports whose URIs are already unique keep the plain URI keys shown above.
+
+In most cases it is easier to import the route by name instead, as described below.
 
 ## Named Routes
 
@@ -317,6 +371,8 @@ function displayUser(user: App.Models.User) {
 }
 ```
 
+Attributes listed in `$hidden` are left out, as is anything marked with the `WayfinderIgnore` attribute — see [Leaving Things Out](#leaving-things-out).
+
 ## PHP Enums
 
 Wayfinder converts PHP enums to TypeScript types and constants.
@@ -364,6 +420,62 @@ function setStatus(status: App.Enums.PostStatus) {
     // Only accepts 'draft', 'published', or 'archived'
 }
 ```
+
+A case can be left out of the generated enum, either always or only for some builds — see [Leaving Things Out](#leaving-things-out).
+
+### Enum Methods
+
+Enums often carry methods alongside their cases:
+
+```php
+enum PostStatus: string
+{
+    case Draft = 'draft';
+    case Published = 'published';
+    case Archived = 'archived';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Published => 'Live',
+            self::Archived => 'Archived',
+        };
+    }
+
+    public function isVisible(): bool
+    {
+        return $this === self::Published;
+    }
+}
+```
+
+Set `WAYFINDER_GENERATE_ENUM_METHODS=true` and Wayfinder calls each method on each case and writes the results to a companion constant, keyed by case value:
+
+```typescript
+export const PostStatusMeta = {
+    draft: { label: "Draft", isVisible: false },
+    published: { label: "Live", isVisible: true },
+    archived: { label: "Archived", isVisible: false },
+} as const;
+```
+
+Because the keys are case values, a value straight from the server is the lookup key:
+
+```typescript
+import PostStatus, {
+    PostStatusMeta,
+} from "@/wayfinder/App/Enums/PostStatus";
+
+PostStatusMeta[post.status].label;
+PostStatusMeta[PostStatus.Published].isVisible;
+```
+
+Only methods that take no required arguments are called. Static, magic, protected and private methods are skipped, as are methods returning `void` or `never`, and any method marked with `WayfinderIgnore` — see [Leaving Things Out](#leaving-things-out).
+
+If a method throws for one case, that case alone loses the entry, and the same goes for a value that has no TypeScript equivalent — a plain object, for instance. Strings, numbers, booleans, `null`, arrays, backed enums, `JsonSerializable`, `Arrayable` and `Stringable` all convert.
+
+This runs your code at generation time, which is why it is off by default. Bear in mind that anything depending on the current locale, the database or the environment is frozen as it was when the command ran — a `label()` returning `__('post.draft')` bakes in one translation.
 
 ## Inertia.js Integration
 
@@ -588,6 +700,158 @@ This provides autocomplete and type-checking for `import.meta.env`:
 const appName = import.meta.env.VITE_APP_NAME;
 ```
 
+## Leaving Things Out
+
+Some of what Wayfinder can see should not reach the browser. Mark it with the `WayfinderIgnore` attribute and nothing is generated for it:
+
+```php
+use Laravel\Wayfinder\Attributes\WayfinderIgnore;
+
+#[WayfinderIgnore]
+class InternalController
+{
+    // No action file, no route helper, no request type.
+}
+```
+
+The attribute works on a controller class or a single action, a model, an enum or one of its cases or methods, a broadcast event or channel, and on a model's accessors and relations:
+
+```php
+class UserController
+{
+    public function index() { /* generated */ }
+
+    #[WayfinderIgnore]
+    public function impersonate() { /* not generated */ }
+}
+```
+
+```php
+class User extends Model
+{
+    #[WayfinderIgnore]
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(AuditEntry::class);
+    }
+}
+```
+
+Dropping an action drops everything that hangs off it: the route helper, the form variant, the page type, and the request type. Dropping a model drops relations that point at it, since there is no type left to point to.
+
+### Keeping Something For Some Builds Only
+
+Some declarations belong in local builds and nowhere else: a fake source provider, a seeding endpoint, a debug page. Pass `unless` and the declaration is kept only while the condition holds:
+
+```php
+// config/services.php
+'fake_source_provider' => env('FAKE_SOURCE_PROVIDER', false),
+
+// App\Enums\SourceProvider
+enum SourceProvider: string
+{
+    case Github = 'github';
+    case Gitlab = 'gitlab';
+
+    #[WayfinderIgnore(unless: 'services.fake_source_provider')]
+    case GitFake = 'gitfake';
+}
+```
+
+Locally, with the flag on:
+
+```typescript
+export type SourceProvider = "github" | "gitlab" | "gitfake";
+```
+
+In production, with the flag off or missing:
+
+```typescript
+export type SourceProvider = "github" | "gitlab";
+```
+
+`when` is the other way round, for something to leave out while a condition holds rather than keep:
+
+```php
+class DebugController
+{
+    #[WayfinderIgnore(when: 'services.hide_debug_tools')]
+    public function dump() { /* ... */ }
+}
+```
+
+Either takes a config key, or a `[class, method]` callable for a condition with real logic behind it:
+
+```php
+#[WayfinderIgnore(unless: [SourceProviders::class, 'fakeEnabled'])]
+```
+
+Whatever you pass is answered when the files are generated, by the environment generating them. Wayfinder's output is regenerated per build, so each build gets the answer for where it runs. Nothing is remembered between builds: the analysis cache holds the condition, never the answer to it.
+
+| Condition | `unless` | `when` |
+| --------- | -------- | ------ |
+| Passes | Kept | Left out |
+| Fails, or the config key is missing | Left out | Kept |
+| Cannot be read | Left out | Left out |
+
+A condition Wayfinder cannot read leaves the declaration out whichever argument it was written with, so a typo shows up as a type error rather than shipping something. Only a config key or a callable counts as a condition, so `#[WayfinderIgnore(true)]` is not a way to switch a marker on or off — it is a marker with no condition, which leaves the declaration out. Passing both arguments is allowed and each can only add hiding, so `unless` keeping something does not override `when` leaving it out. Reach for one or the other.
+
+One consequence worth planning for: the production build genuinely does not have the member, so code that reads it has to sit somewhere the production build never typechecks.
+
+### Payload Keys
+
+An attribute cannot go on an array key, so mark those with a comment instead. Put `@wayfinder-ignore` above the key or at the end of its line:
+
+```php
+return Inertia::render('Profile', [
+    'name' => $user->name,
+    'apiToken' => $user->api_token, // @wayfinder-ignore
+    'billing' => [
+        'plan' => $user->plan,
+        // @wayfinder-ignore
+        'stripeId' => $user->stripe_id,
+    ],
+]);
+```
+
+```typescript
+export type Profile = Inertia.SharedData & {
+    name: string;
+    billing: { plan: string };
+};
+```
+
+The key is gone, not emptied, so code that still reads it fails to compile. This works anywhere Wayfinder reads an array: page props, `toArray()` on a resource, `broadcastWith()`, and the rules of a form request.
+
+A marker hides a member from its own type. If something else hands the same value out under a key of its own, that key needs its own marker.
+
+For a plain database column on a model, Eloquent's `$hidden` and `#[Hidden]` already keep it out, and Wayfinder follows them.
+
+### Traits
+
+Nothing is generated for a trait, so a marker on the trait itself has nothing to hide. Mark the members inside it, which works whether the trait is used by one model or twenty:
+
+```php
+trait HasAvatar
+{
+    #[WayfinderIgnore]
+    public function avatarPath(): Attribute { /* ... */ }
+}
+```
+
+### Markers From Other Packages
+
+To honor an attribute you cannot change, or a different comment tag, list them in `config/wayfinder.php`:
+
+```php
+'ignore' => [
+    'attributes' => [\Vendor\Package\Attributes\Internal::class],
+    'tags' => ['wayfinder-ignore', 'ignore'],
+],
+```
+
+Your own attributes need no registration. Any attribute implementing `Laravel\Surveyor\Contracts\Ignored` is honored.
+
 ## Configuration
 
 The configuration file is located at `config/wayfinder.php`:
@@ -595,6 +859,10 @@ The configuration file is located at `config/wayfinder.php`:
 ```php
 return [
     'generate' => [
+        'ignore' => [
+            'attributes' => [],
+            'tags' => ['wayfinder-ignore'],
+        ],
         'route' => [
             'actions' => env('WAYFINDER_GENERATE_ROUTE_ACTIONS', true),
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
@@ -614,6 +882,7 @@ return [
         ],
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
+        'enum_methods' => env('WAYFINDER_GENERATE_ENUM_METHODS', false),
     ],
 
     'format' => [
@@ -624,6 +893,8 @@ return [
         'enabled' => env('WAYFINDER_CACHE_ENABLED', true),
         'directory' => env('WAYFINDER_CACHE_DIRECTORY', storage_path('wayfinder-cache')),
     ],
+
+    'memory_limit' => env('WAYFINDER_MEMORY_LIMIT'),
 ];
 ```
 
@@ -631,6 +902,8 @@ return [
 
 | Option                           | Description                            | Default                   |
 | -------------------------------- | -------------------------------------- | ------------------------- |
+| `generate.ignore.attributes`     | Extra attributes that leave a declaration out | `[]`               |
+| `generate.ignore.tags`           | Comment tags that leave an array key out | `['wayfinder-ignore']`  |
 | `generate.route.actions`         | Generate controller action files       | `true`                    |
 | `generate.route.named`           | Generate named route files             | `true`                    |
 | `generate.route.form_variant`    | Include `.form` method variants        | `true`                    |
@@ -642,9 +915,17 @@ return [
 | `generate.broadcast.events`      | Generate broadcast event types         | `true`                    |
 | `generate.environment_variables` | Generate Vite env variable types       | `true`                    |
 | `generate.enums`                 | Generate PHP enum types                | `true`                    |
+| `generate.enum_methods`          | Resolve enum methods for each case     | `false`                   |
 | `format.enabled`                 | Format generated files with Biome      | `false`                   |
 | `cache.enabled`                  | Enable caching for faster regeneration | `true`                    |
 | `cache.directory`                | Directory for cache files              | `storage/wayfinder-cache` |
+| `memory_limit`                   | What to run generation under           | `null`                    |
+
+Generation analyzes your application's class graph, which takes more memory than
+PHP's 128M default, so `wayfinder:generate` raises `memory_limit` to `1536M` when
+it finds it set lower. Set `memory_limit` to say what to use instead, in
+`php.ini`'s format (`'768M'`, `'2G'`, or `'-1'` for no limit). Wayfinder takes it
+as given, higher or lower.
 
 ## Syncing Across Repositories
 
