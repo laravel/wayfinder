@@ -42,6 +42,12 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      # npm 10, which ships with the runner's default Node, crashes resolving vitest 4.1's peer dependencies.
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
       - name: Install dependencies
         run: |
           composer update --prefer-dist --no-interaction --no-progress --with="illuminate/contracts=^${{ matrix.laravel }}"
