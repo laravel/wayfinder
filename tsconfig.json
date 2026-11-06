@@ -19,7 +19,8 @@
         "forceConsistentCasingInFileNames": true,
         "declaration": true,
         "outDir": "./dist",
-        "rootDir": "."
+        "rootDir": ".",
+        "types": ["node"]
     },
     "include": [
         "workbench/resources/js/**/*.ts",
