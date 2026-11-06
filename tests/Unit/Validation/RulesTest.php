@@ -59,7 +59,8 @@ class RulesTest extends TestCase
 
     public function test_size_rules_alone_do_not_make_a_file(): void
     {
-        $this->assertSame('string', $this->resolve(['Max', ['5120']]));
+        // max also applies to numbers, arrays and files, so on its own it pins nothing.
+        $this->assertSame('unknown', $this->resolve(['Max', ['5120']]));
     }
 
     protected function resolve(array ...$rules): string

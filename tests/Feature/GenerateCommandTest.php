@@ -268,7 +268,7 @@ test('deprecated options warn and still generate', function () {
         $command->expectsOutputToContain("--{$option} option is deprecated");
     }
 
-    $command->assertSuccessful();
+    $command->assertSuccessful()->run();
 
     expect(join_paths($this->tempPath, 'index.ts'))->toBeFile();
 });

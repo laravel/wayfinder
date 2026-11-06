@@ -63,16 +63,12 @@ class Rules
             return TypeScript::classReference($enumRule->getProperty('type')->getValue($enum->rule()));
         }
 
+        // Each of these only passes for an uploaded file, which the browser sends as a File.
+        // https://laravel.com/docs/validation#rule-file
         if (
             $this->getRule('File', 'Image', 'Mimes', 'Mimetypes', 'Extensions', 'Dimensions')
             || $this->rules->contains(fn (Rule $rule) => $rule->rule() instanceof FileRule)
         ) {
-            return 'File';
-        }
-
-        // Each of these only passes for an uploaded file, which the browser sends as a File.
-        // https://laravel.com/docs/validation#rule-file
-        if ($this->getRule('File', 'Image', 'Mimes', 'Mimetypes', 'Extensions', 'Dimensions')) {
             return 'File';
         }
 

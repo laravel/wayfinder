@@ -70,10 +70,10 @@ class BroadcastEventsTest extends TestCase
             ))->setFilePath($rootPath.'/workbench/app/Events/OrderShipped.php');
 
             foreach ((new BroadcastEvents)->convert(collect([$event])) as $result) {
-                $files->put($tempPath.'/'.$result->name, $result->content());
+                $files->put($tempPath.'/'.$result->name, TypeScript::resolveClassReferences($result->content()));
             }
 
-            $files->put($tempPath.'/types.ts', TypeScript::getNamespacedFormatted()->implode(PHP_EOL));
+            $files->put($tempPath.'/types.ts', TypeScript::resolveClassReferences(TypeScript::getNamespacedFormatted()->implode(PHP_EOL)));
 
             $eventPath = str_replace('\\', '.', $eventName);
             $modelAssertions = $withModel ? <<<'TS'
