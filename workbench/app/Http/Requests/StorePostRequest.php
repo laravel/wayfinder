@@ -46,6 +46,12 @@ class StorePostRequest extends FormRequest
             'state' => ['required', Rule::enum(PostStatus::class)],
             'priority' => ['nullable', 'string', Rule::enum(Priority::class)],
             'channel' => ['required', 'string', Rule::in(array_keys(config('wayfinder.unknown_channels', [])))],
+            'attachment' => ['required', 'file', 'max:5120'],
+            'document' => ['required', 'mimes:pdf,docx'],
+            'scan' => ['required', 'mimetypes:application/pdf'],
+            'archive' => ['required', 'extensions:zip'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image'],
         ];
     }
 }

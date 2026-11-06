@@ -66,6 +66,14 @@ describe("FormRequests", () => {
         expectTypeOf<Store["notes"]>().toBeUnknown();
     });
 
+    test("upload rules become a File", () => {
+        expectTypeOf<Store["attachment"]>().toEqualTypeOf<File>();
+        expectTypeOf<Store["document"]>().toEqualTypeOf<File>();
+        expectTypeOf<Store["scan"]>().toEqualTypeOf<File>();
+        expectTypeOf<Store["archive"]>().toEqualTypeOf<File>();
+        expectTypeOf<Store["photos"]>().toEqualTypeOf<File[] | null | undefined>();
+    });
+
     test("StorePostRequest generates typed fields", () => {
         const content = readFileSync(typesPath, "utf-8");
         // The Request type should include fields from StorePostRequest

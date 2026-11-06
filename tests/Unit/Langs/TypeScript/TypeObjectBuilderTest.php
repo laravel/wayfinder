@@ -1,28 +1,21 @@
 <?php
 
-namespace Tests\Unit\Langs\TypeScript;
-
 use Laravel\Wayfinder\Langs\TypeScript;
-use PHPUnit\Framework\TestCase;
 
-class TypeObjectBuilderTest extends TestCase
-{
-    public function test_type_object_does_not_use_shorthand_for_matching_key_and_value(): void
-    {
-        $type = TypeScript::objectToTypeObject([
-            'number' => 'number',
-        ], false);
+test('type object does not use shorthand for matching key and value', function () {
+    $type = TypeScript::objectToTypeObject([
+        'number' => 'number',
+    ], false);
 
-        $this->assertSame('{ number: number }', (string) $type);
-    }
+    expect((string) $type)->toBe('{ number: number }');
+});
 
-    public function test_object_record_uses_shorthand_for_matching_key_and_value(): void
-    {
-        $object = TypeScript::objectToRecord([
-            'url' => 'url',
-        ], false);
+test('object record uses shorthand for matching key and value', function () {
+    $object = TypeScript::objectToRecord([
+        'url' => 'url',
+    ], false);
 
-        $this->assertStringContainsString('url', (string) $object);
-        $this->assertStringNotContainsString('url: url', (string) $object);
-    }
-}
+    expect((string) $object)
+        ->toContain('url')
+        ->not->toContain('url: url');
+});

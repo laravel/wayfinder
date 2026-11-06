@@ -91,6 +91,10 @@ class GenerateCommand extends Command
             }
         }
 
+        TypeScript::reset();
+        $this->results = [];
+        $this->ranger = app(Ranger::class);
+
         $cacheDirectory = $this->versionedCacheDirectory($this->config->get('wayfinder.cache.directory'));
 
         AnalyzedCache::freezeFileTimes();

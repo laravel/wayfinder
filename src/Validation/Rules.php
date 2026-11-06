@@ -70,6 +70,12 @@ class Rules
             return 'File';
         }
 
+        // Each of these only passes for an uploaded file, which the browser sends as a File.
+        // https://laravel.com/docs/validation#rule-file
+        if ($this->getRule('File', 'Image', 'Mimes', 'Mimetypes', 'Extensions', 'Dimensions')) {
+            return 'File';
+        }
+
         if ($this->getRule('String')) {
             return 'string';
         }
