@@ -30,6 +30,13 @@ class StorePostRequest extends FormRequest
             'meta.description' => ['nullable', 'string'],
             'meta.keywords' => ['nullable', 'array'],
             'meta.keywords.*' => ['string'],
+            'attachment' => ['required', 'file', 'max:5120'],
+            'cover' => ['nullable', 'image'],
+            'document' => ['required', 'mimes:pdf,docx'],
+            'scan' => ['required', 'mimetypes:application/pdf'],
+            'archive' => ['required', 'extensions:zip'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image'],
         ];
     }
 }

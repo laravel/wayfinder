@@ -28,6 +28,18 @@ describe("FormRequests", () => {
         >();
     });
 
+    test("upload rules become a File", () => {
+        type Request = App.Http.Controllers.PostController.Store.Request;
+
+        expectTypeOf<Request["attachment"]>().toEqualTypeOf<File>();
+        expectTypeOf<Request["document"]>().toEqualTypeOf<File>();
+        expectTypeOf<Request["scan"]>().toEqualTypeOf<File>();
+        expectTypeOf<Request["archive"]>().toEqualTypeOf<File>();
+        expectTypeOf<Request["cover"]>().toEqualTypeOf<
+            File | null | undefined
+        >();
+    });
+
     test("StorePostRequest generates typed fields", () => {
         const content = readFileSync(typesPath, "utf-8");
         // The Request type should include fields from StorePostRequest
