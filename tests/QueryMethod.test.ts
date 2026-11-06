@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { index, show } from "../workbench/resources/js/wayfinder/App/Http/Controllers/SearchController";
+import photos from "../workbench/resources/js/wayfinder/routes/photos";
 import search from "../workbench/resources/js/wayfinder/routes/search";
 
 describe("query only route", () => {
@@ -100,5 +101,16 @@ describe("get and query route", () => {
             url: "/search/posts",
             method: "query",
         });
+    });
+});
+
+describe("redirect route", () => {
+    test("every registered verb", () => {
+        for (const method of photos.redirect.definition.methods) {
+            expect(photos.redirect[method]()).toEqual({
+                url: "/old-photos",
+                method,
+            });
+        }
     });
 });
