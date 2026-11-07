@@ -29,6 +29,8 @@ class Routes extends Converter
 
     protected array $content = [];
 
+    protected array $queryTypeAliases = [];
+
     protected bool $generateRoutes = true;
 
     protected bool $generateActions = true;
@@ -54,17 +56,6 @@ class Routes extends Converter
     public function convert(Collection $routes): array
     {
         $results = [];
-
-        if ($this->generateActions) {
-            $controllers = $routes->filter(fn (Route $route) => $route->hasController())
-                ->groupBy(fn (Route $route) => $route->dotNamespace());
-
-            $controllers->each($this->writeControllerFile(...));
-        }
-
-        if ($this->generateRoutes) {
-            $this->writeNamedRoutesFile($routes);
-        }
 
         $routes->unique(fn (Route $route) => $route->controller().':'.$route->method())->each(function (Route $route) {
             $responseTypes = [];
@@ -96,6 +87,16 @@ class Routes extends Converter
         });
 
         $this->formRequestConverter->convert();
+
+        if ($this->generateActions) {
+            $routes->filter(fn (Route $route) => $route->hasController())
+                ->groupBy(fn (Route $route) => $route->dotNamespace())
+                ->each($this->writeControllerFile(...));
+        }
+
+        if ($this->generateRoutes) {
+            $this->writeNamedRoutesFile($routes);
+        }
 
         foreach ($this->content as $path => $content) {
             $resultImports = Imports::create();
@@ -275,7 +276,7 @@ class Routes extends Converter
 
     protected function writeControllerMethodExport(Route $route, string $path): RouteMethod
     {
-        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent);
+        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent, queryType: $this->queryType($route, $path));
 
         $this->appendContent($path, $method->controllerMethod());
 
@@ -284,7 +285,7 @@ class Routes extends Converter
 
     protected function writeNamedMethodExport(Route $route, string $path): RouteMethod
     {
-        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent, true);
+        $method = new RouteMethod($route, $this->generateFormVariants(), $this->withInertiaComponent, true, queryType: $this->queryType($route, $path));
 
         $this->appendContent($path, $method->controllerMethod());
 
@@ -307,6 +308,7 @@ class Routes extends Converter
             withForm: $this->generateFormVariants(),
             withInertiaComponent: $this->withInertiaComponent,
             relatedRoutes: $routes->all(),
+            queryTypes: $routes->mapWithKeys(fn (Route $route) => [$route->uri().'|'.$route->verbs()->pluck('actual')->implode('|') => $this->queryType($route, $path)])->all(),
         );
 
         $this->appendContent($path, $method->controllerMethod());
@@ -314,11 +316,34 @@ class Routes extends Converter
         return $method;
     }
 
+    protected function queryType(Route $route, string $path): ?string
+    {
+        if (! $this->config->get('wayfinder.generate.route.typed_query', false)) {
+            return null;
+        }
+
+        $type = $this->formRequestConverter->queryType($route);
+
+        return $type ? $this->queryTypeAliases[$path].'.'.str_replace('\\', '.', ltrim($type, '\\')) : null;
+    }
+
     protected function appendCommonImports(Collection $routes, string $path): void
     {
         $pathKey = Import::relativePathFromFile($path, 'index');
 
         $this->imports[$path] ??= new Imports;
+
+        if ($this->config->get('wayfinder.generate.route.typed_query', false)
+            && $routes->contains(fn (Route $route) => $this->formRequestConverter->queryType($route) !== null)) {
+            $names = $routes->flatMap(fn (Route $route) => [
+                TypeScript::safeMethod($route->method(), 'Method'),
+                TypeScript::safeMethod(str($route->name() ?? '')->afterLast('.')->toString(), 'Method'),
+                str($route->controller())->afterLast('\\')->toString(),
+            ])->all();
+            $alias = TypeScript::uniqueNamespace('WayfinderQueryTypes', $names);
+            $this->queryTypeAliases[$path] = $alias;
+            $this->imports[$path]->addWildcard(Import::relativePathFromFile($path, 'types'), $alias, type: true);
+        }
 
         $this->imports[$path]->add($pathKey, 'queryParams');
         $this->imports[$path]->addType($pathKey, 'RouteQueryOptions');
