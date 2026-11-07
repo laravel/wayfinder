@@ -317,12 +317,13 @@ class Routes extends Converter
     protected function appendCommonImports(Collection $routes, string $path): void
     {
         $pathKey = Import::relativePathFromFile($path, 'index');
-
+        $typesPathKey = Import::relativePathFromFile($path, 'types');
         $this->imports[$path] ??= new Imports;
 
         $this->imports[$path]->add($pathKey, 'queryParams');
         $this->imports[$path]->addType($pathKey, 'RouteQueryOptions');
         $this->imports[$path]->addType($pathKey, 'RouteDefinition');
+        $this->imports[$path]->addType($typesPathKey, $this->contractNamespaces($routes));
 
         if ($this->generateFormVariants()) {
             $this->imports[$path]->addType($pathKey, 'RouteFormDefinition');
@@ -343,5 +344,16 @@ class Routes extends Converter
         if ($routes->first(fn (Route $route) => $route->parameters()->first(fn (RouteParameter $parameter) => RouteMethod::hasNullableKey($parameter)))) {
             $this->imports[$path]->add($pathKey, 'requireParameter');
         }
+    }
+
+    protected function contractNamespaces(Collection $routes): array
+    {
+        return $routes
+            ->map(fn (Route $route) => str($route->controller())->ltrim('\\')->before('\\')->toString())
+            ->filter()
+            ->map(fn (string $namespace) => TypeScript::safeMethod($namespace, '_'))
+            ->unique()
+            ->values()
+            ->all();
     }
 }
