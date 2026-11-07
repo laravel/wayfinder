@@ -19,6 +19,7 @@ use App\Http\Controllers\NamedInvokableController;
 use App\Http\Controllers\NavigationItemController;
 use App\Http\Controllers\Nested\NestedController;
 use App\Http\Controllers\OptionalController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ParameterNameController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Prism\Prism\PrismController as NestedPrismController;
@@ -37,6 +38,13 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/closure', fn () => 'ok');
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::get('/orders/archive', [OrderController::class, 'index'])->name('orders.archive');
+Route::get('/order-filters', [OrderController::class, 'filters'])->name('orders.filters');
+Route::get('/order-report', [OrderController::class, 'required'])->name('orders.required');
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+Route::match(['GET', 'POST'], '/order-search', [OrderController::class, 'search'])->name('orders.search');
 Route::get('/export/{report}/{export}', fn () => 'Export')->name('export');
 Route::get('/invokable-controller', InvokableController::class);
 Route::get('/named-invokable-controller', NamedInvokableController::class)->name('invokable');

@@ -142,6 +142,53 @@ PostController.index({ query: { active: [true, false] } });
 PostController.index({ mergeQuery: { page: 3 } });
 ```
 
+### Typed Query Parameters
+
+For validated GET and HEAD routes, Wayfinder can use the generated request type
+to autocomplete query keys and check their values. Enable this in `config/wayfinder.php`:
+
+```php
+'generate' => [
+    'route' => [
+        'typed_query' => true,
+    ],
+],
+```
+
+For example, an order dashboard may validate its filters with a Form Request:
+
+```php
+public function rules(): array
+{
+    return [
+        'status' => ['sometimes', 'in:pending,paid,shipped'],
+        'sort' => ['sometimes', 'in:created_at,total'],
+        'page' => ['sometimes', 'integer', 'min:1'],
+    ];
+}
+```
+
+After regenerating, named routes and controller actions use these types:
+
+```typescript
+import { index } from "@/wayfinder/routes/orders";
+
+index({ query: { status: "paid", sort: "created_at", page: 2 } });
+index.url({ query: { status: "payed" } }); // TypeScript error
+index({ query: { page: "two" } }); // TypeScript error
+
+// Change pages without replacing the current filters.
+index({ mergeQuery: { page: 3 } });
+
+// Remove a filter from the current URL.
+index({ mergeQuery: { status: null } });
+```
+
+This also applies to `.get()`, `.head()`, `.form`, and generated `.withComponent()`
+helpers. `query` keeps required fields from the request type; `mergeQuery` accepts
+partial updates. Both accept `null` and `undefined` to omit or remove a key.
+The options argument itself remains optional, as before.
+
 ### HTTP Method Variants
 
 Routes are generated with method-specific variants:
@@ -850,6 +897,7 @@ return [
             'actions' => env('WAYFINDER_GENERATE_ROUTE_ACTIONS', true),
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
             'form_variant' => env('WAYFINDER_GENERATE_FORM_VARIANT', true),
+            'typed_query' => env('WAYFINDER_GENERATE_TYPED_QUERY', false),
             'ignore' => [
                 'urls' => [],
                 'names' => ['nova.*'],
@@ -890,6 +938,7 @@ return [
 | `generate.route.actions`         | Generate controller action files       | `true`                    |
 | `generate.route.named`           | Generate named route files             | `true`                    |
 | `generate.route.form_variant`    | Include `.form` method variants        | `true`                    |
+| `generate.route.typed_query`     | Infer query types for validated GET/HEAD routes | `false`          |
 | `generate.route.ignore.urls`     | URL patterns to ignore                 | `[]`                      |
 | `generate.route.ignore.names`    | Route name patterns to ignore          | `['nova.*']`              |
 | `generate.models`                | Generate model types                   | `true`                    |

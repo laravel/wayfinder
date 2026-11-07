@@ -184,14 +184,13 @@ class Imports implements Stringable
             $typeImports = $regularImports->filter(fn ($i) => $i->isType())->map(fn ($i) => $i->get());
             $defaultImports = $regularImports->filter(fn ($i) => $i->isDefault())->map(fn ($i) => $i->get());
             $namedImports = $regularImports->filter(fn ($i) => $i->isNamed())->map(fn ($i) => $i->get());
-            $wildcardImports = $wildcardImports->map(fn ($i) => $i->get());
 
             $allNamedImports = $namedImports->sort()->merge(
                 $typeImports->sort()->map(fn ($i) => "type {$i}")
             );
 
-            if ($wildcardImports->isNotEmpty()) {
-                $lines[] = sprintf('import %s from "%s";', $wildcardImports->sort()->implode(', '), $from);
+            foreach ($wildcardImports as $import) {
+                $lines[] = sprintf('import %s%s from "%s";', $import->isType() ? 'type ' : '', $import->get(), $from);
             }
 
             if ($defaultImports->isNotEmpty()) {

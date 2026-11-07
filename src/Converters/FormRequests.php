@@ -19,6 +19,25 @@ class FormRequests extends Converter
 
     protected array $nullValidators = [];
 
+    protected array $requestTypes = [];
+
+    public function queryType(Route $route): ?string
+    {
+        if (! $route->verbs()->every(fn ($verb) => in_array($verb->actual, ['get', 'head'], true))) {
+            return null;
+        }
+
+        // Dotted validation keys are not consistently nested in Request yet.
+        // Keep their URLs permissive rather than expose literal wildcard keys.
+        if (collect(array_keys($route->requestValidator()?->rules ?? []))->contains(fn ($key) => str_contains($key, '.'))) {
+            return null;
+        }
+
+        $key = $this->routeControllerRequestKey($route);
+
+        return ($this->requestTypes[$key] ?? false) ? $key : null;
+    }
+
     public function add(?Validator $validator, Route $route): void
     {
         if ($validator === null) {
@@ -91,6 +110,10 @@ class FormRequests extends Converter
 
     protected function addControllerDefinition(array $routes, string $definition): void
     {
+        $this->requestTypes[$this->routeControllerRequestKey($routes[0])] = $definition !== self::DEFAULT
+            && ! str_contains($definition, ': unknown')
+            && ! str_contains($definition, ': File');
+
         $type = TypeScript::type('Request', $definition)->export();
 
         foreach ($routes as $route) {

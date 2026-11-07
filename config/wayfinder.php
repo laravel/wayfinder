@@ -13,6 +13,7 @@ return [
             'actions' => env('WAYFINDER_GENERATE_ROUTE_ACTIONS', true),
             'named' => env('WAYFINDER_GENERATE_NAMED_ROUTES', true),
             'form_variant' => env('WAYFINDER_GENERATE_FORM_VARIANT', true),
+            'typed_query' => env('WAYFINDER_GENERATE_TYPED_QUERY', false),
             'ignore' => [
                 // Patterns to ignore for URLs (e.g. 'nova-api/*')
                 'urls' => [],

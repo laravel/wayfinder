@@ -37,6 +37,8 @@ class RouteMethod
         protected array $relatedRoutes = [],
         protected bool $tmpMethod = false,
         protected ?string $tmpMethodKey = null,
+        protected ?string $queryType = null,
+        protected array $queryTypes = [],
     ) {
         $this->name = TypeScript::safeMethod($this->jsMethod($route), 'Method');
 
@@ -111,6 +113,7 @@ class RouteMethod
                 named: $this->named,
                 tmpMethod: true,
                 tmpMethodKey: $keys[$index],
+                queryType: $this->queryTypes[$route->uri().'|'.$route->verbs()->pluck('actual')->implode('|')] ?? null,
             );
 
             $output[] = $routeMethod->controllerMethod();
@@ -127,6 +130,11 @@ class RouteMethod
         $output[] = (string) $const;
 
         return implode(PHP_EOL.PHP_EOL, $output);
+    }
+
+    protected function queryOptionsType(): string
+    {
+        return $this->queryType ? 'RouteQueryOptions<'.$this->queryType.'>' : 'RouteQueryOptions';
     }
 
     protected function base(): string
@@ -152,7 +160,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
 
         $this->addDockblock($func);
 
@@ -293,7 +301,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
 
         $body = [];
 
@@ -443,7 +451,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
         $func->returnType('RouteDefinition<"'.$verb->actual.'">');
 
         $body = TypeScript::object();
@@ -486,7 +494,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
         $func->returnType('RouteFormDefinition<"'.$verb->formSafe.'">');
 
         $body = TypeScript::object();
@@ -579,7 +587,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
 
         $urlArgs = $this->hasParameters ? [$this->argsParam, $this->optionsParam] : [$this->optionsParam];
         $callArgs = implode(', ', $urlArgs);
@@ -632,7 +640,7 @@ class RouteMethod
             $func->argument($this->argsParam, $this->collectArgTypes(), $this->allOptional);
         }
 
-        $func->argument($this->optionsParam, 'RouteQueryOptions', true);
+        $func->argument($this->optionsParam, $this->queryOptionsType(), true);
 
         $urlArgs = [];
 

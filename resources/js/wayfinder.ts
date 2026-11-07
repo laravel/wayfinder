@@ -32,15 +32,19 @@ export type RouteFormDefinition<
     component?: TComponent;
 };
 
-export type RouteQueryOptions = {
-    query?: QueryParams;
-    mergeQuery?: QueryParams;
+type QueryInput<T> = {
+    [K in keyof T]: T[K] | null | undefined;
 };
 
-export const formSafeOptions = (
+export type RouteQueryOptions<TQuery extends QueryParams = QueryParams> = {
+    query?: QueryInput<TQuery>;
+    mergeQuery?: Partial<QueryInput<TQuery>>;
+};
+
+export const formSafeOptions = <TQuery extends QueryParams = QueryParams>(
     method: Method,
-    options?: RouteQueryOptions,
-): RouteQueryOptions => ({
+    options?: RouteQueryOptions<TQuery>,
+): RouteQueryOptions<TQuery> => ({
     [options?.mergeQuery ? "mergeQuery" : "query"]: {
         _method: method.toUpperCase(),
         ...(options?.query ?? options?.mergeQuery),
