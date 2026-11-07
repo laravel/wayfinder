@@ -57,13 +57,13 @@
     }
 @endif
 
-    return {!! $method !!}.definition.url
+    return applyUrlBase({!! $method !!}.definition.url
 @foreach ($parameters as $parameter)
             .replace(@js($parameter->placeholder), {!! $parsedArgs !!}.{!! $parameter->name !!}{!! when($parameter->optional, '?') !!}.toString(){!! when($parameter->optional, " ?? ''") !!})
     @if ($loop->last)
             .replace(/\/+$/, '')
     @endif
-@endforeach + queryParams({!! $options !!})
+@endforeach) + queryParams({!! $options !!})
 }
 
 @foreach ($verbs as $verb)

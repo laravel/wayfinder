@@ -15,6 +15,8 @@ type UrlDefaults = Record<string, unknown>;
 
 let urlDefaults: () => UrlDefaults = () => ({});
 
+let urlBase: () => string = () => "";
+
 export type RouteDefinition<TMethod extends Method | Method[]> = {
     url: string;
 } & (TMethod extends Method[] ? { methods: TMethod } : { method: TMethod });
@@ -128,6 +130,24 @@ export const addUrlDefault = (
         ...previousDefaults(),
         [key]: value,
     });
+};
+
+export const setUrlBase = (base: string | (() => string)) => {
+    urlBase = typeof base === "function" ? base : () => base;
+};
+
+export const applyUrlBase = (url: string) => {
+    if (!url.startsWith("/") || url.startsWith("//")) {
+        return url;
+    }
+
+    const base = urlBase().replace(/\/+$/, "");
+
+    if (base === "") {
+        return url;
+    }
+
+    return url === "/" ? base : `${base}${url}`;
 };
 
 export const applyUrlDefaults = <T extends UrlDefaults | undefined>(
