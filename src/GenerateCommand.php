@@ -13,8 +13,10 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\View\Factory;
 use ReflectionProperty;
+use Throwable;
 
 use function Illuminate\Filesystem\join_paths;
+use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 
 class GenerateCommand extends Command
@@ -72,7 +74,9 @@ class GenerateCommand extends Command
             return new Route($route, $globalUrlDefaults->merge($defaults), $this->forcedScheme, $this->forcedRoot);
         });
 
-        $this->writeWayfinderHelperFile();
+        if (! $this->writeWayfinderHelperFile()) {
+            return self::FAILURE;
+        }
 
         if (! $this->option('skip-actions')) {
             $controllers = $routes->filter(fn (Route $route) => $route->hasController())->groupBy(fn (Route $route) => $route->dotNamespace());
@@ -80,7 +84,13 @@ class GenerateCommand extends Command
             $controllers->undot()->each($this->writeBarrelFiles(...));
             $controllers->each($this->writeControllerFile(...));
 
-            $this->pruneStaleFiles($this->base(), $this->writeContent());
+            $written = $this->writeContent();
+
+            if ($written === false) {
+                return self::FAILURE;
+            }
+
+            $this->pruneStaleFiles($this->base(), $written);
 
             info('[Wayfinder] Generated actions in '.$this->base());
         }
@@ -93,10 +103,18 @@ class GenerateCommand extends Command
             $named->each($this->writeNamedFile(...));
             $named->undot()->each($this->writeBarrelFiles(...));
 
-            $this->pruneStaleFiles($this->base(), $this->writeContent());
+            $written = $this->writeContent();
+
+            if ($written === false) {
+                return self::FAILURE;
+            }
+
+            $this->pruneStaleFiles($this->base(), $written);
 
             info('[Wayfinder] Generated routes in '.$this->base());
         }
+
+        return self::SUCCESS;
     }
 
     private function syncMiddlewareFromHttpKernel(): void
@@ -138,19 +156,19 @@ class GenerateCommand extends Command
             });
     }
 
-    private function writeWayfinderHelperFile(): void
+    private function writeWayfinderHelperFile(): bool
     {
         $previousPathDirectory = $this->pathDirectory;
         $this->pathDirectory = 'wayfinder';
 
-        $this->files->ensureDirectoryExists($this->base());
-
         $source = __DIR__.'/../resources/js/wayfinder.ts';
         $destination = join_paths($this->base(), 'index.ts');
 
-        $this->writeContentIfChanged($destination, $this->files->get($source));
+        $result = $this->writeContentIfChanged($destination, $this->files->get($source));
 
         $this->pathDirectory = $previousPathDirectory;
+
+        return $result;
     }
 
     private function appendContent(string $path, string $content): void
@@ -170,15 +188,13 @@ class GenerateCommand extends Command
     }
 
     /**
-     * @return string[] paths that were written
+     * @return string[]|false paths that were written, or false on failure
      */
-    private function writeContent(): array
+    private function writeContent(): array|false
     {
         $written = [];
 
         foreach ($this->content as $path => $content) {
-            $this->files->ensureDirectoryExists(dirname($path));
-
             $body = TypeScript::cleanUp(implode(PHP_EOL, $content));
 
             if (isset($this->imports[$path])) {
@@ -189,7 +205,12 @@ class GenerateCommand extends Command
                 $body = $importLines.PHP_EOL.$body;
             }
 
-            $this->writeContentIfChanged($path, $body);
+            if (! $this->writeContentIfChanged($path, $body)) {
+                $this->content = [];
+                $this->imports = [];
+
+                return false;
+            }
 
             $written[] = $path;
         }
@@ -200,13 +221,44 @@ class GenerateCommand extends Command
         return $written;
     }
 
-    private function writeContentIfChanged(string $path, string $content): void
+    private function writeContentIfChanged(string $path, string $content): bool
     {
-        $this->files->ensureDirectoryExists(dirname($path));
+        if (! $this->ensureDirectoryExists(dirname($path))) {
+            return false;
+        }
 
         if (! $this->files->exists($path) || $this->files->get($path) !== $content) {
-            $this->files->put($path, $content);
+            try {
+                $result = $this->files->put($path, $content);
+            } catch (Throwable) {
+                $result = false;
+            }
+
+            if ($result === false) {
+                error("[Wayfinder] Unable to write file: {$path}");
+
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    private function ensureDirectoryExists(string $path): bool
+    {
+        try {
+            $this->files->ensureDirectoryExists($path);
+        } catch (Throwable) {
+            //
+        }
+
+        if (! $this->files->isDirectory($path)) {
+            error("[Wayfinder] Unable to create directory: {$path}");
+
+            return false;
+        }
+
+        return true;
     }
 
     private function pruneStaleFiles(string $base, array $writtenPaths): void
