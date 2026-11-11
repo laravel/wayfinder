@@ -47,7 +47,8 @@ class WriteFailureHandledTest extends TestCase
         $this->instance(Filesystem::class, $failingFilesystem);
 
         $this->artisan('wayfinder:generate', ['--path' => $this->tempPath])
-            ->assertFailed();
+            ->assertFailed()
+            ->expectsOutputToContain('[Wayfinder] Unable to write file:');
     }
 
     public function test_command_fails_when_directory_creation_fails(): void
@@ -73,6 +74,7 @@ class WriteFailureHandledTest extends TestCase
         $this->instance(Filesystem::class, $failingFilesystem);
 
         $this->artisan('wayfinder:generate', ['--path' => $this->tempPath])
-            ->assertFailed();
+            ->assertFailed()
+            ->expectsOutputToContain('[Wayfinder] Unable to create directory:');
     }
 }
