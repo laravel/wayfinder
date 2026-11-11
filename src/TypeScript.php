@@ -107,6 +107,7 @@ class TypeScript
         $regexReplacements = [
             '/\=\> \{\n{2,}/' => '=> {'.PHP_EOL,
             '/\\s+\.replace/' => sprintf('%s%s.replace', PHP_EOL, str_repeat(' ', 12)),
+            '/\s+\) \+ queryParams\((\w+)\)/' => ') + queryParams($1)',
             '/\s+\+ queryParams\(options\)/' => ' + queryParams(options)',
             '/\n{3,}/' => "\n\n",
         ];
