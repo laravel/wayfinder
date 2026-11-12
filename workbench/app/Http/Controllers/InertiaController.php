@@ -25,6 +25,7 @@ class InertiaController
         return Inertia::render('UsersList', [
             'users' => UserResource::collection([]),
             'featured' => new UserResource(null),
+            'owner' => auth()->user() ? UserResource::make(auth()->user()) : null,
         ]);
     }
 

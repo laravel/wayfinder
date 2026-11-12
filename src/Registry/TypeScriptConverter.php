@@ -43,7 +43,9 @@ class TypeScriptConverter extends AbstractConverter
 
         $shape = (string) $shape;
 
-        return $result->isCollection ? "{$shape}[]" : $shape;
+        // A resource made on one branch and null on the other is nullable, and
+        // the shape that stands in for the resource has to say so.
+        return $this->decorate($result->isCollection ? "{$shape}[]" : $shape, $result);
     }
 
     protected function convertCallableResult(Types\CallableType $result): string

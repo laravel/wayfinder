@@ -11,7 +11,14 @@ describe("InertiaData with API Resources", () => {
     test("a UserResource::collection() in Inertia data generates a typed array", () => {
         const content = readFileSync(typesPath, "utf-8");
         expect(content).toContain(
-            "export type UsersList = Inertia.SharedData & { users: { id: number, name: string, email: string }[], featured: { id: number, name: string, email: string } }"
+            "export type UsersList = Inertia.SharedData & { users: { id: number, name: string, email: string }[], featured: { id: number, name: string, email: string }, owner: { id: number, name: string, email: string } | null }"
+        );
+    });
+
+    test("a resource that may be null keeps null", () => {
+        const content = readFileSync(typesPath, "utf-8");
+        expect(content).toContain(
+            "owner: { id: number, name: string, email: string } | null"
         );
     });
 

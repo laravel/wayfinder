@@ -3,6 +3,7 @@
 namespace Tests\Unit\Registry;
 
 use Laravel\Surveyor\Types;
+use Laravel\Wayfinder\Registry\ResultConverter;
 use Laravel\Wayfinder\Registry\TypeScriptConverter;
 use PHPUnit\Framework\TestCase;
 
@@ -13,6 +14,10 @@ class TypeScriptConverterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (! ResultConverter::getRegistry()->hasConverter(TypeScriptConverter::class)) {
+            ResultConverter::register(TypeScriptConverter::class);
+        }
 
         $this->converter = new TypeScriptConverter;
     }
@@ -51,5 +56,33 @@ class TypeScriptConverterTest extends TestCase
         $result = $this->converter->convert($arrayType);
 
         $this->assertSame('unknown[]', $result);
+    }
+
+    public function test_nullable_resource_response_keeps_null(): void
+    {
+        $response = $this->resourceResponse()->nullable();
+
+        $this->assertSame('{ id: number } | null', $this->converter->convert($response));
+    }
+
+    public function test_nullable_resource_collection_response_keeps_null(): void
+    {
+        $response = $this->resourceResponse(isCollection: true)->nullable();
+
+        $this->assertSame('{ id: number }[] | null', $this->converter->convert($response));
+    }
+
+    public function test_resource_response_is_not_nullable_by_default(): void
+    {
+        $this->assertSame('{ id: number }', $this->converter->convert($this->resourceResponse()));
+    }
+
+    protected function resourceResponse(bool $isCollection = false): Types\Entities\ResourceResponse
+    {
+        return new Types\Entities\ResourceResponse(
+            'App\\Http\\Resources\\UserResource',
+            Types\Type::array(['id' => Types\Type::int()]),
+            $isCollection,
+        );
     }
 }
